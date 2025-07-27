@@ -126,13 +126,14 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     const map = mapInstanceRef.current;
     const zoom = map.getZoom();
     
-    // Reduce clustering distance based on zoom level
-    const clusterDistance = zoom >= 16 ? 0.0003 : // ~30m at high zoom 
-                           zoom >= 14 ? 0.0008 :   // ~80m at medium zoom
-                           0.002;                  // ~200m at low zoom
+    // Very aggressive clustering reduction - show individual restaurants at moderate zoom
+    const clusterDistance = zoom >= 16 ? 0.00005 : // ~5m at very high zoom - virtually no clustering
+                           zoom >= 14 ? 0.0002 :    // ~20m at high zoom 
+                           zoom >= 12 ? 0.0005 :    // ~50m at medium zoom
+                           0.001;                   // ~100m at low zoom
     
     const clusteredRestaurants = clusterRestaurants(restaurants, clusterDistance);
-    console.log(`Displaying ${clusteredRestaurants.length} clustered markers from ${restaurants.length} restaurants`);
+    console.log(`Zoom: ${zoom.toFixed(1)}, Distance: ${clusterDistance.toFixed(4)}, Displaying ${clusteredRestaurants.length} clustered markers from ${restaurants.length} restaurants`);
 
     clusteredRestaurants.forEach((cluster) => {
       const lat = parseFloat(cluster.representative.latitude);
@@ -183,8 +184,10 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
         .on('click', () => {
           console.log('Map marker clicked:', cluster.representative.name, 'Cluster size:', cluster.count);
           if (cluster.count > 1) {
-            // Zoom in to show clustered restaurants
-            map.setView([lat, lng], Math.min(zoom + 3, 18));
+            // Zoom in more aggressively to break clusters
+            const newZoom = Math.min(zoom + 4, 19);
+            map.setView([lat, lng], newZoom);
+            console.log(`Zooming to level ${newZoom} to break cluster of ${cluster.count} restaurants`);
           } else {
             // Single restaurant click
             onRestaurantClick(cluster.representative);
