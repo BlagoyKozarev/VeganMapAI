@@ -26,23 +26,11 @@ const queryClient = new QueryClient({
 })
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth()
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
+  // Temporarily skip authentication to test the map functionality
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <Route path="/" component={Home} />
-      )}
+      <Route path="/" component={Home} />
+      <Route path="/landing" component={Landing} />
       <Route component={NotFound} />
     </Switch>
   )
