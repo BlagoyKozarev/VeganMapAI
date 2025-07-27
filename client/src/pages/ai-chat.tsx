@@ -4,7 +4,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import TabNavigation from '@/components/layout/TabNavigation';
+
 import { apiRequest } from '@/lib/queryClient';
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -115,16 +115,16 @@ export default function AiChat() {
   ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col pb-20">
+    <div className="min-h-screen bg-white flex flex-col">
       <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center">
             <Button 
               variant="ghost"
-              onClick={() => setLocation('/home')}
+              onClick={() => setLocation('/')}
               className="mr-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <i className="fas fa-arrow-left text-neutral-gray"></i>
+              <i className="fas fa-arrow-left text-gray-600"></i>
             </Button>
             <div className="flex items-center">
               <div className="w-10 h-10 bg-vegan-green rounded-full flex items-center justify-center mr-3">
@@ -237,7 +237,7 @@ export default function AiChat() {
         </div>
       </div>
       
-      <TabNavigation currentTab="agent" />
+
     </div>
   );
 }
