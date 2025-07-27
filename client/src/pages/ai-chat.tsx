@@ -117,18 +117,10 @@ export default function AiChat() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col pb-20">
-      {/* Header with Back Button */}
+      {/* Header with Back Link */}
       <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center">
-            <Button 
-              variant="ghost"
-              onClick={() => setLocation('/')}
-              className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
-              title="Back to Map"
-            >
-              <i className="fas fa-arrow-left text-gray-600 text-lg"></i>
-            </Button>
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-10 h-10 bg-vegan-green rounded-full flex items-center justify-center mr-3">
                 <i className="fas fa-robot text-white"></i>
@@ -138,6 +130,12 @@ export default function AiChat() {
                 <p className="text-sm text-vegan-green">Online</p>
               </div>
             </div>
+            <button 
+              onClick={() => setLocation('/')}
+              className="text-gray-600 hover:text-gray-800 font-medium"
+            >
+              Back
+            </button>
           </div>
         </div>
       </div>
@@ -212,22 +210,26 @@ export default function AiChat() {
       <div className="border-t border-gray-200 p-4 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center space-x-3">
+            {/* Microphone Button */}
+            <Button
+              variant="ghost"
+              className="w-10 h-10 p-0"
+              title="Voice Input"
+            >
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-lg font-bold">🎤</span>
+              </div>
+            </Button>
+            
             <div className="flex-1 relative">
               <Input
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 placeholder="Ask me anything about vegan dining..."
-                className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:border-vegan-green transition-colors font-opensans"
+                className="w-full p-4 border border-gray-200 rounded-2xl outline-none focus:border-vegan-green transition-colors font-opensans"
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                 disabled={chatMutation.isPending}
               />
-              <Button
-                variant="ghost"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-neutral-gray hover:text-vegan-green transition-colors"
-                disabled
-              >
-                <i className="fas fa-microphone"></i>
-              </Button>
             </div>
             <Button
               onClick={handleSendMessage}
