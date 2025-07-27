@@ -72,7 +72,7 @@ export default function AiChat() {
           if (conversationActive && !isSpeaking) {
             startListening();
           }
-        }, 5000); // Wait 5 seconds after AI starts speaking
+        }, 1000); // Wait 1 second after AI starts speaking
       }
     },
     onError: (error) => {
@@ -167,30 +167,33 @@ export default function AiChat() {
       setCurrentMessage(transcript);
       setIsListening(false);
       
-      if (transcript.trim()) {
-        const userMessage: ChatMessage = {
-          role: 'user',
-          content: transcript.trim(),
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, userMessage]);
-        setCurrentMessage('');
-        
-        await chatMutation.mutateAsync(transcript.trim());
-      }
+      // Wait 5 seconds for user to complete their thought before sending
+      setTimeout(async () => {
+        if (transcript.trim()) {
+          const userMessage: ChatMessage = {
+            role: 'user',
+            content: transcript.trim(),
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, userMessage]);
+          setCurrentMessage('');
+          
+          await chatMutation.mutateAsync(transcript.trim());
+        }
+      }, 5000);
     };
 
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
       if (event.error === 'no-speech') {
-        // Wait 5 seconds before restarting after no speech detected
+        // Restart listening after no speech detected
         if (conversationActive) {
           setTimeout(() => {
             if (conversationActive) {
               startListening();
             }
-          }, 5000);
+          }, 1000);
         }
       }
     };
@@ -198,12 +201,12 @@ export default function AiChat() {
     recognition.onend = () => {
       setIsListening(false);
       if (conversationActive && !chatMutation.isPending) {
-        // Wait 5 seconds before restarting to let user complete their thought
+        // Restart listening immediately after speech recognition ends
         setTimeout(() => {
           if (conversationActive) {
             startListening();
           }
-        }, 5000);
+        }, 500);
       }
     };
 
@@ -321,7 +324,7 @@ export default function AiChat() {
           if (conversationActive) {
             startListening();
           }
-        }, 5000); // Wait 5 seconds after AI finishes speaking
+        }, 1000); // Wait 1 second after AI finishes speaking
       }
     };
 
