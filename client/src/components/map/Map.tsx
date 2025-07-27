@@ -267,7 +267,9 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
             // Sofia center - много ресторанти
             const sofiaCenter: [number, number] = [42.6977, 23.3219];
             mapInstanceRef.current?.setView(sofiaCenter, 15);
-            onLocationChange?.(sofiaCenter);
+            console.log('Switching to Sofia center:', sofiaCenter);
+            // Reload page with new location
+            window.location.href = `/?lat=${sofiaCenter[0]}&lng=${sofiaCenter[1]}`;
           }}
           className="block w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
           title="Sofia Center"
@@ -280,7 +282,9 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
             // Vitosha Boulevard area - различни ресторанти  
             const vitoshaArea: [number, number] = [42.6837, 23.3207];
             mapInstanceRef.current?.setView(vitoshaArea, 15);
-            onLocationChange?.(vitoshaArea);
+            console.log('Switching to Vitosha area:', vitoshaArea);
+            // Reload page with new location
+            window.location.href = `/?lat=${vitoshaArea[0]}&lng=${vitoshaArea[1]}`;
           }}
           className="block w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
           title="Vitosha Boulevard"
