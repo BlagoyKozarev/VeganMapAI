@@ -66,6 +66,52 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
     };
   }, []);
 
+  // Helper function to cluster nearby restaurants
+  const clusterRestaurants = (restaurants: Restaurant[], distance: number) => {
+    const clusters: { representative: Restaurant; count: number; restaurants: Restaurant[] }[] = [];
+    const processed = new Set<string>();
+
+    restaurants.forEach(restaurant => {
+      if (processed.has(restaurant.id)) return;
+
+      const lat = parseFloat(restaurant.latitude);
+      const lng = parseFloat(restaurant.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const nearbyRestaurants = restaurants.filter(other => {
+        if (processed.has(other.id) || other.id === restaurant.id) return false;
+        
+        const otherLat = parseFloat(other.latitude);
+        const otherLng = parseFloat(other.longitude);
+        
+        if (isNaN(otherLat) || isNaN(otherLng)) return false;
+        
+        const dist = Math.sqrt(Math.pow(lat - otherLat, 2) + Math.pow(lng - otherLng, 2));
+        return dist < distance;
+      });
+
+      // Find the highest scoring restaurant in the cluster to represent it
+      const clusterRestaurants = [restaurant, ...nearbyRestaurants];
+      const representative = clusterRestaurants.reduce((best, current) => {
+        const currentScore = parseFloat(current.veganScore || '0');
+        const bestScore = parseFloat(best.veganScore || '0');
+        return currentScore > bestScore ? current : best;
+      });
+
+      clusters.push({
+        representative,
+        count: clusterRestaurants.length,
+        restaurants: clusterRestaurants
+      });
+
+      // Mark all restaurants in this cluster as processed
+      clusterRestaurants.forEach(r => processed.add(r.id));
+    });
+
+    return clusters;
+  };
+
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
@@ -77,70 +123,73 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
     });
     markersRef.current = [];
 
-    // Smart filtering to avoid overcrowding
-    let displayRestaurants = [...restaurants];
-    
-    // Sort by vegan score (highest first)
-    displayRestaurants.sort((a, b) => {
-      const scoreA = a.veganScore ? parseFloat(a.veganScore) : 0;
-      const scoreB = b.veganScore ? parseFloat(b.veganScore) : 0;
-      return scoreB - scoreA;
-    });
+    // Smart clustering algorithm to prevent overlapping
+    const clusteredRestaurants = clusterRestaurants(restaurants, 0.002); // ~200m clustering distance
+    console.log(`Displaying ${clusteredRestaurants.length} clustered markers from ${restaurants.length} restaurants`);
 
-    // Limit display based on zoom level and density
-    const maxRestaurants = 15; // Maximum restaurants to show at once
-    if (displayRestaurants.length > maxRestaurants) {
-      console.log(`Reducing ${displayRestaurants.length} restaurants to ${maxRestaurants} highest-scoring ones`);
-      displayRestaurants = displayRestaurants.slice(0, maxRestaurants);
-    }
-
-    // Add restaurant markers
-    displayRestaurants.forEach(restaurant => {
-      const lat = parseFloat(restaurant.latitude);
-      const lng = parseFloat(restaurant.longitude);
+    clusteredRestaurants.forEach((cluster) => {
+      const lat = parseFloat(cluster.representative.latitude);
+      const lng = parseFloat(cluster.representative.longitude);
       
       if (isNaN(lat) || isNaN(lng)) return;
 
-      const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
+      const veganScore = cluster.representative.veganScore ? parseFloat(cluster.representative.veganScore) : 0;
       
-      // Determine pin color based on vegan score
-      let pinColor = '#6B7280'; // gray for no score
-      if (veganScore >= 8.5) {
-        pinColor = '#16A34A'; // dark green for excellent (8.5+)
-      } else if (veganScore >= 7.5) {
-        pinColor = '#22C55E'; // green for very good (7.5-8.4)
-      } else if (veganScore >= 6.5) {
-        pinColor = '#65A30D'; // yellow-green for good (6.5-7.4)
-      } else if (veganScore >= 5.5) {
-        pinColor = '#F59E0B'; // orange for fair (5.5-6.4)
-      } else if (veganScore >= 4.0) {
-        pinColor = '#EF4444'; // red for poor (4.0-5.4)
-      } else {
-        pinColor = '#6B7280'; // gray for very poor or no score
-      }
+      const pinColor = veganScore >= 8.5 ? '#16a34a' : 
+                      veganScore >= 7.5 ? '#22c55e' :
+                      veganScore >= 6.5 ? '#84cc16' :
+                      veganScore >= 5.5 ? '#f59e0b' :
+                      veganScore >= 4.0 ? '#ef4444' : '#9ca3af';
 
-      const restaurantIcon = L.divIcon({
-        className: 'restaurant-marker',
+      // Show cluster count if more than 1 restaurant
+      const displayText = cluster.count > 1 ? cluster.count.toString() : veganScore.toFixed(1);
+      const markerSize = cluster.count > 1 ? 42 : 36;
+
+      const customIcon = L.divIcon({
+        className: 'custom-restaurant-marker',
         html: `
-          <div class="score-badge bg-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-sm cursor-pointer hover:scale-110 transition-transform shadow-lg border-2" 
-               style="background-color: ${pinColor}; color: white; border-color: white;">
-            ${veganScore ? veganScore.toFixed(1) : '?'}
+          <div style="
+            background-color: ${pinColor};
+            color: white;
+            border-radius: 50%;
+            width: ${markerSize}px;
+            height: ${markerSize}px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: ${cluster.count > 1 ? '14px' : '12px'};
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            ${cluster.count > 1 ? 'border: 3px solid #fbbf24;' : ''}
+          ">
+            ${displayText}
           </div>
         `,
-        iconSize: [48, 48],
-        iconAnchor: [24, 24],
+        iconSize: [markerSize, markerSize],
+        iconAnchor: [markerSize/2, markerSize/2],
       });
 
-      const marker = L.marker([lat, lng], { icon: restaurantIcon })
+      const marker = L.marker([lat, lng], { icon: customIcon })
         .addTo(mapInstanceRef.current!)
         .on('click', (e) => {
-          console.log('Map marker clicked:', restaurant.name);
+          console.log('Map marker clicked:', cluster.representative.name, 'Cluster size:', cluster.count);
           e.originalEvent?.stopPropagation();
-          onRestaurantClick(restaurant);
+          if (cluster.count > 1) {
+            // Zoom in to show clustered restaurants
+            mapInstanceRef.current?.setView([lat, lng], Math.min(mapInstanceRef.current.getZoom() + 2, 18));
+          } else {
+            onRestaurantClick(cluster.representative);
+          }
         });
 
       // Add tooltip on hover
-      marker.bindTooltip(`${restaurant.name} (${veganScore.toFixed(1)})`, {
+      const tooltipText = cluster.count > 1 
+        ? `${cluster.count} restaurants in this area` 
+        : `${cluster.representative.name} (${veganScore.toFixed(1)})`;
+        
+      marker.bindTooltip(tooltipText, {
         permanent: false,
         direction: 'top',
         offset: [0, -10],
