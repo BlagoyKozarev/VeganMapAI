@@ -148,34 +148,37 @@ export default function Home() {
           
           {/* Right Icons */}
           <div className="flex items-center ml-3 space-x-2">
-            <Button 
-              variant="ghost" 
-              onClick={() => setLocation('/admin-scoring')}
-              className="w-10 h-10 p-0 bg-purple-500 hover:bg-purple-600 rounded-full"
-              title="Admin Scoring"
-            >
-              <span className="text-white text-lg">⚡</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => setLocation('/ai-chat')}
-              className="w-10 h-10 p-0"
-              title="AI Assistant"
-            >
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg font-bold">🎤</span>
-              </div>
-            </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => setLocation('/profile')}
-              className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center p-0"
-              title="Profile"
-            >
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                BK
-              </div>
-            </Button>
+            <a href="/admin-scoring">
+              <Button 
+                variant="ghost" 
+                className="w-10 h-10 p-0 bg-purple-500 hover:bg-purple-600 rounded-full"
+                title="Admin Scoring"
+              >
+                <span className="text-white text-lg">⚡</span>
+              </Button>
+            </a>
+            <a href="/ai-chat">
+              <Button 
+                variant="ghost" 
+                className="w-10 h-10 p-0"
+                title="AI Assistant"
+              >
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-lg font-bold">🎤</span>
+                </div>
+              </Button>
+            </a>
+            <a href="/profile">
+              <Button 
+                variant="ghost" 
+                className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center p-0"
+                title="Profile"
+              >
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  BK
+                </div>
+              </Button>
+            </a>
           </div>
         </div>
       </div>

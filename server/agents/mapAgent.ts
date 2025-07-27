@@ -32,7 +32,15 @@ export class MapAgent {
     try {
       const googlePlaces = await findNearbyRestaurants(lat, lng, radiusMeters);
       
-      for (const place of googlePlaces) {
+      // Filter only restaurants with rating > 3.0
+      const qualityRestaurants = googlePlaces.filter(place => {
+        const rating = place.rating || 0;
+        return rating > 3.0;
+      });
+
+      console.log(`Found ${googlePlaces.length} total restaurants, filtering to ${qualityRestaurants.length} with rating > 3.0`);
+      
+      for (const place of qualityRestaurants) {
         try {
           // Check if restaurant already exists
           const existing = await storage.getRestaurantByPlaceId(place.place_id);

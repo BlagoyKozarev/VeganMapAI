@@ -63,7 +63,7 @@ export default function AdminScoringPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...sofiaLocation,
-          radius: 2000
+          radius: expandedRadius * 1000
         })
       });
       if (!response.ok) throw new Error('Failed to populate restaurants');
@@ -125,7 +125,7 @@ export default function AdminScoringPage() {
               <span>Target Location</span>
             </CardTitle>
             <CardDescription>
-              Calculating scores for restaurants in Sofia, Bulgaria
+              Calculating scores for quality restaurants (rating &gt; 3.0) in Sofia, Bulgaria
             </CardDescription>
           </CardHeader>
           <CardContent>
