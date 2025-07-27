@@ -72,7 +72,7 @@ export default function AiChat() {
           if (conversationActive && !isSpeaking) {
             startListening();
           }
-        }, 2000); // Wait 2 seconds after AI starts speaking
+        }, 5000); // Wait 5 seconds after AI starts speaking
       }
     },
     onError: (error) => {
@@ -297,7 +297,7 @@ export default function AiChat() {
           if (conversationActive) {
             startListening();
           }
-        }, 1000); // Wait 1 second after AI finishes speaking
+        }, 5000); // Wait 5 seconds after AI finishes speaking
       }
     };
 
