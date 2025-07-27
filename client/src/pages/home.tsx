@@ -40,7 +40,7 @@ export default function Home() {
       const params = new URLSearchParams({
         lat: currentPosition!.lat.toString(),
         lng: currentPosition!.lng.toString(),
-        radius: '5'
+        radius: '15'
       });
       
       console.log('Fetching restaurants with params:', params.toString());
