@@ -155,23 +155,31 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]> {
-    // Using the Haversine formula to calculate distance
-    const earthRadiusKm = 6371;
-    const query = sql`
-      SELECT *, 
-      ${earthRadiusKm} * acos(
-        cos(radians(${lat})) * 
-        cos(radians(CAST(latitude AS DECIMAL))) * 
-        cos(radians(CAST(longitude AS DECIMAL)) - radians(${lng})) + 
-        sin(radians(${lat})) * 
-        sin(radians(CAST(latitude AS DECIMAL)))
-      ) AS distance
-      FROM ${restaurants}
-      HAVING distance <= ${radiusKm}
-      ORDER BY distance ASC
-    `;
+    console.log(`Getting restaurants in radius: lat=${lat}, lng=${lng}, radius=${radiusKm}km`);
     
-    return await db.execute(query) as Restaurant[];
+    // For now, return all restaurants and filter client-side for simplicity
+    // In production, use proper geospatial queries
+    const allRestaurants = await db.select().from(restaurants);
+    
+    console.log(`Found ${allRestaurants.length} total restaurants in database`);
+    
+    // Simple distance calculation (approximately)
+    const filteredRestaurants = allRestaurants.filter(restaurant => {
+      const restLat = parseFloat(restaurant.latitude);
+      const restLng = parseFloat(restaurant.longitude);
+      
+      // Simple distance approximation in km
+      const latDiff = Math.abs(lat - restLat);
+      const lngDiff = Math.abs(lng - restLng);
+      const approximateDistance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 111; // ~111km per degree
+      
+      console.log(`Restaurant ${restaurant.name}: distance ~${approximateDistance.toFixed(2)}km`);
+      
+      return approximateDistance <= radiusKm;
+    });
+    
+    console.log(`Returning ${filteredRestaurants.length} restaurants within ${radiusKm}km`);
+    return filteredRestaurants;
   }
   
   async searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]> {
