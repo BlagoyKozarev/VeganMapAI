@@ -34,17 +34,10 @@ export default function Home() {
     position;
 
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
-    queryKey: ['/api/restaurants/nearby', currentPosition?.lat, currentPosition?.lng],
-    enabled: !!currentPosition,
+    queryKey: ['/api/restaurants/all-available'],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        lat: currentPosition!.lat.toString(),
-        lng: currentPosition!.lng.toString(),
-        radius: '15'
-      });
-      
-      console.log('Fetching restaurants with params:', params.toString());
-      const response = await fetch(`/api/restaurants/nearby?${params}`);
+      console.log('Fetching all available restaurants with AI scores');
+      const response = await fetch('/api/restaurants/all-available');
       if (!response.ok) throw new Error('Failed to fetch restaurants');
       
       const data = await response.json();

@@ -140,8 +140,26 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     });
     markersRef.current = [];
 
-    // Dynamic clustering based on zoom level
+    // Filter restaurants visible in current map bounds with some buffer
     const map = mapInstanceRef.current;
+    const bounds = map.getBounds();
+    const padding = 0.05; // Add padding to show restaurants just outside visible area
+    
+    const visibleRestaurants = restaurants.filter(restaurant => {
+      const lat = parseFloat(restaurant.latitude);
+      const lng = parseFloat(restaurant.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return false;
+      
+      return lat >= bounds.getSouth() - padding && 
+             lat <= bounds.getNorth() + padding &&
+             lng >= bounds.getWest() - padding && 
+             lng <= bounds.getEast() + padding;
+    });
+
+    console.log(`Showing ${visibleRestaurants.length} restaurants in current map bounds`);
+
+    // Dynamic clustering based on zoom level
     const zoom = map.getZoom();
     
     // Balanced clustering - prevent overlapping while showing individual restaurants
@@ -150,8 +168,8 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
                            zoom >= 13 ? 0.0006 :    // ~60m at medium zoom
                            0.0012;                  // ~120m at low zoom
     
-    const clusteredRestaurants = clusterRestaurants(restaurants, clusterDistance);
-    console.log(`Zoom: ${zoom.toFixed(1)}, Distance: ${clusterDistance.toFixed(4)}, Displaying ${clusteredRestaurants.length} clustered markers from ${restaurants.length} restaurants`);
+    const clusteredRestaurants = clusterRestaurants(visibleRestaurants, clusterDistance);
+    console.log(`Zoom: ${zoom.toFixed(1)}, Distance: ${clusterDistance.toFixed(4)}, Displaying ${clusteredRestaurants.length} clustered markers from ${visibleRestaurants.length} visible restaurants`);
 
     clusteredRestaurants.forEach((cluster) => {
       // Use cluster center for better positioning, fallback to representative

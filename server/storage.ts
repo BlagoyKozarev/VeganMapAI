@@ -44,6 +44,7 @@ export interface IStorage {
   getRestaurantByPlaceId(placeId: string): Promise<Restaurant | undefined>;
   createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant>;
   updateRestaurant(id: string, restaurant: Partial<InsertRestaurant>): Promise<Restaurant>;
+  getAllRestaurantsWithScores(): Promise<Restaurant[]>;
   getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]>;
   searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]>;
   
@@ -154,6 +155,19 @@ export class DatabaseStorage implements IStorage {
     return updatedRestaurant;
   }
   
+  async getAllRestaurantsWithScores(): Promise<Restaurant[]> {
+    console.log('Getting all restaurants with AI vegan scores');
+    const allRestaurants = await db.select().from(restaurants);
+    
+    // Only return restaurants with vegan scores (exclude 0 scores which are placeholders)
+    const scoredRestaurants = allRestaurants.filter(restaurant => 
+      restaurant.veganScore && parseFloat(restaurant.veganScore) > 0
+    );
+    
+    console.log(`Found ${allRestaurants.length} total restaurants, ${scoredRestaurants.length} with AI scores`);
+    return scoredRestaurants;
+  }
+
   async getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]> {
     console.log(`Getting restaurants in radius: lat=${lat}, lng=${lng}, radius=${radiusKm}km`);
     
