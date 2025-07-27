@@ -1,0 +1,140 @@
+import { useState, useEffect } from 'react';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useNearbyRestaurants } from '@/hooks/useRestaurants';
+import Map from '@/components/map/Map';
+import SearchBar from '@/components/ui/search-bar';
+import ActionMenu from '@/components/ui/action-menu';
+import TabNavigation from '@/components/layout/TabNavigation';
+import { Button } from '@/components/ui/button';
+import { Restaurant } from '@/types';
+import { useToast } from '@/hooks/use-toast';
+
+export default function Home() {
+  const { position, error, loading, getCurrentPosition } = useGeolocation();
+  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const { toast } = useToast();
+
+  const { 
+    data: restaurants = [], 
+    isLoading: restaurantsLoading,
+    error: restaurantsError 
+  } = useNearbyRestaurants(position, 2);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Location Error',
+        description: error,
+        variant: 'destructive',
+      });
+    }
+  }, [error, toast]);
+
+  useEffect(() => {
+    if (restaurantsError) {
+      toast({
+        title: 'Error Loading Restaurants',
+        description: 'Failed to load nearby restaurants. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  }, [restaurantsError, toast]);
+
+  const handleRestaurantClick = (restaurant: Restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setShowActionMenu(true);
+  };
+
+  const handleCloseActionMenu = () => {
+    setShowActionMenu(false);
+    setSelectedRestaurant(null);
+  };
+
+  const handleCurrentLocation = async () => {
+    try {
+      await getCurrentPosition();
+      toast({
+        title: 'Location Updated',
+        description: 'Your location has been updated.',
+      });
+    } catch (error) {
+      // Error already handled in useGeolocation
+    }
+  };
+
+  if (loading && !position) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-vegan-green rounded-2xl mb-4 animate-pulse">
+            <i className="fas fa-map-marker-alt text-white text-2xl"></i>
+          </div>
+          <p className="text-neutral-gray font-opensans">Getting your location...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!position && error) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-2xl mb-4">
+            <i className="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+          </div>
+          <h2 className="text-xl font-poppins font-semibold mb-2">Location Access Required</h2>
+          <p className="text-neutral-gray font-opensans mb-6">
+            VeganMapAI needs access to your location to show nearby vegan-friendly restaurants.
+          </p>
+          <Button 
+            onClick={handleCurrentLocation}
+            className="bg-vegan-green hover:bg-vegan-dark-green text-white"
+          >
+            <i className="fas fa-location-arrow mr-2"></i>
+            Enable Location
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative min-h-screen bg-white">
+      {/* Search Bar */}
+      <div className="absolute top-4 left-4 right-4 z-20">
+        <SearchBar />
+      </div>
+
+      {/* Map Container */}
+      <div className="h-screen relative">
+        <Map
+          center={position ? [position.lat, position.lng] : [40.7128, -74.0060]}
+          restaurants={restaurants}
+          onRestaurantClick={handleRestaurantClick}
+          loading={restaurantsLoading}
+        />
+      </div>
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={handleCurrentLocation}
+        className="absolute bottom-24 right-4 w-14 h-14 bg-vegan-green rounded-full shadow-lg flex items-center justify-center text-white hover:bg-vegan-dark-green transition-colors z-30 p-0"
+        disabled={loading}
+      >
+        <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-location-arrow'} text-xl`}></i>
+      </Button>
+
+      {/* Action Menu */}
+      {showActionMenu && selectedRestaurant && (
+        <ActionMenu
+          restaurant={selectedRestaurant}
+          onClose={handleCloseActionMenu}
+        />
+      )}
+
+      {/* Bottom Tab Navigation */}
+      <TabNavigation currentTab="map" />
+    </div>
+  );
+}
