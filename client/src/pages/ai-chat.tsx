@@ -222,12 +222,12 @@ export default function AiChat() {
               {/* Send Button in Input */}
               <Button
                 variant="ghost"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-vegan-green transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 px-3 py-1 text-gray-500 hover:text-vegan-green transition-colors font-medium text-sm"
                 onClick={handleSendMessage}
                 disabled={!currentMessage.trim() || chatMutation.isPending}
                 title="Send Message"
               >
-                <i className="fas fa-paper-plane"></i>
+                Send
               </Button>
             </div>
             {/* Microphone Button Outside */}
