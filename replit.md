@@ -7,6 +7,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+AI Chat Response Style: Brief, clear, direct responses. No task repetition, focus on results only. Maximum 2-3 sentences per response.
 
 ## System Architecture
 
