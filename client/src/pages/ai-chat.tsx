@@ -219,19 +219,27 @@ export default function AiChat() {
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                 disabled={chatMutation.isPending}
               />
-              {/* Microphone Button in Input */}
+              {/* Send Button in Input */}
               <Button
                 variant="ghost"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0"
-                title="Voice Input"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-vegan-green transition-colors"
                 onClick={handleSendMessage}
                 disabled={!currentMessage.trim() || chatMutation.isPending}
+                title="Send Message"
               >
-                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">🎤</span>
-                </div>
+                <i className="fas fa-paper-plane"></i>
               </Button>
             </div>
+            {/* Microphone Button Outside */}
+            <Button
+              variant="ghost"
+              className="w-10 h-10 p-0"
+              title="Voice Input"
+            >
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-lg font-bold">🎤</span>
+              </div>
+            </Button>
           </div>
         </div>
       </div>
