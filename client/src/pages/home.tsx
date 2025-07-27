@@ -119,40 +119,57 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* Header with Icons and Search */}
-      <div className="absolute top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <div className="px-4 py-3">
-          {/* Top Row - Logo and Icons */}
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-poppins font-bold text-vegan-green">VeganMapAI</h1>
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="ghost" 
-                onClick={() => setLocation('/ai-chat')}
-                className="p-2 hover:bg-vegan-light-green rounded-full transition-colors"
-                title="AI Assistant"
-              >
-                <i className="fas fa-microphone text-vegan-green text-lg"></i>
-              </Button>
-              <Button 
-                variant="ghost" 
-                onClick={() => setLocation('/profile')}
-                className="p-2 hover:bg-vegan-light-green rounded-full transition-colors"
-                title="Profile"
-              >
-                <i className="fas fa-user text-vegan-green text-lg"></i>
-              </Button>
+      {/* Google Maps Style Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 bg-white shadow-sm">
+        <div className="flex items-center px-4 py-3">
+          {/* Menu Button */}
+          <Button 
+            variant="ghost" 
+            className="p-2 mr-3 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <i className="fas fa-bars text-gray-600 text-lg"></i>
+          </Button>
+          
+          {/* Search Bar - Google Maps Style */}
+          <div className="flex-1 relative">
+            <div className="bg-white border border-gray-300 rounded-lg shadow-sm flex items-center px-4 py-3 hover:shadow-md transition-shadow">
+              <i className="fas fa-search text-gray-400 mr-3"></i>
+              <input
+                type="text"
+                placeholder="Search for vegan places"
+                className="flex-1 outline-none text-gray-700 font-opensans"
+                onFocus={() => setLocation('/search')}
+              />
             </div>
           </div>
           
-          {/* Search Bar */}
-          <SearchBar />
+          {/* Right Icons */}
+          <div className="flex items-center ml-3 space-x-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => setLocation('/ai-chat')}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              title="AI Assistant"
+            >
+              <i className="fas fa-microphone text-gray-600 text-lg"></i>
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => setLocation('/profile')}
+              className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
+              title="Profile"
+            >
+              <div className="w-8 h-8 bg-vegan-green rounded-full flex items-center justify-center">
+                <i className="fas fa-user text-white text-sm"></i>
+              </div>
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Map Container */}
       <div className="h-screen relative">
-        <div className="absolute inset-0" style={{ marginTop: '120px' }}>
+        <div className="absolute inset-0" style={{ marginTop: '75px' }}>
           <Map
             center={position ? [position.lat, position.lng] : [42.7, 23.16]}
             restaurants={restaurants}
@@ -162,14 +179,64 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <Button
-        onClick={handleCurrentLocation}
-        className="absolute bottom-24 right-4 w-14 h-14 bg-vegan-green rounded-full shadow-lg flex items-center justify-center text-white hover:bg-vegan-dark-green transition-colors z-30 p-0"
-        disabled={loading}
-      >
-        <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-location-arrow'} text-xl`}></i>
-      </Button>
+      {/* Google Maps Style Controls */}
+      <div className="absolute bottom-32 right-4 z-30">
+        {/* My Location Button */}
+        <Button
+          onClick={handleCurrentLocation}
+          className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors mb-2"
+          disabled={loading}
+        >
+          <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-crosshairs'} text-lg`}></i>
+        </Button>
+        
+        {/* Zoom Controls */}
+        <div className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden">
+          <Button
+            variant="ghost"
+            className="w-12 h-12 border-b border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-600"
+          >
+            <i className="fas fa-plus text-lg"></i>
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-12 h-12 hover:bg-gray-50 flex items-center justify-center text-gray-600"
+          >
+            <i className="fas fa-minus text-lg"></i>
+          </Button>
+        </div>
+      </div>
+
+      {/* Vegan Score Legend */}
+      <div className="absolute top-20 right-4 z-30 bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs">
+        <h3 className="text-sm font-opensans font-semibold text-gray-700 mb-2">Vegan Score</h3>
+        <div className="space-y-1">
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-green-600 rounded-full mr-2"></div>
+            <span className="text-gray-600">8.5+ Excellent</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
+            <span className="text-gray-600">7.5+ Very Good</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+            <span className="text-gray-600">6.5+ Good</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+            <span className="text-gray-600">5.5+ Fair</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+            <span className="text-gray-600">4.0+ Poor</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+            <span className="text-gray-600">&lt;4.0 Very Poor</span>
+          </div>
+        </div>
+      </div>
 
       {/* Action Menu */}
       {showActionMenu && selectedRestaurant && (
