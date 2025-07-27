@@ -217,15 +217,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const restaurants = await storage.getRestaurantsNearby(latitude, longitude, radiusKm);
       
-      console.log(`Found ${restaurants.length} total restaurants in database`);
-      
-      // Log sample of restaurants with distances
-      restaurants.forEach(restaurant => {
-        const distance = calculateDistance(latitude, longitude, 
-          parseFloat(restaurant.latitude), parseFloat(restaurant.longitude));
-        console.log(`Restaurant ${restaurant.name}: distance ~${distance.toFixed(2)}km`);
-      });
-      
       console.log(`Returning ${restaurants.length} restaurants within ${radiusKm}km`);
       
       res.json(restaurants);
