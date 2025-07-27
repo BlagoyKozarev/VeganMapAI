@@ -43,7 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const profileData = insertUserProfileSchema.parse(req.body);
       
-      const profile = await profileAgent.createUserProfile(userId, profileData);
+      // Add userId to the profile data for creation
+      const fullProfileData = { ...profileData, userId };
+      const profile = await profileAgent.createUserProfile(userId, fullProfileData);
       res.json(profile);
     } catch (error) {
       console.error("Error creating profile:", error);
@@ -165,7 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxDistance: maxDistance ? parseInt(maxDistance as string) : userProfile?.maxDistance,
         priceRange: priceRange ? (priceRange as string).split(',') : undefined,
         cuisineTypes: cuisineTypes ? (cuisineTypes as string).split(',') : undefined,
-        allergies: userProfile?.allergies
+        allergies: userProfile?.allergies || undefined
       };
 
       const userLocation = lat && lng ? {

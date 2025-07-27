@@ -153,9 +153,14 @@ export default function ProfileSetup() {
           <h3 className="text-2xl font-poppins font-semibold mb-2">
             {steps[currentStep - 1].description}
           </h3>
-          <p className="text-neutral-gray mb-6">
+          <p className="text-neutral-gray mb-4">
             This helps us recommend the best places for you
           </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+            <p className="text-sm text-blue-800">
+              <span className="font-medium">Skip anytime:</span> If you skip this setup, we'll create a default profile that you can modify later in your settings.
+            </p>
+          </div>
           
           {currentStep === 1 && (
             <RadioGroup 

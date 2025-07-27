@@ -83,7 +83,7 @@ export class MapAgent {
       const veganAnalysis = await analyzeVeganFriendliness({
         name: newRestaurant.name,
         description: googlePlacesData.editorial_summary?.overview,
-        cuisine: newRestaurant.cuisineTypes,
+        cuisine: newRestaurant.cuisineTypes || [],
         reviews: googlePlacesData.reviews?.map((r: any) => r.text) || [],
       });
 
