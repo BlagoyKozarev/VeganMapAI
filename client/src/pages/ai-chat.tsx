@@ -224,19 +224,14 @@ export default function AiChat() {
                 variant="ghost"
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0"
                 title="Voice Input"
+                onClick={handleSendMessage}
+                disabled={!currentMessage.trim() || chatMutation.isPending}
               >
                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm">🎤</span>
                 </div>
               </Button>
             </div>
-            <Button
-              onClick={handleSendMessage}
-              disabled={!currentMessage.trim() || chatMutation.isPending}
-              className="bg-vegan-green text-white p-4 rounded-2xl hover:bg-vegan-dark-green transition-colors"
-            >
-              <i className="fas fa-paper-plane"></i>
-            </Button>
           </div>
         </div>
       </div>
