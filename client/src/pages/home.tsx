@@ -22,14 +22,24 @@ export default function Home() {
   const { position, loading, error, getCurrentLocation } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  
+  // Check URL parameters for custom location
+  const urlParams = new URLSearchParams(window.location.search);
+  const customLat = urlParams.get('lat');
+  const customLng = urlParams.get('lng');
+  
+  // Use custom location if provided, otherwise use geolocation
+  const currentPosition = customLat && customLng ? 
+    { lat: parseFloat(customLat), lng: parseFloat(customLng) } : 
+    position;
 
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
-    queryKey: ['/api/restaurants/nearby', position?.lat, position?.lng],
-    enabled: !!position,
+    queryKey: ['/api/restaurants/nearby', currentPosition?.lat, currentPosition?.lng],
+    enabled: !!currentPosition,
     queryFn: async () => {
       const params = new URLSearchParams({
-        lat: position!.lat.toString(),
-        lng: position!.lng.toString(),
+        lat: currentPosition!.lat.toString(),
+        lng: currentPosition!.lng.toString(),
         radius: '2'
       });
       
@@ -173,9 +183,13 @@ export default function Home() {
       {/* Map Container */}
       <div className="absolute inset-0 pt-16" style={{ zIndex: 1 }}>
         <Map
-          center={position ? [position.lat, position.lng] : [42.7, 23.16]}
+          center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
           restaurants={restaurants}
           onRestaurantClick={handleRestaurantClick}
+          onLocationChange={(newCenter) => {
+            // Refresh page with new coordinates to trigger restaurant reload
+            window.location.reload();
+          }}
           loading={restaurantsLoading}
         />
       </div>
