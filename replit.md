@@ -160,8 +160,10 @@ The application is designed to be modular and scalable, with clear separation be
 ### July 27, 2025 - Full Voice Conversation Implementation
 - Implemented complete voice conversation system with Web Speech API
 - Added continuous voice conversation mode with automatic listening after AI responses
-- Configured 5-second pause between user speech and AI response for thought completion
-- Set 7-second inactivity timeout for conversation termination
+- Configured intelligent timing: 5-second delay for new conversations, immediate response for active conversations
+- Set adaptive timeout: 5 seconds for new conversations, 7 seconds for active conversations
+- Added Clear button functionality to reset chat history and stop active voice sessions
 - Added visual feedback with different colored states (green=ready, red=recording, orange=active)
 - Speech recognition and synthesis both configured for Bulgarian language (bg-BG)
 - AI responses optimized for concise, direct communication (2-3 sentences max)
+- Voice conversation system working smoothly with proper timing controls
