@@ -58,8 +58,18 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
 
   const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
 
+  console.log('ActionMenu rendering for restaurant:', restaurant.name);
+  
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50 p-4"
+      onClick={(e) => {
+        // Only close if clicking on the backdrop, not the card
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <Card className="w-full max-w-md floating-card">
         <CardContent className="p-4">
           <div className="flex items-center mb-4">

@@ -25,9 +25,14 @@ export default function Home() {
   useEffect(() => {
     console.log('Home component - restaurants count:', restaurants.length);
     if (restaurants.length > 0) {
-      console.log('Sample restaurant scores:', restaurants.map(r => ({ name: r.name, score: r.veganScore })));
+      console.log('Sample restaurant scores:', restaurants.map((r: any) => ({ name: r.name, score: r.veganScore })));
     }
   }, [restaurants]);
+
+  // Debug action menu state
+  useEffect(() => {
+    console.log('Action menu state changed:', { showActionMenu, selectedRestaurant: selectedRestaurant?.name });
+  }, [showActionMenu, selectedRestaurant]);
 
   useEffect(() => {
     if (error) {
@@ -51,8 +56,10 @@ export default function Home() {
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
     console.log('Restaurant clicked:', restaurant.name);
+    console.log('Setting selectedRestaurant and showActionMenu to true');
     setSelectedRestaurant(restaurant);
     setShowActionMenu(true);
+    console.log('State after setting:', { showActionMenu: true, selectedRestaurant: restaurant?.name });
   };
 
   const handleCloseActionMenu = () => {
