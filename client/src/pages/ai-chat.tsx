@@ -168,9 +168,13 @@ export default function AiChat() {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
       if (event.error === 'no-speech') {
-        // Restart listening after no speech detected
+        // Wait 5 seconds before restarting after no speech detected
         if (conversationActive) {
-          setTimeout(() => startListening(), 1000);
+          setTimeout(() => {
+            if (conversationActive) {
+              startListening();
+            }
+          }, 5000);
         }
       }
     };
@@ -178,8 +182,12 @@ export default function AiChat() {
     recognition.onend = () => {
       setIsListening(false);
       if (conversationActive && !chatMutation.isPending) {
-        // Restart listening if conversation is still active
-        setTimeout(() => startListening(), 500);
+        // Wait 5 seconds before restarting to let user complete their thought
+        setTimeout(() => {
+          if (conversationActive) {
+            startListening();
+          }
+        }, 5000);
       }
     };
 
@@ -191,10 +199,10 @@ export default function AiChat() {
       clearTimeout(timeoutRef.current);
     }
     
-    // End conversation after 30 seconds of inactivity
+    // End conversation after 7 seconds of inactivity
     timeoutRef.current = setTimeout(() => {
       endConversation();
-    }, 30000);
+    }, 7000);
   };
 
   const endConversation = () => {
@@ -356,7 +364,7 @@ export default function AiChat() {
               🎙️ Voice conversation active - {isListening ? 'Listening...' : isSpeaking ? 'Speaking...' : 'Ready'}
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Conversation will end after 30 seconds of inactivity
+              Conversation will end after 7 seconds of inactivity
             </p>
           </div>
         )}

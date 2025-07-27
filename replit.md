@@ -156,3 +156,12 @@ The application is designed to be modular and scalable, with clear separation be
 - Fixed positioning issues with fixed positioning for all UI elements
 - Smart clustering system working properly (displays "3 clustered markers from 10 restaurants")
 - All TypeScript errors resolved and components properly structured
+
+### July 27, 2025 - Full Voice Conversation Implementation
+- Implemented complete voice conversation system with Web Speech API
+- Added continuous voice conversation mode with automatic listening after AI responses
+- Configured 5-second pause between user speech and AI response for thought completion
+- Set 7-second inactivity timeout for conversation termination
+- Added visual feedback with different colored states (green=ready, red=recording, orange=active)
+- Speech recognition and synthesis both configured for Bulgarian language (bg-BG)
+- AI responses optimized for concise, direct communication (2-3 sentences max)
