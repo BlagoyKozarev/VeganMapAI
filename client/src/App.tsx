@@ -35,7 +35,7 @@ function Router() {
         <Route path="/" component={Landing} />
       ) : (
         <>
-          <Route path="/" component={user?.hasProfile && user?.isProfileComplete ? Home : ProfileSetup} />
+          <Route path="/" component={Home} />
           <Route path="/profile-setup" component={ProfileSetup} />
           <Route path="/home" component={Home} />
           <Route path="/search" component={Search} />

@@ -266,8 +266,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getRestaurantsInRadius(40.7128, -74.0060, 5) // Default to NYC, would use actual location
       ]);
 
-      const chatHistory = chatSession?.messages || [];
+      const chatHistory = (chatSession?.messages as any[]) || [];
       
+      const { chatWithAI } = await import('./services/aiChat');
       const response = await chatWithAI(message, {
         userProfile,
         nearbyRestaurants: nearbyRestaurants.slice(0, 5),

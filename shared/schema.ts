@@ -174,6 +174,37 @@ export const insertUserAnalyticsSchema = createInsertSchema(userAnalytics).omit(
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = typeof userProfiles.$inferInsert;
+export type Restaurant = typeof restaurants.$inferSelect;
+export type VeganScoreBreakdown = typeof veganScoreBreakdown.$inferSelect;
+export type UserFavorite = typeof userFavorites.$inferSelect;
+export type UserVisit = typeof userVisits.$inferSelect;
+export type ChatSession = typeof chatSessions.$inferSelect;
+export type UserAnalytics = typeof userAnalytics.$inferSelect;
+
+// Insert types
+export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type InsertVeganScoreBreakdown = z.infer<typeof insertVeganScoreBreakdownSchema>;
+export type InsertUserFavorite = z.infer<typeof insertUserFavoriteSchema>;
+export type InsertUserVisit = z.infer<typeof insertUserVisitSchema>;
+export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
+export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
+
+// Additional types for frontend
+export interface SearchFilters {
+  minVeganScore?: number;
+  maxDistance?: number;
+  priceRange?: string[];
+  cuisineTypes?: string[];
+  allergies?: string[];
+}
+
+export interface PersonalMatch {
+  tasteMatch: number;
+  healthFit: number;
+}
+export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
 export type Restaurant = typeof restaurants.$inferSelect;
 export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
