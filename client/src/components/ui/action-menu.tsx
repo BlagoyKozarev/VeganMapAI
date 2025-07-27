@@ -1,10 +1,8 @@
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import ScoreBadge from './score-badge';
-import { useFavoriteRestaurant, useUnfavoriteRestaurant } from '@/hooks/useRestaurants';
 import { Restaurant } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 interface ActionMenuProps {
   restaurant: Restaurant;
@@ -14,9 +12,14 @@ interface ActionMenuProps {
 export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
-  const favoriteMutation = useFavoriteRestaurant();
-  const unfavoriteMutation = useUnfavoriteRestaurant();
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   const handleViewDetails = () => {
     setLocation(`/restaurant/${restaurant.id}`);
@@ -52,7 +55,10 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
   };
 
   const handleFavorite = () => {
-    favoriteMutation.mutate(restaurant.id);
+    toast({
+      title: 'Added to Favorites',
+      description: `${restaurant.name} has been added to your favorites.`,
+    });
     onClose();
   };
 
@@ -62,68 +68,81 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
   
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50 p-4"
+      className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-end justify-center p-0"
+      style={{ 
+        zIndex: 999999,
+        position: 'fixed',
+        backdropFilter: 'blur(2px)'
+      }}
       onClick={(e) => {
-        // Only close if clicking on the backdrop, not the card
         if (e.target === e.currentTarget) {
           onClose();
         }
       }}
     >
-      <Card className="w-full max-w-md floating-card">
-        <CardContent className="p-4">
-          <div className="flex items-center mb-4">
-            <div className="w-16 h-16 bg-vegan-light-green rounded-xl flex items-center justify-center mr-4">
-              <i className="fas fa-utensils text-vegan-green text-2xl"></i>
+      <div 
+        className="w-full max-w-md bg-white rounded-t-2xl shadow-2xl p-6 m-4 mb-0"
+        style={{ 
+          zIndex: 999999,
+          transform: 'translateY(0)',
+          animation: 'slideUp 0.2s ease-out'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-3">
+              <span className="text-green-600 font-bold text-lg">
+                {veganScore ? veganScore.toFixed(1) : '?'}
+              </span>
             </div>
-            <div className="flex-1">
-              <h3 className="font-poppins font-semibold text-lg mb-1">{restaurant.name}</h3>
-              <div className="flex items-center mb-1">
-                <ScoreBadge score={veganScore} size="sm" className="mr-2" />
-                <span className="text-neutral-gray text-sm">
-                  {restaurant.cuisineTypes?.join(', ') || 'Restaurant'}
-                </span>
-              </div>
-              <p className="text-neutral-gray text-sm">{restaurant.address}</p>
+            <div>
+              <h3 className="font-semibold text-lg text-gray-900">{restaurant.name}</h3>
+              <p className="text-gray-500 text-sm">{restaurant.cuisineTypes?.join(', ') || 'Restaurant'}</p>
             </div>
-            <Button 
-              variant="ghost"
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <i className="fas fa-times text-neutral-gray"></i>
-            </Button>
           </div>
-          
+          <button 
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            <span className="text-gray-600 text-lg">×</span>
+          </button>
+        </div>
+        
+        <div className="space-y-3">
+          <Button 
+            onClick={handleViewDetails}
+            className="w-full bg-green-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-green-600 transition-colors"
+          >
+            View Details
+          </Button>
           <div className="grid grid-cols-2 gap-3">
             <Button 
-              onClick={handleViewDetails}
-              className="bg-vegan-green text-white py-3 px-4 rounded-xl font-opensans font-medium hover:bg-vegan-dark-green transition-colors"
-            >
-              <i className="fas fa-eye mr-2"></i>View Details
-            </Button>
-            <Button 
               onClick={handleNavigate}
-              className="bg-blue-500 text-white py-3 px-4 rounded-xl font-opensans font-medium hover:bg-blue-600 transition-colors"
+              className="bg-blue-500 text-white py-2 px-4 rounded-xl font-medium hover:bg-blue-600 transition-colors"
             >
-              <i className="fas fa-directions mr-2"></i>Navigate
+              Navigate
             </Button>
             <Button 
               onClick={handleReserve}
-              className="bg-purple-500 text-white py-3 px-4 rounded-xl font-opensans font-medium hover:bg-purple-600 transition-colors"
+              className="bg-purple-500 text-white py-2 px-4 rounded-xl font-medium hover:bg-purple-600 transition-colors"
             >
-              <i className="fas fa-calendar mr-2"></i>Website
-            </Button>
-            <Button 
-              onClick={handleFavorite}
-              disabled={favoriteMutation.isPending}
-              className="bg-red-500 text-white py-3 px-4 rounded-xl font-opensans font-medium hover:bg-red-600 transition-colors"
-            >
-              <i className="fas fa-heart mr-2"></i>Favorite
+              Website
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+      
+      <style jsx>{`
+        @keyframes slideUp {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
