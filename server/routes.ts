@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await mapAgent.fetchAndStoreRestaurants(
         parseFloat(lat), 
         parseFloat(lng), 
-        radius ? parseFloat(radius) : 2000
+        radius ? parseFloat(radius) : 8000
       );
 
       const restaurants = await mapAgent.getRestaurantsInRadius(
