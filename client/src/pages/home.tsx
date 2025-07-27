@@ -118,7 +118,7 @@ export default function Home() {
   }
 
   return (
-    <div className="relative min-h-screen bg-white">
+    <div className="h-screen relative bg-gray-50">
       {/* Google Maps Style Header */}
       <div className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="flex items-center px-4 py-3">
@@ -168,15 +168,13 @@ export default function Home() {
       </div>
 
       {/* Map Container */}
-      <div className="h-screen relative">
-        <div className="absolute inset-0" style={{ marginTop: '75px' }}>
-          <Map
-            center={position ? [position.lat, position.lng] : [42.7, 23.16]}
-            restaurants={restaurants}
-            onRestaurantClick={handleRestaurantClick}
-            loading={restaurantsLoading}
-          />
-        </div>
+      <div className="absolute inset-0 pt-16">
+        <Map
+          center={position ? [position.lat, position.lng] : [42.7, 23.16]}
+          restaurants={restaurants}
+          onRestaurantClick={handleRestaurantClick}
+          loading={restaurantsLoading}
+        />
       </div>
 
       {/* Vegan Score Legend - Top Right */}
