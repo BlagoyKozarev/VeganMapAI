@@ -5,15 +5,17 @@ import {
   pgTable,
   timestamp,
   varchar,
+  text,
+  integer,
   decimal,
   boolean,
-  integer,
-  text,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Session storage table for authentication
+// Session storage table.
+// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const sessions = pgTable(
   "sessions",
   {
@@ -24,7 +26,8 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table for authentication
+// User storage table.
+// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
@@ -35,95 +38,183 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Restaurants table with comprehensive vegan scoring
+// Dietary style enum
+export const dietaryStyleEnum = pgEnum('dietary_style', ['vegan', 'vegetarian', 'flexitarian']);
+
+// Price range enum
+export const priceRangeEnum = pgEnum('price_range', ['$', '$$', '$$$', '$$$$']);
+
+// User profiles for dietary preferences and settings
+export const userProfiles = pgTable("user_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  dietaryStyle: dietaryStyleEnum("dietary_style").notNull().default('vegan'),
+  allergies: text("allergies").array(),
+  preferredCuisines: text("preferred_cuisines").array(),
+  priceRange: priceRangeEnum("price_range").notNull().default('$$'),
+  maxDistance: integer("max_distance").notNull().default(2000), // in meters
+  isProfileComplete: boolean("is_profile_complete").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Restaurants table
 export const restaurants = pgTable("restaurants", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  placeId: varchar("place_id").unique().notNull(),
+  placeId: varchar("place_id").unique(), // Google Places ID
   name: varchar("name").notNull(),
   address: text("address").notNull(),
   latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
   longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
   phoneNumber: varchar("phone_number"),
   website: varchar("website"),
-  priceLevel: varchar("price_level"), // $, $$, $$$, $$$$
-  cuisineTypes: varchar("cuisine_types").array(),
+  priceLevel: priceRangeEnum("price_level"),
+  cuisineTypes: text("cuisine_types").array(),
   openingHours: jsonb("opening_hours"),
-  photos: varchar("photos").array(),
+  photos: text("photos").array(),
   rating: decimal("rating", { precision: 3, scale: 2 }),
-  reviewCount: integer("review_count"),
-  veganScore: decimal("vegan_score", { precision: 3, scale: 2 }).notNull(),
+  reviewCount: integer("review_count").default(0),
+  veganScore: decimal("vegan_score", { precision: 3, scale: 2 }),
   isVerified: boolean("is_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Detailed vegan score breakdown
-export const veganScoreBreakdowns = pgTable("vegan_score_breakdowns", {
+// Vegan score breakdown table
+export const veganScoreBreakdown = pgTable("vegan_score_breakdown", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  restaurantId: varchar("restaurant_id").references(() => restaurants.id).notNull(),
-  menuVariety: decimal("menu_variety", { precision: 3, scale: 1 }).notNull(), // 0-10
-  ingredientClarity: decimal("ingredient_clarity", { precision: 3, scale: 1 }).notNull(), // 0-10
-  staffKnowledge: decimal("staff_knowledge", { precision: 3, scale: 1 }).notNull(), // 0-10
-  crossContamination: decimal("cross_contamination", { precision: 3, scale: 1 }).notNull(), // 0-10
-  nutritionalInfo: decimal("nutritional_info", { precision: 3, scale: 1 }).notNull(), // 0-10
-  allergenManagement: decimal("allergen_management", { precision: 3, scale: 1 }).notNull(), // 0-10
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  restaurantId: varchar("restaurant_id").notNull().references(() => restaurants.id, { onDelete: 'cascade' }),
+  menuVariety: decimal("menu_variety", { precision: 3, scale: 2 }).notNull(),
+  ingredientClarity: decimal("ingredient_clarity", { precision: 3, scale: 2 }).notNull(),
+  staffKnowledge: decimal("staff_knowledge", { precision: 3, scale: 2 }).notNull(),
+  crossContaminationPrevention: decimal("cross_contamination_prevention", { precision: 3, scale: 2 }).notNull(),
+  nutritionalInformation: decimal("nutritional_information", { precision: 3, scale: 2 }).notNull(),
+  allergenManagement: decimal("allergen_management", { precision: 3, scale: 2 }).notNull(),
+  overallScore: decimal("overall_score", { precision: 3, scale: 2 }).notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
 // User favorites
 export const userFavorites = pgTable("user_favorites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  restaurantId: varchar("restaurant_id").references(() => restaurants.id).notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  restaurantId: varchar("restaurant_id").notNull().references(() => restaurants.id, { onDelete: 'cascade' }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// User visits tracking
+// User visit history
 export const userVisits = pgTable("user_visits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  restaurantId: varchar("restaurant_id").references(() => restaurants.id).notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  restaurantId: varchar("restaurant_id").notNull().references(() => restaurants.id, { onDelete: 'cascade' }),
   visitDate: timestamp("visit_date").defaultNow(),
   rating: integer("rating"), // 1-5 stars
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Chat sessions for AI conversations
+// AI chat sessions
 export const chatSessions = pgTable("chat_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id),
-  messages: jsonb("messages").notNull(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  messages: jsonb("messages").notNull().default([]),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Zod schemas for validation
-export const insertUserSchema = createInsertSchema(users);
-export const insertRestaurantSchema = createInsertSchema(restaurants);
-export const insertVeganScoreBreakdownSchema = createInsertSchema(veganScoreBreakdowns);
-export const insertUserFavoriteSchema = createInsertSchema(userFavorites);
-export const insertUserVisitSchema = createInsertSchema(userVisits);
-export const insertChatSessionSchema = createInsertSchema(chatSessions);
+// Analytics data
+export const userAnalytics = pgTable("user_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  actionType: varchar("action_type").notNull(), // 'search', 'view_restaurant', 'favorite', etc.
+  actionData: jsonb("action_data"),
+  location: jsonb("location"), // lat, lng
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Insert schemas
+export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
+  id: true,
+  userId: true, // Excluded because it's set server-side
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRestaurantSchema = createInsertSchema(restaurants).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertVeganScoreBreakdownSchema = createInsertSchema(veganScoreBreakdown).omit({
+  id: true,
+  lastUpdated: true,
+});
+
+export const insertUserFavoriteSchema = createInsertSchema(userFavorites).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserVisitSchema = createInsertSchema(userVisits).omit({
+  id: true,
+});
+
+export const insertChatSessionSchema = createInsertSchema(chatSessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserAnalyticsSchema = createInsertSchema(userAnalytics).omit({
+  id: true,
+  timestamp: true,
+});
 
 // Types
-export type User = typeof users.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = typeof userProfiles.$inferInsert;
 export type Restaurant = typeof restaurants.$inferSelect;
-export type InsertRestaurant = typeof restaurants.$inferInsert;
-export type VeganScoreBreakdown = typeof veganScoreBreakdowns.$inferSelect;
-export type InsertVeganScoreBreakdown = typeof veganScoreBreakdowns.$inferInsert;
+export type VeganScoreBreakdown = typeof veganScoreBreakdown.$inferSelect;
 export type UserFavorite = typeof userFavorites.$inferSelect;
-export type InsertUserFavorite = typeof userFavorites.$inferInsert;
 export type UserVisit = typeof userVisits.$inferSelect;
-export type InsertUserVisit = typeof userVisits.$inferInsert;
 export type ChatSession = typeof chatSessions.$inferSelect;
-export type InsertChatSession = typeof chatSessions.$inferInsert;
+export type UserAnalytics = typeof userAnalytics.$inferSelect;
 
-// Chat message type
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
+// Insert types
+export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type InsertVeganScoreBreakdown = z.infer<typeof insertVeganScoreBreakdownSchema>;
+export type InsertUserFavorite = z.infer<typeof insertUserFavoriteSchema>;
+export type InsertUserVisit = z.infer<typeof insertUserVisitSchema>;
+export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
+export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
+
+// Additional types for frontend
+export interface SearchFilters {
+  minVeganScore?: number;
+  maxDistance?: number;
+  priceRange?: string[];
+  cuisineTypes?: string[];
+  allergies?: string[];
 }
+
+export interface PersonalMatch {
+  tasteMatch: number;
+  healthFit: number;
+}
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+export type Restaurant = typeof restaurants.$inferSelect;
+export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
+export type VeganScoreBreakdown = typeof veganScoreBreakdown.$inferSelect;
+export type InsertVeganScoreBreakdown = z.infer<typeof insertVeganScoreBreakdownSchema>;
+export type UserFavorite = typeof userFavorites.$inferSelect;
+export type InsertUserFavorite = z.infer<typeof insertUserFavoriteSchema>;
+export type UserVisit = typeof userVisits.$inferSelect;
+export type InsertUserVisit = z.infer<typeof insertUserVisitSchema>;
+export type ChatSession = typeof chatSessions.$inferSelect;
+export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
+export type UserAnalytics = typeof userAnalytics.$inferSelect;
+export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;

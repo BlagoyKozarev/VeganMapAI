@@ -1,346 +1,341 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import express from "express";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { readFileSync } from "fs";
-import path from "path";
-
-// Sample restaurant data for Sofia
-const sampleRestaurants = [
-  {
-    placeId: "sofia_rest_1",
-    name: "Green Kitchen Sofia",
-    address: "1421 София, ул. Раковски 127",
-    latitude: "42.69990000",
-    longitude: "23.16000000",
-    phoneNumber: "+359 2 987 6543",
-    website: "https://greenkitchen.bg",
-    priceLevel: "$$",
-    cuisineTypes: ["vegan", "mediterranean"],
-    rating: "4.50",
-    reviewCount: 127,
-    veganScore: "8.50",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_2",
-    name: "Veganarium",
-    address: "1000 София, ул. Витоша 15",
-    latitude: "42.70010000",
-    longitude: "23.16050000",
-    phoneNumber: "+359 2 846 1234",
-    website: "https://veganarium.bg",
-    priceLevel: "$$$",
-    cuisineTypes: ["vegan", "international"],
-    rating: "4.70",
-    reviewCount: 89,
-    veganScore: "9.20",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_3",
-    name: "Buddha Bar Sofia",
-    address: "1000 София, пл. Народно събрание 4",
-    latitude: "42.69680000",
-    longitude: "23.16120000",
-    phoneNumber: "+359 2 980 8870",
-    website: "https://buddhabar.bg",
-    priceLevel: "$$$$",
-    cuisineTypes: ["asian", "fusion"],
-    rating: "4.20",
-    reviewCount: 342,
-    veganScore: "6.80",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_4",
-    name: "Rainbow Pizza",
-    address: "1463 София, ул. Г. М. Димитров 76",
-    latitude: "42.69750000",
-    longitude: "23.15850000",
-    phoneNumber: "+359 2 963 2847",
-    website: "https://rainbowpizza.bg",
-    priceLevel: "$",
-    cuisineTypes: ["pizza", "italian"],
-    rating: "4.10",
-    reviewCount: 156,
-    veganScore: "7.20",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_5",
-    name: "Healthy Corner",
-    address: "1309 София, ул. Фритьоф Нансен 37",
-    latitude: "42.70150000",
-    longitude: "23.15720000",
-    phoneNumber: "+359 2 846 5678",
-    website: "https://healthycorner.bg",
-    priceLevel: "$$",
-    cuisineTypes: ["healthy", "salads"],
-    rating: "4.60",
-    reviewCount: 203,
-    veganScore: "8.90",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_6",
-    name: "BioFresh Sofia",
-    address: "1164 София, ул. Боян Магесник 1",
-    latitude: "42.69880000",
-    longitude: "23.15950000",
-    phoneNumber: "+359 2 865 1020",
-    website: "https://biofresh.bg",
-    priceLevel: "$",
-    cuisineTypes: ["organic", "juice"],
-    rating: "4.30",
-    reviewCount: 95,
-    veganScore: "7.80",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_7",
-    name: "Pizza Palace",
-    address: "1612 София, бул. Васил Левски 75",
-    latitude: "42.69580000",
-    longitude: "23.15680000",
-    phoneNumber: "+359 2 943 2156",
-    website: "https://pizzapalace.bg",
-    priceLevel: "$",
-    cuisineTypes: ["pizza", "fast food"],
-    rating: "3.80",
-    reviewCount: 278,
-    veganScore: "3.50",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_8",
-    name: "Sushi Zone",
-    address: "1164 София, ул. Шишман 12",
-    latitude: "42.69420000",
-    longitude: "23.15580000",
-    phoneNumber: "+359 2 987 3421",
-    website: "https://sushizone.bg",
-    priceLevel: "$$$",
-    cuisineTypes: ["sushi", "japanese"],
-    rating: "4.40",
-    reviewCount: 167,
-    veganScore: "5.80",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_9",
-    name: "Burger King Sofia",
-    address: "1000 София, бул. Витоша 2",
-    latitude: "42.69450000",
-    longitude: "23.15420000",
-    phoneNumber: "+359 2 811 0505",
-    website: "https://burgerking.bg",
-    priceLevel: "$",
-    cuisineTypes: ["fast food", "burgers"],
-    rating: "3.90",
-    reviewCount: 892,
-    veganScore: "2.10",
-    isVerified: false,
-  },
-  {
-    placeId: "sofia_rest_10",
-    name: "Green Paradise",
-    address: "1000 София, ул. Граф Игнатиев 2",
-    latitude: "42.69320000",
-    longitude: "23.15380000",
-    phoneNumber: "+359 2 980 1234",
-    website: "https://greenparadise.bg",
-    priceLevel: "$$",
-    cuisineTypes: ["vegan", "raw"],
-    rating: "4.80",
-    reviewCount: 76,
-    veganScore: "9.70",
-    isVerified: false,
-  }
-];
-
-async function seedDatabase() {
-  try {
-    // Check if restaurants already exist
-    const existingRestaurants = await storage.getRestaurantsNearby(42.7, 23.16, 10);
-    
-    if (existingRestaurants.length === 0) {
-      console.log('Seeding database with sample restaurants...');
-      
-      for (const restaurant of sampleRestaurants) {
-        await storage.createRestaurant(restaurant);
-      }
-      
-      console.log(`Seeded ${sampleRestaurants.length} restaurants into database`);
-    } else {
-      console.log(`Database already contains ${existingRestaurants.length} restaurants`);
-    }
-  } catch (error) {
-    console.error('Error seeding database:', error);
-  }
-}
+import { scoreAgent } from "./agents/scoreAgent";
+import { Client } from '@googlemaps/google-maps-services-js';
+import { 
+  mapAgent, 
+  searchAgent, 
+  scoreAgent, 
+  reviewAgent, 
+  profileAgent, 
+  analyticsAgent 
+} from "./agents";
+import { chatWithAI } from "./services/aiChat";
+import { insertUserProfileSchema, insertUserFavoriteSchema, insertUserVisitSchema } from "@shared/schema";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
-
-  // Seed database with sample data
-  await seedDatabase();
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      res.json(user);
+      const profile = await storage.getUserProfile(userId);
+      
+      res.json({ 
+        ...user, 
+        profile,
+        hasProfile: !!profile,
+        isProfileComplete: profile?.isProfileComplete || false
+      });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // Test page route
-  app.get('/test', (req, res) => {
-    res.send(`<!DOCTYPE html>
-<html>
-<head>
-    <title>VeganMapAI Test</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        #map { height: 400px; width: 100%; }
-        body { font-family: Arial, sans-serif; margin: 20px; }
-    </style>
-</head>
-<body>
-    <h1>VeganMapAI - Test Page</h1>
-    <div id="map"></div>
-    <div id="restaurants"></div>
-
-    <script>
-        const map = L.map('map').setView([42.6977, 23.3219], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-        fetch('/api/restaurants/nearby?lat=42.6977&lng=23.3219&radius=5')
-            .then(response => response.json())
-            .then(restaurants => {
-                console.log('Restaurants:', restaurants);
-                document.getElementById('restaurants').innerHTML = 
-                    \`<h2>Found \${restaurants.length} restaurants</h2>\`;
-                
-                restaurants.forEach(restaurant => {
-                    const score = parseFloat(restaurant.veganScore);
-                    const color = score >= 8.5 ? '#22c55e' : 
-                                 score >= 7 ? '#84cc16' : 
-                                 score >= 5.5 ? '#eab308' : 
-                                 score >= 4 ? '#f97316' : '#ef4444';
-                    
-                    L.circleMarker([parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)], {
-                        radius: 8,
-                        fillColor: color,
-                        color: 'white',
-                        weight: 2,
-                        fillOpacity: 0.8
-                    }).addTo(map)
-                      .bindPopup(\`<b>\${restaurant.name}</b><br>Score: \${restaurant.veganScore}\`);
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('restaurants').innerHTML = 
-                    \`<h2 style="color: red;">Error: \${error.message}</h2>\`;
-            });
-    </script>
-</body>
-</html>`);
-  });
-
-  // Restaurant routes
-  app.get('/api/restaurants/nearby', async (req, res) => {
+  // Profile routes
+  app.post('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
-      const { lat, lng, radius = 2 } = req.query;
+      const userId = req.user.claims.sub;
+      const profileData = insertUserProfileSchema.parse(req.body);
       
-      if (!lat || !lng) {
-        return res.status(400).json({ message: "Latitude and longitude are required" });
-      }
-
-      const latitude = parseFloat(lat as string);
-      const longitude = parseFloat(lng as string);
-      const radiusKm = parseFloat(radius as string);
-
-      console.log(`Getting restaurants in radius: lat=${latitude}, lng=${longitude}, radius=${radiusKm}km`);
-
-      const restaurants = await storage.getRestaurantsNearby(latitude, longitude, radiusKm);
-      
-      console.log(`Returning ${restaurants.length} restaurants within ${radiusKm}km`);
-      
-      res.json(restaurants);
+      // Add userId to the profile data for creation
+      const fullProfileData = { ...profileData, userId };
+      const profile = await profileAgent.createUserProfile(userId, fullProfileData);
+      res.json(profile);
     } catch (error) {
-      console.error("Error fetching nearby restaurants:", error);
-      res.status(500).json({ message: "Failed to fetch restaurants" });
+      console.error("Error creating profile:", error);
+      res.status(400).json({ message: "Failed to create profile" });
     }
   });
 
-  app.get('/api/restaurants/:id', async (req, res) => {
+  app.put('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
-      const { id } = req.params;
-      const restaurant = await storage.getRestaurant(id);
+      const userId = req.user.claims.sub;
+      const updates = insertUserProfileSchema.partial().parse(req.body);
       
-      if (!restaurant) {
+      const profile = await profileAgent.updateUserProfile(userId, updates);
+      res.json(profile);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(400).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.get('/api/profile/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await profileAgent.getUserStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting user stats:", error);
+      res.status(500).json({ message: "Failed to get user stats" });
+    }
+  });
+
+  // Map routes - add restaurants from Google Places
+  app.post('/api/restaurants/populate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { lat, lng, radius } = req.body;
+      
+      if (!lat || !lng) {
+        return res.status(400).json({ message: "Latitude and longitude required" });
+      }
+
+      await mapAgent.fetchAndStoreRestaurants(
+        parseFloat(lat), 
+        parseFloat(lng), 
+        radius ? parseFloat(radius) : 2000
+      );
+
+      const restaurants = await mapAgent.getRestaurantsInRadius(
+        parseFloat(lat), 
+        parseFloat(lng), 
+        2
+      );
+
+      res.json({ 
+        message: "Restaurants populated successfully", 
+        count: restaurants.length,
+        restaurants 
+      });
+    } catch (error) {
+      console.error("Error populating restaurants:", error);
+      res.status(500).json({ message: "Failed to populate restaurants" });
+    }
+  });
+
+  app.get('/api/restaurants/nearby', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { lat, lng, radius } = req.query;
+      
+      if (!lat || !lng) {
+        return res.status(400).json({ message: "Latitude and longitude required" });
+      }
+
+      const restaurants = await mapAgent.getRestaurantsInRadius(
+        parseFloat(lat as string), 
+        parseFloat(lng as string), 
+        radius ? parseFloat(radius as string) : 2
+      );
+
+      // Track user action
+      await profileAgent.trackUserBehavior(userId, 'search_nearby', {
+        location: { lat: parseFloat(lat as string), lng: parseFloat(lng as string) },
+        radius: radius || 2,
+        resultsCount: restaurants.length
+      }, { lat: parseFloat(lat as string), lng: parseFloat(lng as string) });
+
+      res.json(restaurants);
+    } catch (error) {
+      console.error("Error getting nearby restaurants:", error);
+      res.status(500).json({ message: "Failed to get nearby restaurants" });
+    }
+  });
+
+  app.get('/api/restaurants/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      const restaurantDetails = await mapAgent.getRestaurantDetails(id);
+      if (!restaurantDetails) {
         return res.status(404).json({ message: "Restaurant not found" });
       }
 
-      res.json(restaurant);
-    } catch (error) {
-      console.error("Error fetching restaurant:", error);
-      res.status(500).json({ message: "Failed to fetch restaurant" });
-    }
-  });
-
-  // Vegan score routes
-  app.get('/api/restaurants/:id/vegan-score', async (req, res) => {
-    try {
-      const { id } = req.params;
-      const breakdown = await storage.getVeganScoreBreakdown(id);
+      // Check if user has favorited this restaurant
+      const isFavorite = await storage.isUserFavorite(userId, id);
       
-      if (!breakdown) {
-        return res.status(404).json({ message: "Vegan score breakdown not found" });
+      // Calculate personal match
+      const profile = await storage.getUserProfile(userId);
+      let personalMatch = null;
+      if (profile) {
+        personalMatch = await scoreAgent.calculatePersonalMatch(id, profile);
       }
 
-      res.json(breakdown);
+      // Track user action
+      await profileAgent.trackUserBehavior(userId, 'view_restaurant', {
+        restaurantId: id,
+        restaurantName: restaurantDetails.restaurant.name,
+        veganScore: restaurantDetails.restaurant.veganScore
+      });
+
+      res.json({
+        ...restaurantDetails,
+        isFavorite,
+        personalMatch
+      });
     } catch (error) {
-      console.error("Error fetching vegan score breakdown:", error);
-      res.status(500).json({ message: "Failed to fetch vegan score breakdown" });
+      console.error("Error getting restaurant details:", error);
+      res.status(500).json({ message: "Failed to get restaurant details" });
     }
   });
 
-  // User favorites routes
-  app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
+  // Search routes
+  app.get('/api/search/restaurants', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const favorites = await storage.getUserFavorites(userId);
-      res.json(favorites);
+      const { 
+        q: query, 
+        lat, 
+        lng, 
+        minScore, 
+        maxDistance, 
+        priceRange, 
+        cuisineTypes,
+        limit 
+      } = req.query;
+
+      const userProfile = await storage.getUserProfile(userId);
+      
+      const filters = {
+        minVeganScore: minScore ? parseFloat(minScore as string) : undefined,
+        maxDistance: maxDistance ? parseInt(maxDistance as string) : userProfile?.maxDistance,
+        priceRange: priceRange ? (priceRange as string).split(',') : undefined,
+        cuisineTypes: cuisineTypes ? (cuisineTypes as string).split(',') : undefined,
+        allergies: userProfile?.allergies || undefined
+      };
+
+      const userLocation = lat && lng ? {
+        lat: parseFloat(lat as string),
+        lng: parseFloat(lng as string)
+      } : undefined;
+
+      const restaurants = await searchAgent.searchRestaurants(
+        query as string || '',
+        userLocation,
+        filters,
+        limit ? parseInt(limit as string) : 20
+      );
+
+      // Track search action
+      await profileAgent.trackUserBehavior(userId, 'search_restaurants', {
+        query,
+        filters,
+        resultsCount: restaurants.length
+      }, userLocation);
+
+      res.json(restaurants);
     } catch (error) {
-      console.error("Error fetching favorites:", error);
-      res.status(500).json({ message: "Failed to fetch favorites" });
+      console.error("Error searching restaurants:", error);
+      res.status(500).json({ message: "Failed to search restaurants" });
     }
   });
 
+  app.get('/api/search/suggestions', isAuthenticated, async (req: any, res) => {
+    try {
+      const { q: query, lat, lng } = req.query;
+      
+      const userLocation = lat && lng ? {
+        lat: parseFloat(lat as string),
+        lng: parseFloat(lng as string)
+      } : undefined;
+
+      const suggestions = await searchAgent.getRestaurantSuggestions(
+        query as string || '',
+        userLocation
+      );
+
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error getting search suggestions:", error);
+      res.status(500).json({ message: "Failed to get suggestions" });
+    }
+  });
+
+  // AI Chat routes
+  app.post('/api/chat', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { message } = req.body;
+
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      // Get user context
+      const [userProfile, chatSession, nearbyRestaurants] = await Promise.all([
+        storage.getUserProfile(userId),
+        storage.getChatSession(userId),
+        // Get some nearby restaurants for context using Sofia coordinates
+        storage.getRestaurantsInRadius(42.6999, 23.1604, 5) // Sofia, Bulgaria coordinates
+      ]);
+
+      const chatHistory = (chatSession?.messages as any[]) || [];
+      
+      const response = await chatWithAI(message, {
+        userProfile,
+        nearbyRestaurants: nearbyRestaurants.slice(0, 5),
+        chatHistory: chatHistory.slice(-10) // Last 10 messages
+      });
+
+      // Update chat session
+      const updatedMessages = [
+        ...chatHistory,
+        { role: 'user', content: message, timestamp: new Date() },
+        { role: 'assistant', content: response.message, timestamp: new Date() }
+      ];
+
+      await storage.upsertChatSession({
+        userId,
+        messages: updatedMessages
+      });
+
+      // Track chat interaction
+      await profileAgent.trackUserBehavior(userId, 'ai_chat', {
+        messageLength: message.length,
+        responseLength: response.message.length,
+        suggestionsProvided: response.suggestions?.length || 0
+      });
+
+      res.json(response);
+    } catch (error) {
+      console.error("Error processing chat message:", error);
+      res.status(500).json({ message: "Failed to process chat message" });
+    }
+  });
+
+  app.get('/api/chat/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const chatSession = await storage.getChatSession(userId);
+      
+      res.json({
+        messages: chatSession?.messages || []
+      });
+    } catch (error) {
+      console.error("Error getting chat history:", error);
+      res.status(500).json({ message: "Failed to get chat history" });
+    }
+  });
+
+  // Favorites routes
   app.post('/api/favorites', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { restaurantId } = req.body;
-      
-      const favorite = await storage.addUserFavorite({
-        userId,
-        restaurantId
+      const favoriteData = insertUserFavoriteSchema.parse({
+        ...req.body,
+        userId
       });
+
+      const favorite = await storage.addUserFavorite(favoriteData);
       
+      // Track user action
+      await profileAgent.trackUserBehavior(userId, 'favorite_restaurant', {
+        restaurantId: favoriteData.restaurantId
+      });
+
       res.json(favorite);
     } catch (error) {
       console.error("Error adding favorite:", error);
-      res.status(500).json({ message: "Failed to add favorite" });
+      res.status(400).json({ message: "Failed to add favorite" });
     }
   });
 
@@ -348,66 +343,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const { restaurantId } = req.params;
-      
+
       await storage.removeUserFavorite(userId, restaurantId);
-      res.json({ message: "Favorite removed" });
+      
+      // Track user action
+      await profileAgent.trackUserBehavior(userId, 'unfavorite_restaurant', {
+        restaurantId
+      });
+
+      res.json({ success: true });
     } catch (error) {
       console.error("Error removing favorite:", error);
       res.status(500).json({ message: "Failed to remove favorite" });
     }
   });
 
-  // Setup Vite dev server for development
-  if (process.env.NODE_ENV === 'development') {
-    const vite = await (await import("vite")).createServer({
-      server: { middlewareMode: true },
-      appType: "custom",
-      base: "/",
-    });
+  app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const favorites = await storage.getUserFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      console.error("Error getting favorites:", error);
+      res.status(500).json({ message: "Failed to get favorites" });
+    }
+  });
 
-    app.use(vite.middlewares);
+  // Visits routes
+  app.post('/api/visits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const visitData = insertUserVisitSchema.parse({
+        ...req.body,
+        userId
+      });
 
-    app.use("*", async (req, res, next) => {
-      if (req.originalUrl.startsWith("/api/")) {
-        return next();
+      const visit = await storage.addUserVisit(visitData);
+      
+      // Track user action
+      await profileAgent.trackUserBehavior(userId, 'visit_restaurant', {
+        restaurantId: visitData.restaurantId,
+        rating: visitData.rating
+      });
+
+      res.json(visit);
+    } catch (error) {
+      console.error("Error adding visit:", error);
+      res.status(400).json({ message: "Failed to add visit" });
+    }
+  });
+
+  app.get('/api/visits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const visits = await storage.getUserVisits(userId);
+      res.json(visits);
+    } catch (error) {
+      console.error("Error getting visits:", error);
+      res.status(500).json({ message: "Failed to get visits" });
+    }
+  });
+
+  // Score routes
+  app.get('/api/restaurants/:id/score', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const breakdown = await scoreAgent.getScoreBreakdown(id);
+      
+      if (!breakdown) {
+        return res.status(404).json({ message: "Score breakdown not found" });
       }
 
-      try {
-        const url = req.originalUrl;
-        let template = readFileSync(path.join(process.cwd(), "client/index.html"), "utf-8");
-        template = await vite.transformIndexHtml(url, template);
-        res.status(200).set({ "Content-Type": "text/html" }).end(template);
-      } catch (e: any) {
-        vite.ssrFixStacktrace(e);
-        next(e);
+      const explanation = await scoreAgent.getScoreExplanation(id);
+      
+      res.json({
+        breakdown,
+        explanation
+      });
+    } catch (error) {
+      console.error("Error getting score breakdown:", error);
+      res.status(500).json({ message: "Failed to get score breakdown" });
+    }
+  });
+
+  // Recommendations routes
+  app.get('/api/recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { lat, lng, limit } = req.query;
+
+      if (!lat || !lng) {
+        return res.status(400).json({ message: "Location required for recommendations" });
       }
-    });
-  } else {
-    // Production mode - serve static files
-    app.use(express.static(path.join(process.cwd(), "dist/public")));
-    
-    app.get("*", (req, res) => {
-      if (req.originalUrl.startsWith("/api/")) {
-        return res.status(404).json({ message: "API route not found" });
-      }
-      res.sendFile(path.join(process.cwd(), "dist/public", "index.html"));
-    });
-  }
+
+      const userLocation = {
+        lat: parseFloat(lat as string),
+        lng: parseFloat(lng as string)
+      };
+
+      const recommendations = await profileAgent.generatePersonalizedRecommendations(
+        userId,
+        userLocation,
+        limit ? parseInt(limit as string) : 10
+      );
+
+      // Get restaurant details for recommendations
+      const restaurantDetails = await Promise.all(
+        recommendations.map(id => storage.getRestaurant(id))
+      );
+
+      const validRestaurants = restaurantDetails.filter(r => r !== undefined);
+
+      // Track recommendations
+      await profileAgent.trackUserBehavior(userId, 'view_recommendations', {
+        recommendationsCount: validRestaurants.length,
+        location: userLocation
+      }, userLocation);
+
+      res.json(validRestaurants);
+    } catch (error) {
+      console.error("Error getting recommendations:", error);
+      res.status(500).json({ message: "Failed to get recommendations" });
+    }
+  });
+
+  // Analytics routes (protected - could add admin check)
+  app.get('/api/analytics/trends', isAuthenticated, async (req: any, res) => {
+    try {
+      const { limit } = req.query;
+      const trends = await analyticsAgent.getPopularTrends(
+        limit ? parseInt(limit as string) : 10
+      );
+      res.json(trends);
+    } catch (error) {
+      console.error("Error getting trends:", error);
+      res.status(500).json({ message: "Failed to get trends" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
-}
-
-// Helper function to calculate distance between two points
-function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371; // Radius of the Earth in kilometers
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLng/2) * Math.sin(dLng/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const distance = R * c; // Distance in kilometers
-  return distance;
 }
