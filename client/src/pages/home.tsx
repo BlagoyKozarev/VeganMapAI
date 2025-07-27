@@ -151,13 +151,15 @@ export default function Home() {
       </div>
 
       {/* Map Container */}
-      <div className="h-screen relative pt-24">
-        <Map
-          center={position ? [position.lat, position.lng] : [40.7128, -74.0060]}
-          restaurants={restaurants}
-          onRestaurantClick={handleRestaurantClick}
-          loading={restaurantsLoading}
-        />
+      <div className="h-screen relative">
+        <div className="absolute inset-0" style={{ marginTop: '120px' }}>
+          <Map
+            center={position ? [position.lat, position.lng] : [42.7, 23.16]}
+            restaurants={restaurants}
+            onRestaurantClick={handleRestaurantClick}
+            loading={restaurantsLoading}
+          />
+        </div>
       </div>
 
       {/* Floating Action Button */}

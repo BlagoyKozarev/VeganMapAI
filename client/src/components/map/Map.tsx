@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import RestaurantPin from './RestaurantPin';
-import { Restaurant } from '@/types';
+import type { Restaurant } from '@shared/schema';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
