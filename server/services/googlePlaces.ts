@@ -43,8 +43,8 @@ export async function findNearbyRestaurants(
 
     const detailedPlaces: GooglePlaceDetails[] = [];
     
-    // Get detailed information for each place
-    for (const place of response.data.results.slice(0, 20)) { // Limit to 20 places
+    // Get detailed information for each place - increased limit for comprehensive testing
+    for (const place of response.data.results.slice(0, 60)) { // Limit to 60 places
       try {
         const detailsResponse = await client.placeDetails({
           params: {
