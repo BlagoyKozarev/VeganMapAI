@@ -15,10 +15,11 @@ interface MapProps {
   center: [number, number];
   restaurants: Restaurant[];
   onRestaurantClick: (restaurant: Restaurant) => void;
+  onLocationChange?: (center: [number, number]) => void;
   loading?: boolean;
 }
 
-export default function Map({ center, restaurants, onRestaurantClick, loading }: MapProps) {
+export default function Map({ center, restaurants, onRestaurantClick, onLocationChange, loading }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -242,6 +243,51 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
           <span className="text-sm font-opensans text-neutral-gray">Loading restaurants...</span>
         </div>
       )}
+      
+      {/* Location controls */}
+      <div className="absolute bottom-4 right-4 z-[1000] space-y-2">
+        <button
+          onClick={() => {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition((position) => {
+                const newCenter: [number, number] = [position.coords.latitude, position.coords.longitude];
+                mapInstanceRef.current?.setView(newCenter, 15);
+                onLocationChange?.(newCenter);
+              });
+            }
+          }}
+          className="block w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          title="My Location"
+        >
+          <span className="text-blue-500 text-lg">📍</span>
+        </button>
+        
+        <button
+          onClick={() => {
+            // Sofia center - много ресторанти
+            const sofiaCenter: [number, number] = [42.6977, 23.3219];
+            mapInstanceRef.current?.setView(sofiaCenter, 15);
+            onLocationChange?.(sofiaCenter);
+          }}
+          className="block w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          title="Sofia Center"
+        >
+          <span className="text-green-500 text-lg">🏛️</span>
+        </button>
+        
+        <button
+          onClick={() => {
+            // Vitosha Boulevard area - различни ресторанти  
+            const vitoshaArea: [number, number] = [42.6837, 23.3207];
+            mapInstanceRef.current?.setView(vitoshaArea, 15);
+            onLocationChange?.(vitoshaArea);
+          }}
+          className="block w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          title="Vitosha Boulevard"
+        >
+          <span className="text-purple-500 text-lg">🛍️</span>
+        </button>
+      </div>
       
       {/* Restaurant count indicator */}
       {restaurants.length > 15 && (
