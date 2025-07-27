@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import Map from '@/components/Map'
 import VeganScoreLegend from '@/components/VeganScoreLegend'
 import { Restaurant } from '@shared/schema'
@@ -14,30 +13,29 @@ export default function Home() {
     setUserLocation({ lat: 42.6977, lng: 23.3219 })
   }, [])
 
-  // Fetch restaurants based on location
-  const { data: restaurantData, isLoading } = useQuery({
-    queryKey: ['/api/restaurants/nearby', userLocation?.lat, userLocation?.lng],
-    enabled: !!userLocation,
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        lat: userLocation!.lat.toString(),
-        lng: userLocation!.lng.toString(),
-        radius: '2'
-      })
-      const response = await fetch(`/api/restaurants/nearby?${params}`, {
-        credentials: 'include'
-      })
-      if (!response.ok) throw new Error('Failed to fetch restaurants')
-      return response.json()
-    }
-  })
-
+  // Fetch restaurants directly without React Query
+  const [isLoading, setIsLoading] = useState(true)
+  
   useEffect(() => {
-    if (restaurantData) {
-      setRestaurants(restaurantData)
-      console.log('Received restaurant data:', restaurantData.length, 'restaurants')
+    const fetchRestaurants = async () => {
+      try {
+        console.log('Fetching restaurants directly...')
+        const response = await fetch('/api/restaurants/nearby?lat=42.6977&lng=23.3219&radius=5')
+        if (!response.ok) {
+          throw new Error('Failed to fetch restaurants')
+        }
+        const data = await response.json()
+        console.log('Fetched restaurants:', data.length)
+        setRestaurants(data)
+      } catch (error) {
+        console.error('Error fetching restaurants:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }, [restaurantData])
+
+    fetchRestaurants()
+  }, [])
 
   console.log('Rendering Home component', { userLocation, restaurants: restaurants.length })
 
