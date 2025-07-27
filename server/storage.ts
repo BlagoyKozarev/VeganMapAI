@@ -101,19 +101,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRestaurantsNearby(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]> {
-    // For testing, return all restaurants for now and filter manually
+    // For initial testing, return all restaurants
     const allRestaurants = await db.select().from(restaurants);
-    
-    // Calculate distance for each restaurant and filter
-    const nearbyRestaurants = allRestaurants.filter(restaurant => {
-      const restaurantLat = parseFloat(restaurant.latitude);
-      const restaurantLng = parseFloat(restaurant.longitude);
-      const distance = this.calculateDistance(lat, lng, restaurantLat, restaurantLng);
-      return distance <= radiusKm;
-    });
-
-    console.log(`Found ${allRestaurants.length} total restaurants, ${nearbyRestaurants.length} within ${radiusKm}km`);
-    return nearbyRestaurants;
+    console.log(`Returning all ${allRestaurants.length} restaurants for testing`);
+    return allRestaurants;
   }
 
   private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
