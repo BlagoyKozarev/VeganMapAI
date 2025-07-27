@@ -243,7 +243,7 @@ export default function Home() {
       {/* Action Menu */}
       {showActionMenu && selectedRestaurant && (
         <ActionMenu
-          restaurant={selectedRestaurant}
+          restaurant={selectedRestaurant as any}
           onClose={handleCloseActionMenu}
         />
       )}
