@@ -36,6 +36,10 @@ export default function AiChat() {
   ]);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [conversationActive, setConversationActive] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -61,6 +65,15 @@ export default function AiChat() {
       
       // Speak the response
       speakText(response.message);
+      
+      // Start listening for next question after AI responds
+      if (conversationActive) {
+        setTimeout(() => {
+          if (conversationActive && !isSpeaking) {
+            startListening();
+          }
+        }, 2000); // Wait 2 seconds after AI starts speaking
+      }
     },
     onError: (error) => {
       toast({
@@ -112,6 +125,92 @@ export default function AiChat() {
     handleSendMessage();
   };
 
+  const startListening = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      return;
+    }
+
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+
+    setIsListening(true);
+    resetConversationTimeout();
+    
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    
+    recognition.lang = 'bg-BG';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+
+    recognition.onresult = async (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setCurrentMessage(transcript);
+      setIsListening(false);
+      
+      if (transcript.trim()) {
+        const userMessage: ChatMessage = {
+          role: 'user',
+          content: transcript.trim(),
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, userMessage]);
+        setCurrentMessage('');
+        
+        await chatMutation.mutateAsync(transcript.trim());
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      if (event.error === 'no-speech') {
+        // Restart listening after no speech detected
+        if (conversationActive) {
+          setTimeout(() => startListening(), 1000);
+        }
+      }
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      if (conversationActive && !chatMutation.isPending) {
+        // Restart listening if conversation is still active
+        setTimeout(() => startListening(), 500);
+      }
+    };
+
+    recognition.start();
+  };
+
+  const resetConversationTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // End conversation after 30 seconds of inactivity
+    timeoutRef.current = setTimeout(() => {
+      endConversation();
+    }, 30000);
+  };
+
+  const endConversation = () => {
+    setConversationActive(false);
+    setIsListening(false);
+    setIsRecording(false);
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
   const handleVoiceRecording = async () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       toast({
@@ -122,17 +221,21 @@ export default function AiChat() {
       return;
     }
 
-    if (isRecording) {
-      setIsRecording(false);
+    if (conversationActive) {
+      // End conversation if already active
+      endConversation();
       return;
     }
 
+    // Start continuous conversation
+    setConversationActive(true);
     setIsRecording(true);
     
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
     
-    recognition.lang = 'bg-BG'; // Bulgarian
+    recognition.lang = 'bg-BG';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -141,7 +244,6 @@ export default function AiChat() {
       setCurrentMessage(transcript);
       setIsRecording(false);
       
-      // Auto-send the voice message
       if (transcript.trim()) {
         const userMessage: ChatMessage = {
           role: 'user',
@@ -158,11 +260,6 @@ export default function AiChat() {
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsRecording(false);
-      toast({
-        title: 'Voice error',
-        description: 'Could not recognize speech. Please try again.',
-        variant: 'destructive',
-      });
     };
 
     recognition.onend = () => {
@@ -193,6 +290,15 @@ export default function AiChat() {
 
     utterance.onend = () => {
       setIsSpeaking(false);
+      
+      // Start listening for next question after AI finishes speaking
+      if (conversationActive) {
+        setTimeout(() => {
+          if (conversationActive) {
+            startListening();
+          }
+        }, 1000); // Wait 1 second after AI finishes speaking
+      }
     };
 
     utterance.onerror = (event) => {
@@ -243,6 +349,34 @@ export default function AiChat() {
       
       {/* Chat Messages Container */}
       <div className="flex-1 overflow-y-auto p-4 max-w-4xl mx-auto w-full">
+        {/* Voice Conversation Status */}
+        {conversationActive && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
+            <p className="text-sm text-blue-700 font-medium">
+              🎙️ Voice conversation active - {isListening ? 'Listening...' : isSpeaking ? 'Speaking...' : 'Ready'}
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Conversation will end after 30 seconds of inactivity
+            </p>
+          </div>
+        )}
+
+        {/* Quick Action Questions */}
+        {!conversationActive && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            {quickQuestions.map((question, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                className="text-left justify-start h-auto p-3 text-sm"
+                onClick={() => handleQuickQuestion(question)}
+              >
+                {question}
+              </Button>
+            ))}
+          </div>
+        )}
+
         <div className="space-y-4">
           {messages.map((message, index) => (
             <div
@@ -362,14 +496,20 @@ export default function AiChat() {
             <Button
               variant="ghost"
               className="w-10 h-10 p-0"
-              title="Voice Input"
+              title={conversationActive ? "End Voice Conversation" : "Start Voice Conversation"}
               onClick={handleVoiceRecording}
               disabled={chatMutation.isPending}
             >
               <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                isRecording ? 'bg-red-500 animate-pulse' : 'bg-green-500'
+                conversationActive 
+                  ? (isRecording || isListening) 
+                    ? 'bg-red-500 animate-pulse' 
+                    : 'bg-orange-500'
+                  : 'bg-green-500'
               }`}>
-                <span className="text-white text-lg font-bold">🎤</span>
+                <span className="text-white text-lg font-bold">
+                  {conversationActive ? (isListening ? '👂' : '🎤') : '🎤'}
+                </span>
               </div>
             </Button>
           </div>
