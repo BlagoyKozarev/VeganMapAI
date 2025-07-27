@@ -139,6 +139,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all restaurants with AI scores (no radius limit)
+  app.get('/api/restaurants/all-available', isAuthenticated, async (req: any, res) => {
+    try {
+      const restaurants = await storage.getAllRestaurantsWithScores();
+      console.log(`Returning ${restaurants.length} restaurants with AI scores`);
+      res.json(restaurants);
+    } catch (error) {
+      console.error("Error getting all restaurants:", error);
+      res.status(500).json({ message: "Failed to get restaurants" });
+    }
+  });
+
   app.get('/api/restaurants/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
