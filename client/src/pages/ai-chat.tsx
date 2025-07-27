@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 
 import { apiRequest } from '@/lib/queryClient';
+import TabNavigation from '@/components/layout/TabNavigation';
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -115,16 +116,18 @@ export default function AiChat() {
   ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col pb-20">
+      {/* Header with Back Button */}
       <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center">
             <Button 
               variant="ghost"
               onClick={() => setLocation('/')}
-              className="mr-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              title="Back to Map"
             >
-              <i className="fas fa-arrow-left text-gray-600"></i>
+              <i className="fas fa-arrow-left text-gray-600 text-lg"></i>
             </Button>
             <div className="flex items-center">
               <div className="w-10 h-10 bg-vegan-green rounded-full flex items-center justify-center mr-3">
@@ -237,7 +240,7 @@ export default function AiChat() {
         </div>
       </div>
       
-
+      <TabNavigation currentTab="agent" />
     </div>
   );
 }
