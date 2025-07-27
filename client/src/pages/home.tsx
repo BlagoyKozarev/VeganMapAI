@@ -140,6 +140,14 @@ export default function Home() {
           <div className="flex items-center ml-3 space-x-2">
             <Button 
               variant="ghost" 
+              onClick={() => setLocation('/admin-scoring')}
+              className="w-10 h-10 p-0 bg-purple-500 hover:bg-purple-600 rounded-full"
+              title="Admin Scoring"
+            >
+              <span className="text-white text-lg">⚡</span>
+            </Button>
+            <Button 
+              variant="ghost" 
               onClick={() => setLocation('/ai-chat')}
               className="w-10 h-10 p-0"
               title="AI Assistant"
