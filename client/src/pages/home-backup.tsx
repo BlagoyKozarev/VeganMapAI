@@ -1,67 +1,67 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useNearbyRestaurants } from '@/hooks/useRestaurants';
 import Map from '@/components/map/Map';
+import SearchBar from '@/components/ui/search-bar';
 import ActionMenu from '@/components/ui/action-menu';
 import TabNavigation from '@/components/layout/TabNavigation';
-import { useGeolocation } from '@/hooks/useGeolocation';
-
-interface Restaurant {
-  id: string;
-  name: string;
-  address: string;
-  latitude: string;
-  longitude: string;
-  veganScore: string;
-  rating?: string;
-  priceLevel?: string;
-  cuisineTypes?: string[];
-}
+import { Button } from '@/components/ui/button';
+import type { Restaurant } from '@shared/schema';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const { position, loading, error, getCurrentLocation } = useGeolocation();
+  const { position, error, loading, getCurrentPosition } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const { toast } = useToast();
 
-  const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
-    queryKey: ['/api/restaurants/nearby', position?.lat, position?.lng],
-    enabled: !!position,
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        lat: position!.lat.toString(),
-        lng: position!.lng.toString(),
-        radius: '2'
-      });
-      
-      console.log('Fetching restaurants with params:', params.toString());
-      const response = await fetch(`/api/restaurants/nearby?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch restaurants');
-      
-      const data = await response.json();
-      console.log('Received restaurant data:', data);
-      return data;
-    },
-  });
+  const { 
+    data: restaurants = [], 
+    isLoading: restaurantsLoading,
+    error: restaurantsError 
+  } = useNearbyRestaurants(position, 2);
 
+  // Debug logging
   useEffect(() => {
     console.log('Home component - restaurants count:', restaurants.length);
     if (restaurants.length > 0) {
-      console.log('Sample restaurant scores:', restaurants.slice(0, 10).map((r: Restaurant) => ({ name: r.name, score: r.veganScore })));
+      console.log('Sample restaurant scores:', restaurants.map((r: any) => ({ name: r.name, score: r.veganScore })));
     }
   }, [restaurants]);
 
-  const handleCurrentLocation = () => {
-    getCurrentLocation();
-  };
+  // Debug action menu state
+  useEffect(() => {
+    console.log('Action menu state changed:', { showActionMenu, selectedRestaurant: selectedRestaurant?.name });
+  }, [showActionMenu, selectedRestaurant]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Location Error',
+        description: error,
+        variant: 'destructive',
+      });
+    }
+  }, [error, toast]);
+
+  useEffect(() => {
+    if (restaurantsError) {
+      toast({
+        title: 'Error Loading Restaurants',
+        description: 'Failed to load nearby restaurants. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  }, [restaurantsError, toast]);
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
     console.log('Restaurant clicked:', restaurant.name);
+    console.log('Setting selectedRestaurant and showActionMenu to true');
     setSelectedRestaurant(restaurant);
     setShowActionMenu(true);
-    console.log('Setting selectedRestaurant and showActionMenu to true');
-    console.log('State after setting:', { showActionMenu: true, selectedRestaurant: restaurant.name });
+    console.log('State after setting:', { showActionMenu: true, selectedRestaurant: restaurant?.name });
   };
 
   const handleCloseActionMenu = () => {
@@ -69,16 +69,24 @@ export default function Home() {
     setSelectedRestaurant(null);
   };
 
-  useEffect(() => {
-    console.log('Action menu state changed:', { showActionMenu, selectedRestaurant: selectedRestaurant?.name });
-  }, [showActionMenu, selectedRestaurant]);
+  const handleCurrentLocation = async () => {
+    try {
+      await getCurrentPosition();
+      toast({
+        title: 'Location Updated',
+        description: 'Your location has been updated.',
+      });
+    } catch (error) {
+      // Error already handled in useGeolocation
+    }
+  };
 
-  if (loading) {
+  if (loading && !position) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-vegan-green/20 rounded-2xl mb-4">
-            <div className="w-8 h-8 bg-vegan-green rounded-full animate-pulse"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-vegan-green rounded-2xl mb-4 animate-pulse">
+            <i className="fas fa-map-marker-alt text-white text-2xl"></i>
           </div>
           <p className="text-neutral-gray font-opensans">Getting your location...</p>
         </div>
@@ -227,6 +235,8 @@ export default function Home() {
           <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-crosshairs'} text-lg`}></i>
         </Button>
       </div>
+
+
 
       {/* Action Menu */}
       {showActionMenu && selectedRestaurant && (
