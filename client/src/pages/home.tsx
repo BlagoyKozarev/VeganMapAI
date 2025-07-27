@@ -111,8 +111,11 @@ export default function Home() {
   return (
     <div className="h-screen relative bg-gray-50">
       {/* Google Maps Style Header */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm" style={{ zIndex: 1000 }}>
-        <div className="flex items-center px-4 py-3">
+      <div 
+        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm h-16" 
+        style={{ zIndex: 1000, backgroundColor: 'white', position: 'fixed' }}
+      >
+        <div className="flex items-center px-4 py-3 h-full">
           {/* Menu Button */}
           <Button 
             variant="ghost" 
@@ -169,7 +172,7 @@ export default function Home() {
       </div>
 
       {/* Vegan Score Legend - Top Right */}
-      <div className="absolute top-20 right-4 z-40 bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs" style={{ zIndex: 999 }}>
+      <div className="fixed top-20 right-4 bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs" style={{ zIndex: 999 }}>
         <h3 className="text-sm font-opensans font-semibold text-gray-700 mb-2">Vegan Score</h3>
         <div className="space-y-1">
           <div className="flex items-center text-xs">
@@ -200,7 +203,7 @@ export default function Home() {
       </div>
 
       {/* Google Maps Style Controls - Bottom Right */}
-      <div className="absolute bottom-32 right-4 z-40 flex flex-col space-y-2" style={{ zIndex: 999 }}>
+      <div className="fixed bottom-32 right-4 flex flex-col space-y-2" style={{ zIndex: 999 }}>
         {/* Zoom Controls */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden">
           <Button
