@@ -34,6 +34,7 @@ export default function AiChat() {
       timestamp: new Date()
     }
   ]);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -105,6 +106,53 @@ export default function AiChat() {
   const handleQuickQuestion = (question: string) => {
     setCurrentMessage(question);
     handleSendMessage();
+  };
+
+  const handleVoiceRecording = async () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast({
+        title: 'Voice not supported',
+        description: 'Your browser does not support voice recognition.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (isRecording) {
+      setIsRecording(false);
+      return;
+    }
+
+    setIsRecording(true);
+    
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = 'bg-BG'; // Bulgarian
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setCurrentMessage(transcript);
+      setIsRecording(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+      toast({
+        title: 'Voice error',
+        description: 'Could not recognize speech. Please try again.',
+        variant: 'destructive',
+      });
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
   };
 
   const quickQuestions = [
@@ -235,8 +283,12 @@ export default function AiChat() {
               variant="ghost"
               className="w-10 h-10 p-0"
               title="Voice Input"
+              onClick={handleVoiceRecording}
+              disabled={chatMutation.isPending}
             >
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                isRecording ? 'bg-red-500 animate-pulse' : 'bg-green-500'
+              }`}>
                 <span className="text-white text-lg font-bold">🎤</span>
               </div>
             </Button>
