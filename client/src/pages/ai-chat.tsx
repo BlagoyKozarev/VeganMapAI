@@ -35,6 +35,7 @@ export default function AiChat() {
     }
   ]);
   const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -57,6 +58,9 @@ export default function AiChat() {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Speak the response
+      speakText(response.message);
     },
     onError: (error) => {
       toast({
@@ -155,6 +159,42 @@ export default function AiChat() {
     recognition.start();
   };
 
+  const speakText = (text: string) => {
+    if (!('speechSynthesis' in window)) {
+      console.warn('Speech synthesis not supported');
+      return;
+    }
+
+    // Stop any current speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'bg-BG'; // Bulgarian
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 0.8;
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event.error);
+      setIsSpeaking(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
   const quickQuestions = [
     "How is scoring calculated?",
     "Find nearby vegan places",
@@ -199,7 +239,9 @@ export default function AiChat() {
               }`}
             >
               {message.role === 'assistant' && (
-                <div className="w-8 h-8 bg-vegan-green rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 flex-shrink-0 transition-colors ${
+                  isSpeaking ? 'bg-blue-500 animate-pulse' : 'bg-vegan-green'
+                }`}>
                   <i className="fas fa-robot text-white text-sm"></i>
                 </div>
               )}
@@ -210,11 +252,36 @@ export default function AiChat() {
                     : 'bg-vegan-light-green rounded-tl-md'
                 }`}
               >
-                <p className={`font-opensans ${
-                  message.role === 'user' ? 'text-white' : 'text-gray-800'
-                }`}>
-                  {message.content}
-                </p>
+                <div className="flex flex-col">
+                  <p className={`font-opensans ${
+                    message.role === 'user' ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    {message.content}
+                  </p>
+                  {message.role === 'assistant' && (
+                    <div className="flex items-center mt-2 space-x-2">
+                      <button
+                        onClick={() => speakText(message.content)}
+                        disabled={isSpeaking}
+                        className="text-xs text-gray-500 hover:text-vegan-green transition-colors flex items-center"
+                        title="Speak message"
+                      >
+                        <i className="fas fa-volume-up mr-1"></i>
+                        Play
+                      </button>
+                      {isSpeaking && (
+                        <button
+                          onClick={stopSpeaking}
+                          className="text-xs text-red-500 hover:text-red-700 transition-colors flex items-center"
+                          title="Stop speaking"
+                        >
+                          <i className="fas fa-stop mr-1"></i>
+                          Stop
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
