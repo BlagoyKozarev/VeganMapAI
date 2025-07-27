@@ -210,26 +210,25 @@ export default function AiChat() {
       <div className="border-t border-gray-200 p-4 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center space-x-3">
-            {/* Microphone Button */}
-            <Button
-              variant="ghost"
-              className="w-10 h-10 p-0"
-              title="Voice Input"
-            >
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg font-bold">🎤</span>
-              </div>
-            </Button>
-            
             <div className="flex-1 relative">
               <Input
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 placeholder="Ask me anything about vegan dining..."
-                className="w-full p-4 border border-gray-200 rounded-2xl outline-none focus:border-vegan-green transition-colors font-opensans"
+                className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:border-vegan-green transition-colors font-opensans"
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                 disabled={chatMutation.isPending}
               />
+              {/* Microphone Button in Input */}
+              <Button
+                variant="ghost"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 p-0"
+                title="Voice Input"
+              >
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">🎤</span>
+                </div>
+              </Button>
             </div>
             <Button
               onClick={handleSendMessage}
