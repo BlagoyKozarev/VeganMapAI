@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import RestaurantPin from './RestaurantPin';
 import type { Restaurant } from '@shared/schema';
 
 // Fix for default markers in Leaflet
@@ -55,7 +54,6 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
     });
 
     L.marker(center, { icon: userIcon }).addTo(map);
-
     mapInstanceRef.current = map;
 
     return () => {
@@ -112,7 +110,7 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
     return clusters;
   };
 
-  useEffect(() => {
+  const updateMarkers = () => {
     if (!mapInstanceRef.current) return;
 
     console.log('Map component - rendering restaurants:', restaurants.length);
@@ -123,8 +121,16 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
     });
     markersRef.current = [];
 
-    // Smart clustering algorithm to prevent overlapping
-    const clusteredRestaurants = clusterRestaurants(restaurants, 0.002); // ~200m clustering distance
+    // Dynamic clustering based on zoom level
+    const map = mapInstanceRef.current;
+    const zoom = map.getZoom();
+    
+    // Reduce clustering distance based on zoom level
+    const clusterDistance = zoom >= 16 ? 0.0003 : // ~30m at high zoom 
+                           zoom >= 14 ? 0.0008 :   // ~80m at medium zoom
+                           0.002;                  // ~200m at low zoom
+    
+    const clusteredRestaurants = clusterRestaurants(restaurants, clusterDistance);
     console.log(`Displaying ${clusteredRestaurants.length} clustered markers from ${restaurants.length} restaurants`);
 
     clusteredRestaurants.forEach((cluster) => {
@@ -141,7 +147,7 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
                       veganScore >= 5.5 ? '#f59e0b' :
                       veganScore >= 4.0 ? '#ef4444' : '#9ca3af';
 
-      // Show cluster count if more than 1 restaurant
+      // Show cluster count if more than 1 restaurant, otherwise show score
       const displayText = cluster.count > 1 ? cluster.count.toString() : veganScore.toFixed(1);
       const markerSize = cluster.count > 1 ? 42 : 36;
 
@@ -173,13 +179,13 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
       const marker = L.marker([lat, lng], { icon: customIcon })
         .addTo(mapInstanceRef.current!)
-        .on('click', (e) => {
+        .on('click', () => {
           console.log('Map marker clicked:', cluster.representative.name, 'Cluster size:', cluster.count);
-          e.originalEvent?.stopPropagation();
           if (cluster.count > 1) {
             // Zoom in to show clustered restaurants
-            mapInstanceRef.current?.setView([lat, lng], Math.min(mapInstanceRef.current.getZoom() + 2, 18));
+            map.setView([lat, lng], Math.min(zoom + 3, 18));
           } else {
+            // Single restaurant click
             onRestaurantClick(cluster.representative);
           }
         });
@@ -198,7 +204,27 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
       markersRef.current.push(marker);
     });
-  }, [restaurants, onRestaurantClick]);
+  };
+
+  // Update markers when zoom changes
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    
+    const map = mapInstanceRef.current;
+    const handleZoomEnd = () => {
+      updateMarkers();
+    };
+    
+    map.on('zoomend', handleZoomEnd);
+    
+    return () => {
+      map.off('zoomend', handleZoomEnd);
+    };
+  }, [restaurants]);
+
+  useEffect(() => {
+    updateMarkers();
+  }, [restaurants]);
 
   useEffect(() => {
     if (mapInstanceRef.current) {
@@ -209,8 +235,6 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
   return (
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" />
-      
-
       
       {loading && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg px-4 py-2 flex items-center space-x-2 z-[1000]">
@@ -235,23 +259,11 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
           color: #374151 !important;
           font-family: 'Open Sans', sans-serif !important;
           font-size: 12px !important;
-          font-weight: 500 !important;
           padding: 4px 8px !important;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
         }
-
         .restaurant-tooltip::before {
           border-top-color: white !important;
-        }
-
-        .user-location-marker {
-          background: none !important;
-          border: none !important;
-        }
-
-        .restaurant-marker {
-          background: none !important;
-          border: none !important;
         }
       `}</style>
     </div>
