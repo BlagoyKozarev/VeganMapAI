@@ -7,10 +7,10 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Start server
+// Start server with proper host binding
 registerRoutes(app).then((server: any) => {
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`[express] serving on port ${PORT}`);
+  server.listen(PORT, () => {
+    console.log(`[express] serving on port ${PORT} (all interfaces)`);
   });
 }).catch((error: any) => {
   console.error('Failed to start server:', error);
