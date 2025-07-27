@@ -21,6 +21,13 @@ export default function Home() {
     error: restaurantsError 
   } = useNearbyRestaurants(position, 2);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Home component - restaurants data:', restaurants);
+    console.log('Home component - restaurants count:', restaurants.length);
+    console.log('Home component - position:', position);
+  }, [restaurants, position]);
+
   useEffect(() => {
     if (error) {
       toast({

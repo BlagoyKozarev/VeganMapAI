@@ -6,6 +6,21 @@ import { useToast } from '@/hooks/use-toast';
 export function useNearbyRestaurants(location: GeolocationPosition | null, radius?: number) {
   return useQuery({
     queryKey: ['/api/restaurants/nearby', location?.lat, location?.lng, radius],
+    queryFn: async () => {
+      if (!location) return [];
+      
+      const params = new URLSearchParams({
+        lat: location.lat.toString(),
+        lng: location.lng.toString(),
+        radius: (radius || 2).toString()
+      });
+      
+      console.log('Fetching restaurants with params:', params.toString());
+      const response = await apiRequest('GET', `/api/restaurants/nearby?${params}`);
+      const data = await response.json();
+      console.log('Received restaurant data:', data);
+      return data;
+    },
     enabled: !!location,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
