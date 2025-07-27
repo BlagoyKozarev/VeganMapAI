@@ -131,3 +131,14 @@ The application uses a comprehensive 6-dimension scoring system:
 - **Asset Optimization**: Vite handles code splitting and asset optimization
 
 The application is designed to be modular and scalable, with clear separation between the agent system, API layer, and user interface. Each agent operates independently while communicating through structured JSON interfaces, enabling easy extension and maintenance of the codebase.
+
+## Recent Changes
+
+### July 27, 2025 - Mobile-Optimized Action Menu
+- Fixed restaurant pin click functionality - now properly shows action menu
+- Rebuilt action menu with mobile-first design approach  
+- Added proper z-index layering and backdrop blur for reliable display
+- Implemented color-coded restaurant pins based on vegan scores (green 8.5+, yellow-green 6.5+, orange 5.5+, red 4.0+, gray <4.0)
+- Added smart restaurant filtering to prevent overcrowding (max 15 restaurants, sorted by score)
+- Enhanced for mobile with larger touch targets, drag handle, and safe area considerations
+- Added address display and improved visual hierarchy in action menu
