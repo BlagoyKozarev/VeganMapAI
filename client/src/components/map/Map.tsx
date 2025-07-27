@@ -210,36 +210,7 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" />
       
-      {/* Color Legend */}
-      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 z-[1000] text-xs">
-        <div className="font-semibold mb-2 text-gray-800">Vegan Score</div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#16A34A'}}></div>
-            <span>8.5+ Excellent</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#22C55E'}}></div>
-            <span>7.5+ Very Good</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#65A30D'}}></div>
-            <span>6.5+ Good</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#F59E0B'}}></div>
-            <span>5.5+ Fair</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#EF4444'}}></div>
-            <span>4.0+ Poor</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#6B7280'}}></div>
-            <span>&lt;4.0 Very Poor</span>
-          </div>
-        </div>
-      </div>
+
       
       {loading && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg px-4 py-2 flex items-center space-x-2 z-[1000]">
