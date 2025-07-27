@@ -204,17 +204,3 @@ export interface PersonalMatch {
   tasteMatch: number;
   healthFit: number;
 }
-export type UserProfile = typeof userProfiles.$inferSelect;
-export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
-export type Restaurant = typeof restaurants.$inferSelect;
-export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
-export type VeganScoreBreakdown = typeof veganScoreBreakdown.$inferSelect;
-export type InsertVeganScoreBreakdown = z.infer<typeof insertVeganScoreBreakdownSchema>;
-export type UserFavorite = typeof userFavorites.$inferSelect;
-export type InsertUserFavorite = z.infer<typeof insertUserFavoriteSchema>;
-export type UserVisit = typeof userVisits.$inferSelect;
-export type InsertUserVisit = z.infer<typeof insertUserVisitSchema>;
-export type ChatSession = typeof chatSessions.$inferSelect;
-export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
-export type UserAnalytics = typeof userAnalytics.$inferSelect;
-export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;

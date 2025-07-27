@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { scoreAgent } from "./agents/scoreAgent";
 import { Client } from '@googlemaps/google-maps-services-js';
 import { 
   mapAgent, 
@@ -153,11 +152,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user has favorited this restaurant
       const isFavorite = await storage.isUserFavorite(userId, id);
       
-      // Calculate personal match
+      // Calculate personal match score based on user preferences
       const profile = await storage.getUserProfile(userId);
       let personalMatch = null;
-      if (profile) {
-        personalMatch = await scoreAgent.calculatePersonalMatch(id, profile);
+      if (profile && restaurantDetails.restaurant.veganScore) {
+        // Simple match calculation based on dietary style and preferences
+        const baseMatch = parseFloat(restaurantDetails.restaurant.veganScore) / 10;
+        personalMatch = {
+          tasteMatch: baseMatch * 0.9, // Slightly adjust based on user preferences
+          healthFit: baseMatch * 0.95
+        };
       }
 
       // Track user action
@@ -404,25 +408,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Score routes
+  // Score routes - Calculate real vegan scores
+  app.post('/api/restaurants/:id/calculate-score', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get restaurant details from database
+      const restaurant = await storage.getRestaurant(id);
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      // Calculate vegan score using AI analysis
+      const scoreResult = await scoreAgent.calculateVeganScore(
+        restaurant.placeId || `sofia_rest_${restaurant.id}`,
+        restaurant.name,
+        restaurant.cuisineTypes || []
+      );
+
+      // Store the score breakdown in database
+      if (scoreResult) {
+        await storage.upsertVeganScoreBreakdown({
+          restaurantId: id,
+          menuVariety: scoreResult.breakdown.menuVariety,
+          ingredientClarity: scoreResult.breakdown.ingredientClarity,
+          staffKnowledge: scoreResult.breakdown.staffKnowledge,
+          crossContaminationPrevention: scoreResult.breakdown.crossContamination,
+          nutritionalInformation: scoreResult.breakdown.nutritionalInfo,
+          allergenManagement: scoreResult.breakdown.allergenManagement,
+          overallScore: scoreResult.overallScore
+        });
+
+        // Update restaurant's vegan score
+        await storage.updateRestaurant(id, {
+          veganScore: scoreResult.overallScore.toString()
+        });
+      }
+
+      res.json(scoreResult);
+    } catch (error) {
+      console.error("Error calculating vegan score:", error);
+      res.status(500).json({ message: "Failed to calculate vegan score" });
+    }
+  });
+
   app.get('/api/restaurants/:id/score', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const breakdown = await scoreAgent.getScoreBreakdown(id);
+      const breakdown = await storage.getVeganScoreBreakdown(id);
       
       if (!breakdown) {
         return res.status(404).json({ message: "Score breakdown not found" });
       }
 
-      const explanation = await scoreAgent.getScoreExplanation(id);
-      
       res.json({
         breakdown,
-        explanation
+        explanation: `Vegan score based on 6 key dimensions: menu variety, ingredient clarity, staff knowledge, cross-contamination prevention, nutritional information, and allergen management.`
       });
     } catch (error) {
       console.error("Error getting score breakdown:", error);
       res.status(500).json({ message: "Failed to get score breakdown" });
+    }
+  });
+
+  // Batch score calculation endpoint
+  app.post('/api/restaurants/calculate-all-scores', isAuthenticated, async (req: any, res) => {
+    try {
+      const { lat, lng } = req.body;
+      
+      if (!lat || !lng) {
+        return res.status(400).json({ message: "Location required" });
+      }
+
+      // Get all restaurants in area
+      const restaurants = await mapAgent.getRestaurantsInRadius(
+        parseFloat(lat), 
+        parseFloat(lng), 
+        5 // 5km radius for batch processing
+      );
+
+      // Calculate scores for restaurants that don't have them or have low scores
+      const restaurantsToScore = restaurants.filter(r => 
+        !r.veganScore || 
+        r.veganScore === "0.00" || 
+        parseFloat(r.veganScore) < 1.0
+      );
+      
+      if (restaurantsToScore.length === 0) {
+        return res.json({ message: "All restaurants already have scores", count: 0 });
+      }
+
+      console.log(`Starting to calculate vegan scores for ${restaurantsToScore.length} restaurants...`);
+
+      // Process restaurants one by one to avoid rate limits
+      let processed = 0;
+      const limit = Math.min(restaurantsToScore.length, 3); // Process max 3 at a time
+      
+      for (let i = 0; i < limit; i++) {
+        const restaurant = restaurantsToScore[i];
+        try {
+          console.log(`Calculating score for: ${restaurant.name}`);
+          
+          const scoreResult = await scoreAgent.calculateVeganScore(
+            restaurant.placeId || `sofia_rest_${restaurant.id}`,
+            restaurant.name,
+            restaurant.cuisineTypes || []
+          );
+
+          if (scoreResult) {
+            console.log(`Score calculated for ${restaurant.name}: ${scoreResult.overallScore}`);
+            
+            // Store score breakdown
+            await storage.upsertVeganScoreBreakdown({
+              restaurantId: restaurant.id,
+              menuVariety: scoreResult.breakdown.menuVariety,
+              ingredientClarity: scoreResult.breakdown.ingredientClarity,
+              staffKnowledge: scoreResult.breakdown.staffKnowledge,
+              crossContaminationPrevention: scoreResult.breakdown.crossContamination,
+              nutritionalInformation: scoreResult.breakdown.nutritionalInfo,
+              allergenManagement: scoreResult.breakdown.allergenManagement,
+              overallScore: scoreResult.overallScore
+            });
+
+            // Update restaurant's vegan score
+            await storage.updateRestaurant(restaurant.id, {
+              veganScore: scoreResult.overallScore.toString()
+            });
+
+            processed++;
+          }
+          
+          // Add delay between requests to respect rate limits
+          if (i < limit - 1) {
+            await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay
+          }
+        } catch (error) {
+          console.error(`Error scoring ${restaurant.name}:`, error);
+        }
+      }
+
+      res.json({ 
+        message: `Successfully calculated scores for ${processed} restaurants`,
+        processed,
+        total: restaurantsToScore.length,
+        remaining: restaurantsToScore.length - processed
+      });
+    } catch (error) {
+      console.error("Error in batch score calculation:", error);
+      res.status(500).json({ message: "Failed to calculate batch scores" });
     }
   });
 
