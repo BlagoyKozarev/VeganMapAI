@@ -136,10 +136,23 @@ export default function AiChat() {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = async (event: any) => {
       const transcript = event.results[0][0].transcript;
       setCurrentMessage(transcript);
       setIsRecording(false);
+      
+      // Auto-send the voice message
+      if (transcript.trim()) {
+        const userMessage: ChatMessage = {
+          role: 'user',
+          content: transcript.trim(),
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, userMessage]);
+        setCurrentMessage('');
+        
+        await chatMutation.mutateAsync(transcript.trim());
+      }
     };
 
     recognition.onerror = (event: any) => {
