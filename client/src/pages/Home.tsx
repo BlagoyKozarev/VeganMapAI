@@ -5,29 +5,13 @@ import VeganScoreLegend from '@/components/VeganScoreLegend'
 import { Restaurant } from '@shared/schema'
 
 export default function Home() {
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>({ lat: 42.6977, lng: 23.3219 })
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
 
-  // Get user location
+  // Set Sofia coordinates immediately
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          })
-        },
-        (error) => {
-          console.error('Error getting location:', error)
-          // Default to Sofia coordinates
-          setUserLocation({ lat: 42.6977, lng: 23.3219 })
-        }
-      )
-    } else {
-      // Default to Sofia coordinates
-      setUserLocation({ lat: 42.6977, lng: 23.3219 })
-    }
+    console.log('Home component loaded, setting Sofia coordinates')
+    setUserLocation({ lat: 42.6977, lng: 23.3219 })
   }, [])
 
   // Fetch restaurants based on location
@@ -51,9 +35,11 @@ export default function Home() {
   useEffect(() => {
     if (restaurantData) {
       setRestaurants(restaurantData)
-      console.log('Received restaurant data:', restaurantData)
+      console.log('Received restaurant data:', restaurantData.length, 'restaurants')
     }
   }, [restaurantData])
+
+  console.log('Rendering Home component', { userLocation, restaurants: restaurants.length })
 
   if (!userLocation) {
     return (
