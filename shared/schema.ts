@@ -134,6 +134,7 @@ export const userAnalytics = pgTable("user_analytics", {
 // Insert schemas
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
   id: true,
+  userId: true, // Excluded because it's set server-side
   createdAt: true,
   updatedAt: true,
 });
