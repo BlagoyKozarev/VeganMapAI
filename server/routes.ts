@@ -200,6 +200,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test page route
+  app.get('/test', (req, res) => {
+    res.send(`<!DOCTYPE html>
+<html>
+<head>
+    <title>VeganMapAI Test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 400px; width: 100%; }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+    </style>
+</head>
+<body>
+    <h1>VeganMapAI - Test Page</h1>
+    <div id="map"></div>
+    <div id="restaurants"></div>
+
+    <script>
+        const map = L.map('map').setView([42.6977, 23.3219], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        fetch('/api/restaurants/nearby?lat=42.6977&lng=23.3219&radius=5')
+            .then(response => response.json())
+            .then(restaurants => {
+                console.log('Restaurants:', restaurants);
+                document.getElementById('restaurants').innerHTML = 
+                    \`<h2>Found \${restaurants.length} restaurants</h2>\`;
+                
+                restaurants.forEach(restaurant => {
+                    const score = parseFloat(restaurant.veganScore);
+                    const color = score >= 8.5 ? '#22c55e' : 
+                                 score >= 7 ? '#84cc16' : 
+                                 score >= 5.5 ? '#eab308' : 
+                                 score >= 4 ? '#f97316' : '#ef4444';
+                    
+                    L.circleMarker([parseFloat(restaurant.latitude), parseFloat(restaurant.longitude)], {
+                        radius: 8,
+                        fillColor: color,
+                        color: 'white',
+                        weight: 2,
+                        fillOpacity: 0.8
+                    }).addTo(map)
+                      .bindPopup(\`<b>\${restaurant.name}</b><br>Score: \${restaurant.veganScore}\`);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('restaurants').innerHTML = 
+                    \`<h2 style="color: red;">Error: \${error.message}</h2>\`;
+            });
+    </script>
+</body>
+</html>`);
+  });
+
   // Restaurant routes
   app.get('/api/restaurants/nearby', async (req, res) => {
     try {
