@@ -168,15 +168,21 @@ export default function AiChat() {
       setIsListening(false);
       
       if (transcript.trim()) {
-        const userMessage: ChatMessage = {
-          role: 'user',
-          content: transcript.trim(),
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, userMessage]);
-        setCurrentMessage('');
+        // If conversation is active, send immediately
+        // If not active, wait 5 seconds for user to complete thought
+        const delay = conversationActive ? 0 : 5000;
         
-        await chatMutation.mutateAsync(transcript.trim());
+        setTimeout(async () => {
+          const userMessage: ChatMessage = {
+            role: 'user',
+            content: transcript.trim(),
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, userMessage]);
+          setCurrentMessage('');
+          
+          await chatMutation.mutateAsync(transcript.trim());
+        }, delay);
       }
     };
 
@@ -215,10 +221,11 @@ export default function AiChat() {
       clearTimeout(timeoutRef.current);
     }
     
-    // End conversation after 7 seconds of inactivity
+    // End conversation after 5 seconds of inactivity if no conversation is active, 7 seconds if active
+    const timeoutDelay = conversationActive ? 7000 : 5000;
     timeoutRef.current = setTimeout(() => {
       endConversation();
-    }, 7000);
+    }, timeoutDelay);
   };
 
   const endConversation = () => {
@@ -389,7 +396,7 @@ export default function AiChat() {
               🎙️ Voice conversation active - {isListening ? 'Listening...' : isSpeaking ? 'Speaking...' : 'Ready'}
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Conversation will end after 7 seconds of inactivity
+              Conversation will end after {conversationActive ? '7' : '5'} seconds of inactivity
             </p>
           </div>
         )}
