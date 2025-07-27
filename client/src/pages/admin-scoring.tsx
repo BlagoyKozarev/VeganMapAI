@@ -26,6 +26,8 @@ export default function AdminScoringPage() {
     lng: 23.3219
   };
 
+  const expandedRadius = 8; // 8km radius for comprehensive testing
+
   const calculateScoresMutation = useMutation({
     mutationFn: async (): Promise<ScoreCalculationResponse> => {
       const response = await fetch('/api/restaurants/calculate-all-scores', {
@@ -135,7 +137,7 @@ export default function AdminScoringPage() {
                 Lng: {sofiaLocation.lng}°
               </Badge>
               <Badge variant="outline">
-                Radius: 5km
+                Radius: {expandedRadius}km
               </Badge>
             </div>
           </CardContent>
