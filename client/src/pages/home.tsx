@@ -50,6 +50,7 @@ export default function Home() {
   }, [restaurantsError, toast]);
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
+    console.log('Restaurant clicked:', restaurant.name);
     setSelectedRestaurant(restaurant);
     setShowActionMenu(true);
   };

@@ -133,7 +133,11 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
       const marker = L.marker([lat, lng], { icon: restaurantIcon })
         .addTo(mapInstanceRef.current!)
-        .on('click', () => onRestaurantClick(restaurant));
+        .on('click', (e) => {
+          console.log('Map marker clicked:', restaurant.name);
+          e.originalEvent?.stopPropagation();
+          onRestaurantClick(restaurant);
+        });
 
       // Add tooltip on hover
       marker.bindTooltip(`${restaurant.name} (${veganScore.toFixed(1)})`, {
