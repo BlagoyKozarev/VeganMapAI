@@ -26,7 +26,13 @@ import { useToast } from '@/hooks/use-toast';
 export default function AiChat() {
   const [, setLocation] = useLocation();
   const [currentMessage, setCurrentMessage] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: 'assistant',
+      content: 'Hello! I\'m your vegan dining assistant. I can help you find great vegan-friendly restaurants, explain our scoring system, and provide personalized recommendations. What would you like to know?',
+      timestamp: new Date()
+    }
+  ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 

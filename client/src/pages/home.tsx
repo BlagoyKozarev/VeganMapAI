@@ -156,11 +156,11 @@ export default function Home() {
             <Button 
               variant="ghost" 
               onClick={() => setLocation('/profile')}
-              className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
+              className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center p-0"
               title="Profile"
             >
-              <div className="w-8 h-8 bg-vegan-green rounded-full flex items-center justify-center">
-                <i className="fas fa-user text-white text-sm"></i>
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                BK
               </div>
             </Button>
           </div>
@@ -180,31 +180,31 @@ export default function Home() {
       </div>
 
       {/* Google Maps Style Controls */}
-      <div className="absolute bottom-32 right-4 z-30">
-        {/* My Location Button */}
-        <Button
-          onClick={handleCurrentLocation}
-          className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors mb-2"
-          disabled={loading}
-        >
-          <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-crosshairs'} text-lg`}></i>
-        </Button>
-        
+      <div className="absolute bottom-32 right-4 z-30 flex flex-col space-y-2">
         {/* Zoom Controls */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden">
           <Button
             variant="ghost"
-            className="w-12 h-12 border-b border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-600"
+            className="w-12 h-12 border-b border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-600 p-0"
           >
             <i className="fas fa-plus text-lg"></i>
           </Button>
           <Button
             variant="ghost"
-            className="w-12 h-12 hover:bg-gray-50 flex items-center justify-center text-gray-600"
+            className="w-12 h-12 hover:bg-gray-50 flex items-center justify-center text-gray-600 p-0"
           >
             <i className="fas fa-minus text-lg"></i>
           </Button>
         </div>
+        
+        {/* My Location Button */}
+        <Button
+          onClick={handleCurrentLocation}
+          className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors p-0"
+          disabled={loading}
+        >
+          <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-crosshairs'} text-lg`}></i>
+        </Button>
       </div>
 
       {/* Vegan Score Legend */}
