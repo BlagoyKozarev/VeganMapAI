@@ -83,7 +83,7 @@ export const restaurants = pgTable("restaurants", {
 // Vegan score breakdown table
 export const veganScoreBreakdown = pgTable("vegan_score_breakdown", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  restaurantId: varchar("restaurant_id").notNull().references(() => restaurants.id, { onDelete: 'cascade' }),
+  restaurantId: varchar("restaurant_id").notNull().unique().references(() => restaurants.id, { onDelete: 'cascade' }),
   menuVariety: decimal("menu_variety", { precision: 3, scale: 2 }).notNull(),
   ingredientClarity: decimal("ingredient_clarity", { precision: 3, scale: 2 }).notNull(),
   staffKnowledge: decimal("staff_knowledge", { precision: 3, scale: 2 }).notNull(),
