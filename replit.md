@@ -190,3 +190,13 @@ The application is designed to be modular and scalable, with clear separation be
 - System shows 19-20 individual markers from 20 restaurants at appropriate zoom levels
 - User confirmed clustering performance is acceptable for daily use
 - Note: User aware that more restaurants exist in Sofia center area than currently loaded (40 total in database)
+
+### July 27, 2025 - Intelligent Map Display System Implementation
+- Completely redesigned restaurant loading logic to show ALL restaurants with AI scores instead of radius-limited approach
+- Implemented intelligent bounds-based filtering: shows only restaurants visible in current map viewport + padding
+- Created getAllRestaurantsWithScores() method to load all 34 restaurants with authentic AI vegan scores
+- Fixed zoom-based dynamic clustering to work with visible restaurants only (9-32 restaurants depending on zoom level)
+- System now shows restaurants contextually based on map position and zoom rather than arbitrary radius restrictions
+- Successfully validated with 34 restaurants having real GPT-4o calculated vegan scores
+- User confirmed system works correctly showing restaurants as map moves and zooms
+- Performance optimized: loads all data once, filters client-side based on map bounds
