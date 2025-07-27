@@ -148,7 +148,7 @@ export default function Home() {
             <Button 
               variant="ghost" 
               onClick={() => setLocation('/ai-chat')}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
               title="AI Assistant"
             >
               <i className="fas fa-microphone text-gray-600 text-lg"></i>
@@ -179,39 +179,39 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Google Maps Style Controls */}
-      <div className="absolute bottom-32 right-4 z-30 flex flex-col space-y-3">
-        {/* Vegan Score Legend */}
-        <div className="bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs">
-          <h3 className="text-sm font-opensans font-semibold text-gray-700 mb-2">Vegan Score</h3>
-          <div className="space-y-1">
-            <div className="flex items-center text-xs">
-              <div className="w-3 h-3 bg-green-600 rounded-full mr-2"></div>
-              <span className="text-gray-600">8.5+ Excellent</span>
-            </div>
-            <div className="flex items-center text-xs">
-              <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-              <span className="text-gray-600">7.5+ Very Good</span>
-            </div>
-            <div className="flex items-center text-xs">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">6.5+ Good</span>
-            </div>
-            <div className="flex items-center text-xs">
-              <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">5.5+ Fair</span>
-            </div>
-            <div className="flex items-center text-xs">
-              <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-              <span className="text-gray-600">4.0+ Poor</span>
-            </div>
-            <div className="flex items-center text-xs">
-              <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-              <span className="text-gray-600">&lt;4.0 Very Poor</span>
-            </div>
+      {/* Vegan Score Legend - Top Right */}
+      <div className="absolute top-20 right-4 z-30 bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs">
+        <h3 className="text-sm font-opensans font-semibold text-gray-700 mb-2">Vegan Score</h3>
+        <div className="space-y-1">
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-green-600 rounded-full mr-2"></div>
+            <span className="text-gray-600">8.5+ Excellent</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
+            <span className="text-gray-600">7.5+ Very Good</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+            <span className="text-gray-600">6.5+ Good</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
+            <span className="text-gray-600">5.5+ Fair</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+            <span className="text-gray-600">4.0+ Poor</span>
+          </div>
+          <div className="flex items-center text-xs">
+            <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+            <span className="text-gray-600">&lt;4.0 Very Poor</span>
           </div>
         </div>
+      </div>
 
+      {/* Google Maps Style Controls - Bottom Right */}
+      <div className="absolute bottom-32 right-4 z-30 flex flex-col space-y-2">
         {/* Zoom Controls */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden">
           <Button
