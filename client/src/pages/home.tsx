@@ -3,7 +3,6 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import Map from '@/components/map/Map';
-import TabNavigation from '@/components/layout/TabNavigation';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Restaurant {
@@ -145,7 +144,7 @@ export default function Home() {
               className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
               title="AI Assistant"
             >
-              <i className="fas fa-microphone text-gray-600 text-lg"></i>
+              <i className="fas fa-brain text-gray-600 text-lg"></i>
             </Button>
             <Button 
               variant="ghost" 
@@ -200,10 +199,22 @@ export default function Home() {
             <span className="text-gray-600">&lt;4.0 Very Poor</span>
           </div>
         </div>
+        
+        {/* Location Button under Legend */}
+        <div className="mt-3">
+          <Button
+            onClick={handleCurrentLocation}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
+            disabled={loading}
+          >
+            <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-location-arrow'} mr-2`}></i>
+            {loading ? 'Getting Location...' : 'My Location'}
+          </Button>
+        </div>
       </div>
 
       {/* Google Maps Style Controls - Bottom Right */}
-      <div className="fixed bottom-32 right-4 flex flex-col space-y-2" style={{ zIndex: 999 }}>
+      <div className="fixed bottom-4 right-4 flex flex-col space-y-2" style={{ zIndex: 999 }}>
         {/* Zoom Controls */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden">
           <Button
@@ -219,15 +230,6 @@ export default function Home() {
             <i className="fas fa-minus text-lg"></i>
           </Button>
         </div>
-        
-        {/* My Location Button */}
-        <Button
-          onClick={handleCurrentLocation}
-          className="w-12 h-12 bg-white border border-gray-300 rounded-lg shadow-md flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors p-0"
-          disabled={loading}
-        >
-          <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-crosshairs'} text-lg`}></i>
-        </Button>
       </div>
 
       {/* Action Menu */}
@@ -256,8 +258,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Bottom Tab Navigation */}
-      <TabNavigation currentTab="map" />
+
     </div>
   );
 }
