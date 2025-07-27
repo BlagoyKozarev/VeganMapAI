@@ -12,7 +12,7 @@ interface Restaurant {
   address: string;
   latitude: string;
   longitude: string;
-  veganScore: string;
+  veganScore: string | null;
   rating?: string;
   priceLevel?: string;
   cuisineTypes?: string[];
@@ -52,7 +52,7 @@ export default function Home() {
   }, [restaurants]);
 
   const handleCurrentLocation = () => {
-    getCurrentLocation();
+    getCurrentPosition();
   };
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
@@ -111,7 +111,7 @@ export default function Home() {
   return (
     <div className="h-screen relative bg-gray-50">
       {/* Google Maps Style Header */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <div className="absolute top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm" style={{ zIndex: 1000 }}>
         <div className="flex items-center px-4 py-3">
           {/* Menu Button */}
           <Button 
@@ -159,7 +159,7 @@ export default function Home() {
       </div>
 
       {/* Map Container */}
-      <div className="absolute inset-0 pt-16">
+      <div className="absolute inset-0 pt-16" style={{ zIndex: 1 }}>
         <Map
           center={position ? [position.lat, position.lng] : [42.7, 23.16]}
           restaurants={restaurants}
@@ -169,7 +169,7 @@ export default function Home() {
       </div>
 
       {/* Vegan Score Legend - Top Right */}
-      <div className="absolute top-20 right-4 z-40 bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs">
+      <div className="absolute top-20 right-4 z-40 bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs" style={{ zIndex: 999 }}>
         <h3 className="text-sm font-opensans font-semibold text-gray-700 mb-2">Vegan Score</h3>
         <div className="space-y-1">
           <div className="flex items-center text-xs">
@@ -200,7 +200,7 @@ export default function Home() {
       </div>
 
       {/* Google Maps Style Controls - Bottom Right */}
-      <div className="absolute bottom-32 right-4 z-40 flex flex-col space-y-2">
+      <div className="absolute bottom-32 right-4 z-40 flex flex-col space-y-2" style={{ zIndex: 999 }}>
         {/* Zoom Controls */}
         <div className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden">
           <Button
