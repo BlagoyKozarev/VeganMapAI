@@ -81,59 +81,71 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
       }}
     >
       <div 
-        className="w-full max-w-md bg-white rounded-t-2xl shadow-2xl p-6 m-4 mb-0"
+        className="w-full max-w-md bg-white rounded-t-2xl shadow-2xl p-4 safe-area-bottom"
         style={{ 
           zIndex: 999999,
           transform: 'translateY(0)',
-          animation: 'slideUp 0.2s ease-out'
+          animation: 'slideUp 0.2s ease-out',
+          maxHeight: '70vh',
+          overflowY: 'auto'
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
+        {/* Drag handle */}
+        <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+        
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mr-3">
-              <span className="text-green-600 font-bold text-lg">
+            <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mr-4">
+              <span className="text-green-600 font-bold text-xl">
                 {veganScore ? veganScore.toFixed(1) : '?'}
               </span>
             </div>
             <div>
-              <h3 className="font-semibold text-lg text-gray-900">{restaurant.name}</h3>
+              <h3 className="font-semibold text-xl text-gray-900">{restaurant.name}</h3>
               <p className="text-gray-500 text-sm">{restaurant.cuisineTypes?.join(', ') || 'Restaurant'}</p>
+              <p className="text-gray-400 text-xs mt-1">{restaurant.address}</p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors touch-manipulation"
           >
-            <span className="text-gray-600 text-lg">×</span>
+            <span className="text-gray-600 text-xl">×</span>
           </button>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-4 pb-4">
           <Button 
             onClick={handleViewDetails}
-            className="w-full bg-green-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-green-600 transition-colors"
+            className="w-full bg-green-500 text-white py-4 px-4 rounded-xl font-medium text-lg hover:bg-green-600 transition-colors touch-manipulation"
           >
             View Details
           </Button>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <Button 
               onClick={handleNavigate}
-              className="bg-blue-500 text-white py-2 px-4 rounded-xl font-medium hover:bg-blue-600 transition-colors"
+              className="bg-blue-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-blue-600 transition-colors touch-manipulation"
             >
               Navigate
             </Button>
             <Button 
               onClick={handleReserve}
-              className="bg-purple-500 text-white py-2 px-4 rounded-xl font-medium hover:bg-purple-600 transition-colors"
+              className="bg-purple-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-purple-600 transition-colors touch-manipulation"
             >
               Website
             </Button>
           </div>
+          <Button 
+            onClick={handleFavorite}
+            className="w-full bg-red-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-red-600 transition-colors touch-manipulation"
+          >
+            ❤️ Add to Favorites
+          </Button>
         </div>
       </div>
       
-      <style jsx>{`
+      <style>{`
         @keyframes slideUp {
           from {
             transform: translateY(100%);
