@@ -101,33 +101,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRestaurantsNearby(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]> {
-    // Using Haversine formula for distance calculation
-    const result = await db
-      .select()
-      .from(restaurants)
-      .where(
-        sql`(
-          6371 * acos(
-            cos(radians(${lat})) * 
-            cos(radians(latitude)) * 
-            cos(radians(longitude) - radians(${lng})) + 
-            sin(radians(${lat})) * 
-            sin(radians(latitude))
-          )
-        ) <= ${radiusKm}`
-      )
-      .orderBy(
-        sql`(
-          6371 * acos(
-            cos(radians(${lat})) * 
-            cos(radians(latitude)) * 
-            cos(radians(longitude) - radians(${lng})) + 
-            sin(radians(${lat})) * 
-            sin(radians(latitude))
-          )
-        ) ASC`
-      );
-    return result;
+    // For testing, return all restaurants for now and filter manually
+    const allRestaurants = await db.select().from(restaurants);
+    
+    // Calculate distance for each restaurant and filter
+    const nearbyRestaurants = allRestaurants.filter(restaurant => {
+      const restaurantLat = parseFloat(restaurant.latitude);
+      const restaurantLng = parseFloat(restaurant.longitude);
+      const distance = this.calculateDistance(lat, lng, restaurantLat, restaurantLng);
+      return distance <= radiusKm;
+    });
+
+    console.log(`Found ${allRestaurants.length} total restaurants, ${nearbyRestaurants.length} within ${radiusKm}km`);
+    return nearbyRestaurants;
+  }
+
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return distance;
   }
 
   async getVeganScoreBreakdown(restaurantId: string): Promise<VeganScoreBreakdown | undefined> {
