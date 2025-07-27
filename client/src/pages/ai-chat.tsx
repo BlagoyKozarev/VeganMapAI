@@ -6,7 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import TabNavigation from '@/components/layout/TabNavigation';
 import { apiRequest } from '@/lib/queryClient';
-import { ChatMessage, ChatResponse } from '@/types';
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+interface ChatResponse {
+  message: string;
+  suggestions?: string[];
+  restaurantRecommendations?: {
+    id: string;
+    name: string;
+    reason: string;
+  }[];
+}
 import { useToast } from '@/hooks/use-toast';
 
 export default function AiChat() {
@@ -47,7 +61,7 @@ export default function AiChat() {
 
   // Initialize chat history
   useEffect(() => {
-    if (chatHistory?.messages) {
+    if (chatHistory && Array.isArray(chatHistory.messages)) {
       setMessages(chatHistory.messages);
     } else {
       // Add welcome message if no history
