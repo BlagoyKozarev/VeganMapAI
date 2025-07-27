@@ -1,5 +1,6 @@
 import { storage } from '../storage';
 import { analyzeVeganFriendliness } from '../services/openai';
+import { findNearbyRestaurants, GooglePlaceDetails } from '../services/googlePlaces';
 import { Restaurant } from '@shared/schema';
 
 export class MapAgent {
@@ -9,11 +10,40 @@ export class MapAgent {
     radiusKm: number = 2
   ): Promise<Restaurant[]> {
     try {
-      const restaurants = await storage.getRestaurantsInRadius(lat, lng, radiusKm);
+      // First try to get restaurants from local database
+      let restaurants = await storage.getRestaurantsInRadius(lat, lng, radiusKm);
+      
+      // If we have fewer than 5 restaurants, fetch more from Google Places
+      if (restaurants.length < 5) {
+        console.log('Fetching additional restaurants from Google Places...');
+        await this.fetchAndStoreRestaurants(lat, lng, radiusKm * 1000); // Convert km to meters
+        restaurants = await storage.getRestaurantsInRadius(lat, lng, radiusKm);
+      }
+      
       return restaurants.filter(r => r.veganScore && Number(r.veganScore) > 0);
     } catch (error) {
       console.error('MapAgent: Error getting restaurants in radius:', error);
       throw new Error('Failed to fetch nearby restaurants');
+    }
+  }
+
+  async fetchAndStoreRestaurants(lat: number, lng: number, radiusMeters: number): Promise<void> {
+    try {
+      const googlePlaces = await findNearbyRestaurants(lat, lng, radiusMeters);
+      
+      for (const place of googlePlaces) {
+        try {
+          // Check if restaurant already exists
+          const existing = await storage.getRestaurantByPlaceId(place.place_id);
+          if (!existing) {
+            await this.analyzeNewRestaurant(place);
+          }
+        } catch (error) {
+          console.warn(`Failed to process restaurant ${place.name}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error('MapAgent: Error fetching restaurants from Google Places:', error);
     }
   }
 
@@ -54,7 +84,7 @@ export class MapAgent {
     }
   }
 
-  async analyzeNewRestaurant(googlePlacesData: any): Promise<Restaurant> {
+  async analyzeNewRestaurant(googlePlacesData: GooglePlaceDetails): Promise<Restaurant> {
     try {
       // First, check if restaurant already exists
       const existingRestaurant = await storage.getRestaurantByPlaceId(googlePlacesData.place_id);

@@ -77,7 +77,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Map routes
+  // Map routes - add restaurants from Google Places
+  app.post('/api/restaurants/populate', isAuthenticated, async (req: any, res) => {
+    try {
+      const { lat, lng, radius } = req.body;
+      
+      if (!lat || !lng) {
+        return res.status(400).json({ message: "Latitude and longitude required" });
+      }
+
+      await mapAgent.fetchAndStoreRestaurants(
+        parseFloat(lat), 
+        parseFloat(lng), 
+        radius ? parseFloat(radius) : 2000
+      );
+
+      const restaurants = await mapAgent.getRestaurantsInRadius(
+        parseFloat(lat), 
+        parseFloat(lng), 
+        2
+      );
+
+      res.json({ 
+        message: "Restaurants populated successfully", 
+        count: restaurants.length,
+        restaurants 
+      });
+    } catch (error) {
+      console.error("Error populating restaurants:", error);
+      res.status(500).json({ message: "Failed to populate restaurants" });
+    }
+  });
+
   app.get('/api/restaurants/nearby', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
