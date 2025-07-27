@@ -145,7 +145,7 @@ export default function Home() {
               title="AI Assistant"
             >
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <i className="fas fa-microphone text-white text-sm"></i>
+                <i className="fas fa-microphone text-black text-sm"></i>
               </div>
             </Button>
             <Button 
