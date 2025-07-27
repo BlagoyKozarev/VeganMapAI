@@ -67,7 +67,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
 
   // Helper function to cluster nearby restaurants
   const clusterRestaurants = (restaurants: Restaurant[], distance: number) => {
-    const clusters: { representative: Restaurant; count: number; restaurants: Restaurant[] }[] = [];
+    const clusters: { representative: Restaurant; count: number; restaurants: Restaurant[]; centerLat?: number; centerLng?: number }[] = [];
     const processed = new Set<string>();
 
     restaurants.forEach(restaurant => {
@@ -98,10 +98,28 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
         return currentScore > bestScore ? current : best;
       });
 
+      // Calculate cluster center position for better visual distribution
+      const centerLat = clusterRestaurants.reduce((sum, r) => sum + parseFloat(r.latitude), 0) / clusterRestaurants.length;
+      const centerLng = clusterRestaurants.reduce((sum, r) => sum + parseFloat(r.longitude), 0) / clusterRestaurants.length;
+      
+      // Add slight offset for single restaurants to prevent exact overlap
+      let finalLat = centerLat;
+      let finalLng = centerLng;
+      
+      if (clusterRestaurants.length === 1) {
+        // Small random offset for individual restaurants to prevent stacking
+        const offsetLat = (Math.random() - 0.5) * 0.00005; // ~5m offset
+        const offsetLng = (Math.random() - 0.5) * 0.00005;
+        finalLat = centerLat + offsetLat;
+        finalLng = centerLng + offsetLng;
+      }
+
       clusters.push({
         representative,
         count: clusterRestaurants.length,
-        restaurants: clusterRestaurants
+        restaurants: clusterRestaurants,
+        centerLat: finalLat,
+        centerLng: finalLng
       });
 
       // Mark all restaurants in this cluster as processed
@@ -126,18 +144,19 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     const map = mapInstanceRef.current;
     const zoom = map.getZoom();
     
-    // Very aggressive clustering reduction - show individual restaurants at moderate zoom
-    const clusterDistance = zoom >= 16 ? 0.00005 : // ~5m at very high zoom - virtually no clustering
-                           zoom >= 14 ? 0.0002 :    // ~20m at high zoom 
-                           zoom >= 12 ? 0.0005 :    // ~50m at medium zoom
-                           0.001;                   // ~100m at low zoom
+    // Balanced clustering - prevent overlapping while showing individual restaurants
+    const clusterDistance = zoom >= 17 ? 0.0001 :  // ~10m at very high zoom
+                           zoom >= 15 ? 0.0003 :    // ~30m at high zoom 
+                           zoom >= 13 ? 0.0006 :    // ~60m at medium zoom
+                           0.0012;                  // ~120m at low zoom
     
     const clusteredRestaurants = clusterRestaurants(restaurants, clusterDistance);
     console.log(`Zoom: ${zoom.toFixed(1)}, Distance: ${clusterDistance.toFixed(4)}, Displaying ${clusteredRestaurants.length} clustered markers from ${restaurants.length} restaurants`);
 
     clusteredRestaurants.forEach((cluster) => {
-      const lat = parseFloat(cluster.representative.latitude);
-      const lng = parseFloat(cluster.representative.longitude);
+      // Use cluster center for better positioning, fallback to representative
+      const lat = cluster.centerLat || parseFloat(cluster.representative.latitude);
+      const lng = cluster.centerLng || parseFloat(cluster.representative.longitude);
       
       if (isNaN(lat) || isNaN(lng)) return;
 
