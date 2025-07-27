@@ -125,6 +125,22 @@ export default function AiChat() {
     handleSendMessage();
   };
 
+  const clearChat = () => {
+    setMessages([
+      {
+        role: 'assistant',
+        content: 'Hello! I\'m your vegan dining assistant. I can help you find great vegan-friendly restaurants, explain our scoring system, and provide personalized recommendations. What would you like to know?',
+        timestamp: new Date()
+      }
+    ]);
+    setCurrentMessage('');
+    
+    // End any active conversation
+    if (conversationActive) {
+      endConversation();
+    }
+  };
+
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       return;
@@ -345,12 +361,21 @@ export default function AiChat() {
                 <p className="text-sm text-vegan-green">Online</p>
               </div>
             </div>
-            <button 
-              onClick={() => setLocation('/')}
-              className="text-gray-600 hover:text-gray-800 font-medium"
-            >
-              Back
-            </button>
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={clearChat}
+                className="text-gray-500 hover:text-gray-700 font-medium text-sm"
+                title="Clear chat history"
+              >
+                Clear
+              </button>
+              <button 
+                onClick={() => setLocation('/')}
+                className="text-gray-600 hover:text-gray-800 font-medium"
+              >
+                Back
+              </button>
+            </div>
           </div>
         </div>
       </div>
