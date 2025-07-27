@@ -167,20 +167,17 @@ export default function AiChat() {
       setCurrentMessage(transcript);
       setIsListening(false);
       
-      // Wait 5 seconds for user to complete their thought before sending
-      setTimeout(async () => {
-        if (transcript.trim()) {
-          const userMessage: ChatMessage = {
-            role: 'user',
-            content: transcript.trim(),
-            timestamp: new Date(),
-          };
-          setMessages(prev => [...prev, userMessage]);
-          setCurrentMessage('');
-          
-          await chatMutation.mutateAsync(transcript.trim());
-        }
-      }, 5000);
+      if (transcript.trim()) {
+        const userMessage: ChatMessage = {
+          role: 'user',
+          content: transcript.trim(),
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, userMessage]);
+        setCurrentMessage('');
+        
+        await chatMutation.mutateAsync(transcript.trim());
+      }
     };
 
     recognition.onerror = (event: any) => {
