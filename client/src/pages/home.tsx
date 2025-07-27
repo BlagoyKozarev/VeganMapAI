@@ -23,10 +23,11 @@ export default function Home() {
 
   // Debug logging
   useEffect(() => {
-    console.log('Home component - restaurants data:', restaurants);
     console.log('Home component - restaurants count:', restaurants.length);
-    console.log('Home component - position:', position);
-  }, [restaurants, position]);
+    if (restaurants.length > 0) {
+      console.log('Sample restaurant scores:', restaurants.map(r => ({ name: r.name, score: r.veganScore })));
+    }
+  }, [restaurants]);
 
   useEffect(() => {
     if (error) {

@@ -69,14 +69,33 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
+    console.log('Map component - rendering restaurants:', restaurants.length);
+
     // Clear existing restaurant markers
     markersRef.current.forEach(marker => {
       mapInstanceRef.current?.removeLayer(marker);
     });
     markersRef.current = [];
 
+    // Smart filtering to avoid overcrowding
+    let displayRestaurants = [...restaurants];
+    
+    // Sort by vegan score (highest first)
+    displayRestaurants.sort((a, b) => {
+      const scoreA = a.veganScore ? parseFloat(a.veganScore) : 0;
+      const scoreB = b.veganScore ? parseFloat(b.veganScore) : 0;
+      return scoreB - scoreA;
+    });
+
+    // Limit display based on zoom level and density
+    const maxRestaurants = 15; // Maximum restaurants to show at once
+    if (displayRestaurants.length > maxRestaurants) {
+      console.log(`Reducing ${displayRestaurants.length} restaurants to ${maxRestaurants} highest-scoring ones`);
+      displayRestaurants = displayRestaurants.slice(0, maxRestaurants);
+    }
+
     // Add restaurant markers
-    restaurants.forEach(restaurant => {
+    displayRestaurants.forEach(restaurant => {
       const lat = parseFloat(restaurant.latitude);
       const lng = parseFloat(restaurant.longitude);
       
@@ -84,11 +103,21 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
       const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
       
-      // Determine pin color based on score
+      // Determine pin color based on vegan score
       let pinColor = '#6B7280'; // gray for no score
-      if (veganScore >= 8) pinColor = '#22C55E'; // green
-      else if (veganScore >= 6) pinColor = '#F59E0B'; // orange
-      else if (veganScore >= 4) pinColor = '#EF4444'; // red
+      if (veganScore >= 8.5) {
+        pinColor = '#16A34A'; // dark green for excellent (8.5+)
+      } else if (veganScore >= 7.5) {
+        pinColor = '#22C55E'; // green for very good (7.5-8.4)
+      } else if (veganScore >= 6.5) {
+        pinColor = '#65A30D'; // yellow-green for good (6.5-7.4)
+      } else if (veganScore >= 5.5) {
+        pinColor = '#F59E0B'; // orange for fair (5.5-6.4)
+      } else if (veganScore >= 4.0) {
+        pinColor = '#EF4444'; // red for poor (4.0-5.4)
+      } else {
+        pinColor = '#6B7280'; // gray for very poor or no score
+      }
 
       const restaurantIcon = L.divIcon({
         className: 'restaurant-marker',
@@ -106,8 +135,8 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
         .addTo(mapInstanceRef.current!)
         .on('click', () => onRestaurantClick(restaurant));
 
-      // Add tooltip on hover (only show on zoom > 15)
-      marker.bindTooltip(restaurant.name, {
+      // Add tooltip on hover
+      marker.bindTooltip(`${restaurant.name} (${veganScore.toFixed(1)})`, {
         permanent: false,
         direction: 'top',
         offset: [0, -10],
@@ -116,6 +145,8 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
       markersRef.current.push(marker);
     });
+
+    console.log(`Displayed ${displayRestaurants.length} out of ${restaurants.length} restaurants`);
   }, [restaurants, onRestaurantClick]);
 
   useEffect(() => {
@@ -128,10 +159,48 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" />
       
+      {/* Color Legend */}
+      <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 z-[1000] text-xs">
+        <div className="font-semibold mb-2 text-gray-800">Vegan Score</div>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#16A34A'}}></div>
+            <span>8.5+ Excellent</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#22C55E'}}></div>
+            <span>7.5+ Very Good</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#65A30D'}}></div>
+            <span>6.5+ Good</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#F59E0B'}}></div>
+            <span>5.5+ Fair</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#EF4444'}}></div>
+            <span>4.0+ Poor</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#6B7280'}}></div>
+            <span>&lt;4.0 Very Poor</span>
+          </div>
+        </div>
+      </div>
+      
       {loading && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg px-4 py-2 flex items-center space-x-2 z-[1000]">
           <div className="w-4 h-4 bg-vegan-green rounded-full animate-pulse"></div>
           <span className="text-sm font-opensans text-neutral-gray">Loading restaurants...</span>
+        </div>
+      )}
+      
+      {/* Restaurant count indicator */}
+      {restaurants.length > 15 && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg px-3 py-1 z-[1000] text-xs text-gray-600">
+          Showing top 15 of {restaurants.length} restaurants
         </div>
       )}
 
