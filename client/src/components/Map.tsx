@@ -22,6 +22,7 @@ export default function Map({ center, restaurants, isLoading }: MapProps) {
 
   useEffect(() => {
     if (!mapRef.current) {
+      console.log('Initializing map...', center)
       // Initialize map
       mapRef.current = L.map('map').setView([center.lat, center.lng], 13)
 
@@ -29,6 +30,8 @@ export default function Map({ center, restaurants, isLoading }: MapProps) {
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(mapRef.current)
+      
+      console.log('Map initialized successfully')
     }
   }, [center])
 
