@@ -3,7 +3,6 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import Map from '@/components/map/Map';
-import ActionMenu from '@/components/ui/action-menu';
 import TabNavigation from '@/components/layout/TabNavigation';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
@@ -230,10 +229,28 @@ export default function Home() {
 
       {/* Action Menu */}
       {showActionMenu && selectedRestaurant && (
-        <ActionMenu
-          restaurant={selectedRestaurant as any}
-          onClose={handleCloseActionMenu}
-        />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-lg shadow-lg p-4 min-w-80">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">{selectedRestaurant.name}</h3>
+            <Button variant="ghost" onClick={handleCloseActionMenu} className="p-1">
+              <i className="fas fa-times"></i>
+            </Button>
+          </div>
+          <div className="space-y-2">
+            <Button className="w-full" variant="outline">
+              <i className="fas fa-eye mr-2"></i>
+              View Details
+            </Button>
+            <Button className="w-full" variant="outline">
+              <i className="fas fa-directions mr-2"></i>
+              Navigate
+            </Button>
+            <Button className="w-full" variant="outline">
+              <i className="fas fa-calendar mr-2"></i>
+              Reserve
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Bottom Tab Navigation */}
