@@ -144,7 +144,9 @@ export default function Home() {
               className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
               title="AI Assistant"
             >
-              <i className="fas fa-robot text-gray-600 text-lg"></i>
+              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                <i className="fas fa-microphone text-gray-600 text-sm"></i>
+              </div>
             </Button>
             <Button 
               variant="ghost" 
