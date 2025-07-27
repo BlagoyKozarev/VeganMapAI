@@ -178,3 +178,15 @@ The application is designed to be modular and scalable, with clear separation be
 - Started AI-powered scoring calculation replacing mock data with authentic scores
 - Fixed database constraints and schema for proper vegan score breakdown storage
 - System actively calculating real vegan scores for restaurants using GPT-4o analysis
+
+### July 27, 2025 - Location Switching and Clustering Optimization
+- Added location switching functionality with three preset buttons:
+  - My Location (GPS), Sofia Center (42.6977, 23.3219), Vitosha Boulevard (42.6837, 23.3207)
+- Improved clustering algorithm with zoom-based distance calculations
+- Fixed restaurant stacking issues by implementing cluster center positioning
+- Added random offsets for individual restaurants to prevent exact overlap
+- Optimized clustering thresholds: zoom 17+ shows 10m clustering, zoom 15+ shows 30m clustering
+- Successfully tested location switching between different restaurant zones
+- System shows 19-20 individual markers from 20 restaurants at appropriate zoom levels
+- User confirmed clustering performance is acceptable for daily use
+- Note: User aware that more restaurants exist in Sofia center area than currently loaded (40 total in database)
