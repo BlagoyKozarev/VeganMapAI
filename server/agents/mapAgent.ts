@@ -20,7 +20,8 @@ export class MapAgent {
         restaurants = await storage.getRestaurantsInRadius(lat, lng, radiusKm);
       }
       
-      return restaurants.filter(r => r.veganScore && Number(r.veganScore) > 0);
+      // Return all restaurants, including those with vegan score 0
+      return restaurants;
     } catch (error) {
       console.error('MapAgent: Error getting restaurants in radius:', error);
       throw new Error('Failed to fetch nearby restaurants');
