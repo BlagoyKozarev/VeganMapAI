@@ -12,7 +12,7 @@ import {
   profileAgent, 
   analyticsAgent 
 } from "./agents";
-import { chatWithAI } from "./services/openai";
+import { chatWithAI } from "./services/aiChat";
 import { insertUserProfileSchema, insertUserFavoriteSchema, insertUserVisitSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -264,13 +264,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [userProfile, chatSession, nearbyRestaurants] = await Promise.all([
         storage.getUserProfile(userId),
         storage.getChatSession(userId),
-        // Get some nearby restaurants for context (if user location available)
-        storage.getRestaurantsInRadius(40.7128, -74.0060, 5) // Default to NYC, would use actual location
+        // Get some nearby restaurants for context using Sofia coordinates
+        storage.getRestaurantsInRadius(42.6999, 23.1604, 5) // Sofia, Bulgaria coordinates
       ]);
 
       const chatHistory = (chatSession?.messages as any[]) || [];
       
-      const { chatWithAI } = await import('./services/aiChat');
       const response = await chatWithAI(message, {
         userProfile,
         nearbyRestaurants: nearbyRestaurants.slice(0, 5),
