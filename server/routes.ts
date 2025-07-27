@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { scoreAgent } from "./agents/scoreAgent";
+import { Client } from '@googlemaps/google-maps-services-js';
 import { 
   mapAgent, 
   searchAgent, 

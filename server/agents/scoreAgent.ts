@@ -1,243 +1,243 @@
-import { storage } from '../storage';
-import { analyzeVeganFriendliness } from '../services/openai';
-import { VeganScoreBreakdown } from '@shared/schema';
+import { Client } from '@googlemaps/google-maps-services-js';
+import OpenAI from 'openai';
+
+const googleMapsClient = new Client();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+interface VeganScoreBreakdown {
+  menuVariety: number;      // 0-10: Variety of vegan options
+  ingredientClarity: number; // 0-10: Clear ingredient listing
+  staffKnowledge: number;   // 0-10: Staff knowledge about vegan options
+  crossContamination: number; // 0-10: Prevention of cross-contamination
+  nutritionalInfo: number;  // 0-10: Available nutritional information
+  allergenManagement: number; // 0-10: Allergen awareness and management
+}
+
+interface VeganScoreResult {
+  overallScore: number;
+  breakdown: VeganScoreBreakdown;
+  confidence: number;
+  reasoning: string;
+}
 
 export class ScoreAgent {
-  async calculateVeganScore(restaurantId: string): Promise<VeganScoreBreakdown> {
+  
+  /**
+   * Calculate comprehensive vegan score for a restaurant using AI analysis
+   */
+  async calculateVeganScore(
+    placeId: string,
+    restaurantName: string,
+    cuisineTypes?: string[]
+  ): Promise<VeganScoreResult> {
     try {
-      const restaurant = await storage.getRestaurant(restaurantId);
-      if (!restaurant) {
-        throw new Error('Restaurant not found');
-      }
-
-      // Get fresh data for analysis
-      const analysisData = {
-        name: restaurant.name,
-        description: '', // Would be populated from Google Places or other sources
-        cuisine: restaurant.cuisineTypes || [],
-        menu: '', // Would be populated from menu scraping or manual input
-        reviews: [] // Would be populated from review APIs
-      };
-
-      const veganAnalysis = await analyzeVeganFriendliness(analysisData);
-
-      // Store the breakdown
-      const breakdown = await storage.upsertVeganScoreBreakdown({
-        restaurantId: restaurant.id,
-        menuVariety: veganAnalysis.menuVariety.toString(),
-        ingredientClarity: veganAnalysis.ingredientClarity.toString(),
-        staffKnowledge: veganAnalysis.staffKnowledge.toString(),
-        crossContaminationPrevention: veganAnalysis.crossContaminationPrevention.toString(),
-        nutritionalInformation: veganAnalysis.nutritionalInformation.toString(),
-        allergenManagement: veganAnalysis.allergenManagement.toString(),
-        overallScore: veganAnalysis.overallScore.toString(),
-      });
-
-      // Update restaurant's overall vegan score
-      await storage.updateRestaurant(restaurantId, {
-        veganScore: veganAnalysis.overallScore.toString(),
-      });
-
-      return breakdown;
-    } catch (error) {
-      console.error('ScoreAgent: Error calculating vegan score:', error);
-      throw new Error('Failed to calculate vegan score');
-    }
-  }
-
-  async getScoreBreakdown(restaurantId: string): Promise<VeganScoreBreakdown | null> {
-    try {
-      const breakdown = await storage.getVeganScoreBreakdown(restaurantId);
-      return breakdown || null;
-    } catch (error) {
-      console.error('ScoreAgent: Error getting score breakdown:', error);
-      throw new Error('Failed to get score breakdown');
-    }
-  }
-
-  async calculatePersonalMatch(
-    restaurantId: string,
-    userProfile: any
-  ): Promise<{ tasteMatch: number; healthFit: number }> {
-    try {
-      const restaurant = await storage.getRestaurant(restaurantId);
-      const scoreBreakdown = await storage.getVeganScoreBreakdown(restaurantId);
+      // Get detailed place information from Google Places
+      const placeDetails = await this.getPlaceDetails(placeId);
       
-      if (!restaurant || !scoreBreakdown) {
-        throw new Error('Restaurant or score data not found');
-      }
-
-      let tasteMatch = 0;
-      let healthFit = 0;
-
-      // Calculate taste match based on cuisine preferences
-      if (userProfile.preferredCuisines && restaurant.cuisineTypes) {
-        const matchingCuisines = restaurant.cuisineTypes.filter(cuisine =>
-          userProfile.preferredCuisines.includes(cuisine.toLowerCase())
-        );
-        tasteMatch = Math.min(100, (matchingCuisines.length / userProfile.preferredCuisines.length) * 100);
-      } else {
-        tasteMatch = 70; // Default score if no preferences set
-      }
-
-      // Calculate health fit based on dietary style and allergen management
-      const baseHealthScore = parseFloat(scoreBreakdown.overallScore) * 10; // Convert to percentage
+      // Get reviews for analysis
+      const reviews = placeDetails.reviews || [];
       
-      // Adjust based on dietary style compatibility
-      if (userProfile.dietaryStyle === 'vegan') {
-        healthFit = baseHealthScore;
-      } else if (userProfile.dietaryStyle === 'vegetarian') {
-        healthFit = Math.min(baseHealthScore, 85); // Cap for vegetarian
-      } else {
-        healthFit = Math.min(baseHealthScore, 75); // Cap for flexitarian
-      }
-
-      // Adjust for allergen concerns
-      if (userProfile.allergies && userProfile.allergies.length > 0) {
-        const allergenScore = parseFloat(scoreBreakdown.allergenManagement) * 10;
-        healthFit = (healthFit + allergenScore) / 2; // Average with allergen management
-      }
-
-      return {
-        tasteMatch: Math.round(tasteMatch),
-        healthFit: Math.round(healthFit)
-      };
-    } catch (error) {
-      console.error('ScoreAgent: Error calculating personal match:', error);
-      throw new Error('Failed to calculate personal match');
-    }
-  }
-
-  async updateScoreWithUserFeedback(
-    restaurantId: string,
-    userFeedback: {
-      visitRating: number; // 1-5
-      veganOptions: 'excellent' | 'good' | 'fair' | 'poor';
-      staffKnowledge: 'excellent' | 'good' | 'fair' | 'poor';
-      crossContamination: 'well-handled' | 'adequately-handled' | 'poorly-handled';
-    }
-  ): Promise<VeganScoreBreakdown> {
-    try {
-      const currentBreakdown = await storage.getVeganScoreBreakdown(restaurantId);
-      if (!currentBreakdown) {
-        throw new Error('No existing score breakdown found');
-      }
-
-      // Convert feedback to numeric adjustments
-      const feedbackScores = {
-        excellent: 0.2,
-        good: 0.1,
-        fair: 0,
-        poor: -0.2,
-        'well-handled': 0.2,
-        'adequately-handled': 0.1,
-        'poorly-handled': -0.2
-      };
-
-      // Apply weighted updates based on user feedback
-      const updates = {
-        menuVariety: Math.max(0, Math.min(10, 
-          parseFloat(currentBreakdown.menuVariety) + 
-          (feedbackScores[userFeedback.veganOptions] || 0)
-        )),
-        staffKnowledge: Math.max(0, Math.min(10,
-          parseFloat(currentBreakdown.staffKnowledge) + 
-          (feedbackScores[userFeedback.staffKnowledge] || 0)
-        )),
-        crossContaminationPrevention: Math.max(0, Math.min(10,
-          parseFloat(currentBreakdown.crossContaminationPrevention) + 
-          (feedbackScores[userFeedback.crossContamination] || 0)
-        ))
-      };
-
-      // Recalculate overall score
-      const newOverallScore = (
-        updates.menuVariety +
-        parseFloat(currentBreakdown.ingredientClarity) +
-        updates.staffKnowledge +
-        updates.crossContaminationPrevention +
-        parseFloat(currentBreakdown.nutritionalInformation) +
-        parseFloat(currentBreakdown.allergenManagement)
-      ) / 6;
-
-      // Update the breakdown
-      const updatedBreakdown = await storage.upsertVeganScoreBreakdown({
-        restaurantId,
-        menuVariety: updates.menuVariety.toString(),
-        ingredientClarity: currentBreakdown.ingredientClarity,
-        staffKnowledge: updates.staffKnowledge.toString(),
-        crossContaminationPrevention: updates.crossContaminationPrevention.toString(),
-        nutritionalInformation: currentBreakdown.nutritionalInformation,
-        allergenManagement: currentBreakdown.allergenManagement,
-        overallScore: newOverallScore.toString(),
+      // Analyze vegan-friendliness using AI
+      const analysis = await this.analyzeVeganFriendliness({
+        name: restaurantName,
+        cuisineTypes: cuisineTypes || [],
+        reviews: reviews.slice(0, 10), // Analyze top 10 reviews
+        photos: placeDetails.photos?.slice(0, 5) || [],
+        website: placeDetails.website,
+        priceLevel: placeDetails.price_level
       });
 
-      // Update restaurant's overall score
-      await storage.updateRestaurant(restaurantId, {
-        veganScore: newOverallScore.toString(),
-      });
-
-      return updatedBreakdown;
+      return analysis;
     } catch (error) {
-      console.error('ScoreAgent: Error updating score with feedback:', error);
-      throw new Error('Failed to update score with user feedback');
+      console.error('Error calculating vegan score:', error);
+      
+      // Fallback scoring based on cuisine type
+      return this.getFallbackScore(cuisineTypes || []);
     }
   }
 
-  async getScoreExplanation(restaurantId: string): Promise<string> {
-    try {
-      const breakdown = await storage.getVeganScoreBreakdown(restaurantId);
-      if (!breakdown) {
-        return 'No score breakdown available for this restaurant.';
-      }
+  /**
+   * Get detailed place information from Google Places API
+   */
+  private async getPlaceDetails(placeId: string) {
+    const response = await googleMapsClient.placeDetails({
+      params: {
+        place_id: placeId,
+        fields: [
+          'name',
+          'reviews',
+          'photos',
+          'website',
+          'price_level',
+          'types'
+        ],
+        key: process.env.GOOGLE_MAPS_API_KEY!,
+      },
+    });
 
-      const scores = {
-        menuVariety: parseFloat(breakdown.menuVariety),
-        ingredientClarity: parseFloat(breakdown.ingredientClarity),
-        staffKnowledge: parseFloat(breakdown.staffKnowledge),
-        crossContaminationPrevention: parseFloat(breakdown.crossContaminationPrevention),
-        nutritionalInformation: parseFloat(breakdown.nutritionalInformation),
-        allergenManagement: parseFloat(breakdown.allergenManagement),
-        overall: parseFloat(breakdown.overallScore)
-      };
-
-      let explanation = `This restaurant has an overall vegan score of ${scores.overall.toFixed(1)}/10. `;
-
-      // Highlight strengths
-      const strengths = Object.entries(scores)
-        .filter(([key, value]) => key !== 'overall' && value >= 8)
-        .map(([key, value]) => ({ key: this.formatScoreCategory(key), value }));
-
-      if (strengths.length > 0) {
-        explanation += `Strengths include: ${strengths.map(s => `${s.key} (${s.value.toFixed(1)}/10)`).join(', ')}. `;
-      }
-
-      // Highlight areas for improvement
-      const improvements = Object.entries(scores)
-        .filter(([key, value]) => key !== 'overall' && value < 6)
-        .map(([key, value]) => ({ key: this.formatScoreCategory(key), value }));
-
-      if (improvements.length > 0) {
-        explanation += `Areas for improvement: ${improvements.map(i => `${i.key} (${i.value.toFixed(1)}/10)`).join(', ')}.`;
-      }
-
-      return explanation;
-    } catch (error) {
-      console.error('ScoreAgent: Error getting score explanation:', error);
-      return 'Unable to provide score explanation at this time.';
-    }
+    return response.data.result;
   }
 
-  private formatScoreCategory(category: string): string {
-    const formatted = {
-      menuVariety: 'Menu Variety',
-      ingredientClarity: 'Ingredient Clarity',
-      staffKnowledge: 'Staff Knowledge',
-      crossContaminationPrevention: 'Cross-contamination Prevention',
-      nutritionalInformation: 'Nutritional Information',
-      allergenManagement: 'Allergen Management'
+  /**
+   * Use AI to analyze vegan-friendliness
+   */
+  private async analyzeVeganFriendliness(restaurantData: any): Promise<VeganScoreResult> {
+    const prompt = `Analyze this restaurant for vegan-friendliness and provide a detailed scoring breakdown.
+
+Restaurant: ${restaurantData.name}
+Cuisine Types: ${restaurantData.cuisineTypes.join(', ')}
+Website: ${restaurantData.website || 'Not available'}
+Price Level: ${restaurantData.priceLevel || 'Not specified'}
+
+Reviews (for analysis):
+${restaurantData.reviews.map((review: any, index: number) => 
+  `${index + 1}. "${review.text}" (Rating: ${review.rating}/5)`
+).join('\n')}
+
+Please analyze and score on a scale of 0-10 for each dimension:
+
+1. Menu Variety (0-10): How many vegan options are available?
+2. Ingredient Clarity (0-10): Are ingredients clearly listed/labeled?
+3. Staff Knowledge (0-10): How knowledgeable is staff about vegan options?
+4. Cross-contamination Prevention (0-10): Measures to prevent cross-contamination?
+5. Nutritional Information (0-10): Available nutritional details?
+6. Allergen Management (0-10): Allergen awareness and management?
+
+Respond with JSON in this exact format:
+{
+  "menuVariety": number,
+  "ingredientClarity": number,
+  "staffKnowledge": number,
+  "crossContamination": number,
+  "nutritionalInfo": number,
+  "allergenManagement": number,
+  "overallScore": number,
+  "confidence": number,
+  "reasoning": "string explanation"
+}`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are a vegan dining expert. Analyze restaurants for vegan-friendliness based on available data. Be thorough but realistic in your scoring."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 800,
+      temperature: 0.3
+    });
+
+    const analysis = JSON.parse(response.choices[0].message.content || '{}');
+    
+    // Calculate overall score as weighted average
+    const breakdown: VeganScoreBreakdown = {
+      menuVariety: Math.max(0, Math.min(10, analysis.menuVariety || 0)),
+      ingredientClarity: Math.max(0, Math.min(10, analysis.ingredientClarity || 0)),
+      staffKnowledge: Math.max(0, Math.min(10, analysis.staffKnowledge || 0)),
+      crossContamination: Math.max(0, Math.min(10, analysis.crossContamination || 0)),
+      nutritionalInfo: Math.max(0, Math.min(10, analysis.nutritionalInfo || 0)),
+      allergenManagement: Math.max(0, Math.min(10, analysis.allergenManagement || 0))
     };
-    return formatted[category as keyof typeof formatted] || category;
+
+    const overallScore = (
+      breakdown.menuVariety * 0.25 +           // 25% weight
+      breakdown.ingredientClarity * 0.20 +     // 20% weight  
+      breakdown.staffKnowledge * 0.15 +        // 15% weight
+      breakdown.crossContamination * 0.20 +    // 20% weight
+      breakdown.nutritionalInfo * 0.10 +       // 10% weight
+      breakdown.allergenManagement * 0.10      // 10% weight
+    );
+
+    return {
+      overallScore: Math.round(overallScore * 10) / 10, // Round to 1 decimal
+      breakdown,
+      confidence: Math.max(0, Math.min(1, analysis.confidence || 0.7)),
+      reasoning: analysis.reasoning || 'Analysis based on available restaurant data'
+    };
+  }
+
+  /**
+   * Fallback scoring when AI analysis fails
+   */
+  private getFallbackScore(cuisineTypes: string[]): VeganScoreResult {
+    const veganFriendlyCuisines = [
+      'vegan', 'vegetarian', 'mediterranean', 'indian', 'thai', 'vietnamese', 
+      'middle_eastern', 'lebanese', 'ethiopian', 'mexican'
+    ];
+    
+    const hasVeganCuisine = cuisineTypes.some(cuisine => 
+      veganFriendlyCuisines.includes(cuisine.toLowerCase())
+    );
+    
+    const baseScore = hasVeganCuisine ? 6.5 : 4.0;
+    
+    const breakdown: VeganScoreBreakdown = {
+      menuVariety: baseScore,
+      ingredientClarity: baseScore - 1,
+      staffKnowledge: baseScore - 0.5,
+      crossContamination: baseScore - 1.5,
+      nutritionalInfo: baseScore - 2,
+      allergenManagement: baseScore - 1
+    };
+
+    return {
+      overallScore: baseScore,
+      breakdown,
+      confidence: 0.3, // Low confidence for fallback
+      reasoning: 'Fallback scoring based on cuisine type analysis'
+    };
+  }
+
+  /**
+   * Batch calculate scores for multiple restaurants
+   */
+  async calculateBatchScores(restaurants: Array<{
+    placeId: string;
+    name: string;
+    cuisineTypes?: string[];
+  }>): Promise<Map<string, VeganScoreResult>> {
+    const results = new Map<string, VeganScoreResult>();
+    
+    // Process in batches to avoid rate limits
+    const batchSize = 5;
+    for (let i = 0; i < restaurants.length; i += batchSize) {
+      const batch = restaurants.slice(i, i + batchSize);
+      
+      const batchPromises = batch.map(async (restaurant) => {
+        try {
+          const score = await this.calculateVeganScore(
+            restaurant.placeId,
+            restaurant.name,
+            restaurant.cuisineTypes
+          );
+          return { placeId: restaurant.placeId, score };
+        } catch (error) {
+          console.error(`Error scoring ${restaurant.name}:`, error);
+          return { 
+            placeId: restaurant.placeId, 
+            score: this.getFallbackScore(restaurant.cuisineTypes || [])
+          };
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      batchResults.forEach(({ placeId, score }) => {
+        results.set(placeId, score);
+      });
+
+      // Add delay between batches to respect rate limits
+      if (i + batchSize < restaurants.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    return results;
   }
 }
 
