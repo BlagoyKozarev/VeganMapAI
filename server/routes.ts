@@ -122,13 +122,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const restaurants = await mapAgent.getRestaurantsInRadius(
         parseFloat(lat as string), 
         parseFloat(lng as string), 
-        radius ? parseFloat(radius as string) : 5
+        radius ? parseFloat(radius as string) : 15
       );
 
       // Track user action
       await profileAgent.trackUserBehavior(userId, 'search_nearby', {
         location: { lat: parseFloat(lat as string), lng: parseFloat(lng as string) },
-        radius: radius || 5,
+        radius: radius || 15,
         resultsCount: restaurants.length
       }, { lat: parseFloat(lat as string), lng: parseFloat(lng as string) });
 
