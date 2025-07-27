@@ -112,7 +112,7 @@ export default function Home() {
       {/* Google Maps Style Header */}
       <div 
         className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm h-16" 
-        style={{ zIndex: 1000, backgroundColor: 'white', position: 'fixed' }}
+        style={{ zIndex: 1000, backgroundColor: 'white', position: 'fixed', display: 'block' }}
       >
         <div className="flex items-center px-4 py-3 h-full">
           {/* Menu Button */}
@@ -144,7 +144,7 @@ export default function Home() {
               className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center"
               title="AI Assistant"
             >
-              <i className="fas fa-brain text-gray-600 text-lg"></i>
+              <i className="fas fa-robot text-gray-600 text-lg"></i>
             </Button>
             <Button 
               variant="ghost" 
@@ -213,24 +213,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Google Maps Style Controls - Bottom Right */}
-      <div className="fixed bottom-4 right-4 flex flex-col space-y-2" style={{ zIndex: 999 }}>
-        {/* Zoom Controls */}
-        <div className="bg-white border border-gray-300 rounded-lg shadow-md overflow-hidden">
-          <Button
-            variant="ghost"
-            className="w-12 h-12 border-b border-gray-200 hover:bg-gray-50 flex items-center justify-center text-gray-600 p-0"
-          >
-            <i className="fas fa-plus text-lg"></i>
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-12 h-12 hover:bg-gray-50 flex items-center justify-center text-gray-600 p-0"
-          >
-            <i className="fas fa-minus text-lg"></i>
-          </Button>
-        </div>
-      </div>
+
 
       {/* Action Menu */}
       {showActionMenu && selectedRestaurant && (
