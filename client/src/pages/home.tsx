@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useNearbyRestaurants } from '@/hooks/useRestaurants';
 import Map from '@/components/map/Map';
@@ -6,10 +7,11 @@ import SearchBar from '@/components/ui/search-bar';
 import ActionMenu from '@/components/ui/action-menu';
 import TabNavigation from '@/components/layout/TabNavigation';
 import { Button } from '@/components/ui/button';
-import { Restaurant } from '@/types';
+import type { Restaurant } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Home() {
+  const [, setLocation] = useLocation();
   const { position, error, loading, getCurrentPosition } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
@@ -117,13 +119,39 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-white">
-      {/* Search Bar */}
-      <div className="absolute top-4 left-4 right-4 z-20">
-        <SearchBar />
+      {/* Header with Icons and Search */}
+      <div className="absolute top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <div className="px-4 py-3">
+          {/* Top Row - Logo and Icons */}
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-xl font-poppins font-bold text-vegan-green">VeganMapAI</h1>
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="ghost" 
+                onClick={() => setLocation('/ai-chat')}
+                className="p-2 hover:bg-vegan-light-green rounded-full transition-colors"
+                title="AI Assistant"
+              >
+                <i className="fas fa-microphone text-vegan-green text-lg"></i>
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => setLocation('/profile')}
+                className="p-2 hover:bg-vegan-light-green rounded-full transition-colors"
+                title="Profile"
+              >
+                <i className="fas fa-user text-vegan-green text-lg"></i>
+              </Button>
+            </div>
+          </div>
+          
+          {/* Search Bar */}
+          <SearchBar />
+        </div>
       </div>
 
       {/* Map Container */}
-      <div className="h-screen relative">
+      <div className="h-screen relative pt-24">
         <Map
           center={position ? [position.lat, position.lng] : [40.7128, -74.0060]}
           restaurants={restaurants}

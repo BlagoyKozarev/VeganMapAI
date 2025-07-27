@@ -68,19 +68,20 @@ export default function SearchBar() {
 
   return (
     <div ref={searchRef} className="relative">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 flex items-center p-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex items-center p-3">
         <i className="fas fa-search text-neutral-gray mr-3"></i>
         <Input
           value={query}
           onChange={(e) => handleInputChange(e.target.value)}
-          placeholder="Search for vegan places..."
-          className="flex-1 outline-none border-none shadow-none font-opensans text-gray-700 focus-visible:ring-0"
+          placeholder="Search restaurants, cuisines, or locations..."
+          className="flex-1 outline-none border-none shadow-none font-opensans text-gray-700 focus-visible:ring-0 text-sm"
           onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           onFocus={() => query.length >= 2 && suggestions.length > 0 && setShowSuggestions(true)}
         />
         <Button
           onClick={() => setLocation('/search')}
-          className="ml-3 p-2 bg-vegan-green rounded-xl text-white hover:bg-vegan-dark-green transition-colors"
+          className="ml-3 p-2 bg-transparent rounded-lg text-neutral-gray hover:text-vegan-green hover:bg-vegan-light-green transition-colors"
+          variant="ghost"
         >
           <i className="fas fa-sliders-h"></i>
         </Button>
