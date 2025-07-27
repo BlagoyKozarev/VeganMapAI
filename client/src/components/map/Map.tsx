@@ -198,8 +198,6 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
       markersRef.current.push(marker);
     });
-
-    console.log(`Displayed ${displayRestaurants.length} out of ${restaurants.length} restaurants`);
   }, [restaurants, onRestaurantClick]);
 
   useEffect(() => {
