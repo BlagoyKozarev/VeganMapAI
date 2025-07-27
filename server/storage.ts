@@ -1,12 +1,16 @@
 import {
   users,
+  userProfiles,
   restaurants,
-  veganScoreBreakdowns,
+  veganScoreBreakdown,
   userFavorites,
   userVisits,
   chatSessions,
+  userAnalytics,
   type User,
   type UpsertUser,
+  type UserProfile,
+  type InsertUserProfile,
   type Restaurant,
   type InsertRestaurant,
   type VeganScoreBreakdown,
@@ -17,42 +21,59 @@ import {
   type InsertUserVisit,
   type ChatSession,
   type InsertChatSession,
+  type UserAnalytics,
+  type InsertUserAnalytics,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, desc, asc, sql, inArray } from "drizzle-orm";
 
+// Interface for storage operations
 export interface IStorage {
   // User operations
+  // (IMPORTANT) these user operations are mandatory for Replit Auth.
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  
+  // User profile operations
+  getUserProfile(userId: string): Promise<UserProfile | undefined>;
+  createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
+  updateUserProfile(userId: string, profile: Partial<InsertUserProfile>): Promise<UserProfile>;
   
   // Restaurant operations
   getRestaurant(id: string): Promise<Restaurant | undefined>;
   getRestaurantByPlaceId(placeId: string): Promise<Restaurant | undefined>;
   createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant>;
   updateRestaurant(id: string, restaurant: Partial<InsertRestaurant>): Promise<Restaurant>;
-  getRestaurantsNearby(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]>;
+  getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]>;
+  searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]>;
   
   // Vegan score operations
   getVeganScoreBreakdown(restaurantId: string): Promise<VeganScoreBreakdown | undefined>;
-  createVeganScoreBreakdown(breakdown: InsertVeganScoreBreakdown): Promise<VeganScoreBreakdown>;
-  updateVeganScoreBreakdown(restaurantId: string, breakdown: Partial<InsertVeganScoreBreakdown>): Promise<VeganScoreBreakdown>;
+  upsertVeganScoreBreakdown(breakdown: InsertVeganScoreBreakdown): Promise<VeganScoreBreakdown>;
   
-  // User favorites
-  getUserFavorites(userId: string): Promise<UserFavorite[]>;
+  // User favorites operations
+  getUserFavorites(userId: string): Promise<Restaurant[]>;
   addUserFavorite(favorite: InsertUserFavorite): Promise<UserFavorite>;
   removeUserFavorite(userId: string, restaurantId: string): Promise<void>;
+  isUserFavorite(userId: string, restaurantId: string): Promise<boolean>;
   
-  // User visits
+  // User visits operations
   getUserVisits(userId: string): Promise<UserVisit[]>;
   addUserVisit(visit: InsertUserVisit): Promise<UserVisit>;
   
-  // Chat sessions
+  // Chat sessions operations
   getChatSession(userId: string): Promise<ChatSession | undefined>;
-  saveChatSession(session: InsertChatSession): Promise<ChatSession>;
+  upsertChatSession(session: InsertChatSession): Promise<ChatSession>;
+  
+  // Analytics operations
+  addUserAnalytics(analytics: InsertUserAnalytics): Promise<UserAnalytics>;
+  getUserAnalytics(userId: string, limit?: number): Promise<UserAnalytics[]>;
 }
 
 export class DatabaseStorage implements IStorage {
+  // User operations
+  // (IMPORTANT) these user operations are mandatory for Replit Auth.
+  
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -72,25 +93,58 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
-
+  
+  // User profile operations
+  async getUserProfile(userId: string): Promise<UserProfile | undefined> {
+    const [profile] = await db
+      .select()
+      .from(userProfiles)
+      .where(eq(userProfiles.userId, userId));
+    return profile;
+  }
+  
+  async createUserProfile(profile: InsertUserProfile): Promise<UserProfile> {
+    const [createdProfile] = await db
+      .insert(userProfiles)
+      .values(profile)
+      .returning();
+    return createdProfile;
+  }
+  
+  async updateUserProfile(userId: string, profile: Partial<InsertUserProfile>): Promise<UserProfile> {
+    const [updatedProfile] = await db
+      .update(userProfiles)
+      .set({ ...profile, updatedAt: new Date() })
+      .where(eq(userProfiles.userId, userId))
+      .returning();
+    return updatedProfile;
+  }
+  
+  // Restaurant operations
   async getRestaurant(id: string): Promise<Restaurant | undefined> {
-    const [restaurant] = await db.select().from(restaurants).where(eq(restaurants.id, id));
+    const [restaurant] = await db
+      .select()
+      .from(restaurants)
+      .where(eq(restaurants.id, id));
     return restaurant;
   }
-
+  
   async getRestaurantByPlaceId(placeId: string): Promise<Restaurant | undefined> {
-    const [restaurant] = await db.select().from(restaurants).where(eq(restaurants.placeId, placeId));
+    const [restaurant] = await db
+      .select()
+      .from(restaurants)
+      .where(eq(restaurants.placeId, placeId));
     return restaurant;
   }
-
+  
   async createRestaurant(restaurant: InsertRestaurant): Promise<Restaurant> {
-    const [newRestaurant] = await db
+    const [createdRestaurant] = await db
       .insert(restaurants)
       .values(restaurant)
       .returning();
-    return newRestaurant;
+    return createdRestaurant;
   }
-
+  
   async updateRestaurant(id: string, restaurant: Partial<InsertRestaurant>): Promise<Restaurant> {
     const [updatedRestaurant] = await db
       .update(restaurants)
@@ -99,67 +153,108 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedRestaurant;
   }
-
-  async getRestaurantsNearby(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]> {
-    // For initial testing, return all restaurants
+  
+  async getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]> {
+    console.log(`Getting restaurants in radius: lat=${lat}, lng=${lng}, radius=${radiusKm}km`);
+    
+    // For now, return all restaurants and filter client-side for simplicity
+    // In production, use proper geospatial queries
     const allRestaurants = await db.select().from(restaurants);
-    console.log(`Returning all ${allRestaurants.length} restaurants for testing`);
-    return allRestaurants;
+    
+    console.log(`Found ${allRestaurants.length} total restaurants in database`);
+    
+    // Simple distance calculation (approximately)
+    const filteredRestaurants = allRestaurants.filter(restaurant => {
+      const restLat = parseFloat(restaurant.latitude);
+      const restLng = parseFloat(restaurant.longitude);
+      
+      // Simple distance approximation in km
+      const latDiff = Math.abs(lat - restLat);
+      const lngDiff = Math.abs(lng - restLng);
+      const approximateDistance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 111; // ~111km per degree
+      
+      console.log(`Restaurant ${restaurant.name}: distance ~${approximateDistance.toFixed(2)}km`);
+      
+      return approximateDistance <= radiusKm;
+    });
+    
+    console.log(`Returning ${filteredRestaurants.length} restaurants within ${radiusKm}km`);
+    return filteredRestaurants;
   }
-
-  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-    const R = 6371; // Radius of the Earth in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
-    return distance;
+  
+  async searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]> {
+    let baseQuery = db.select().from(restaurants);
+    
+    if (query) {
+      baseQuery = baseQuery.where(
+        sql`LOWER(${restaurants.name}) LIKE LOWER(${'%' + query + '%'}) OR 
+            LOWER(${restaurants.address}) LIKE LOWER(${'%' + query + '%'})`
+      );
+    }
+    
+    if (filters?.minVeganScore) {
+      baseQuery = baseQuery.where(sql`${restaurants.veganScore} >= ${filters.minVeganScore}`);
+    }
+    
+    if (filters?.priceRange && filters.priceRange.length > 0) {
+      baseQuery = baseQuery.where(inArray(restaurants.priceLevel, filters.priceRange));
+    }
+    
+    if (filters?.cuisineTypes && filters.cuisineTypes.length > 0) {
+      baseQuery = baseQuery.where(
+        sql`${restaurants.cuisineTypes} && ${filters.cuisineTypes}`
+      );
+    }
+    
+    return await baseQuery.orderBy(desc(restaurants.veganScore));
   }
-
+  
+  // Vegan score operations
   async getVeganScoreBreakdown(restaurantId: string): Promise<VeganScoreBreakdown | undefined> {
     const [breakdown] = await db
       .select()
-      .from(veganScoreBreakdowns)
-      .where(eq(veganScoreBreakdowns.restaurantId, restaurantId));
+      .from(veganScoreBreakdown)
+      .where(eq(veganScoreBreakdown.restaurantId, restaurantId));
     return breakdown;
   }
-
-  async createVeganScoreBreakdown(breakdown: InsertVeganScoreBreakdown): Promise<VeganScoreBreakdown> {
-    const [newBreakdown] = await db
-      .insert(veganScoreBreakdowns)
+  
+  async upsertVeganScoreBreakdown(breakdown: InsertVeganScoreBreakdown): Promise<VeganScoreBreakdown> {
+    const [upsertedBreakdown] = await db
+      .insert(veganScoreBreakdown)
       .values(breakdown)
+      .onConflictDoUpdate({
+        target: veganScoreBreakdown.restaurantId,
+        set: {
+          ...breakdown,
+          lastUpdated: new Date(),
+        },
+      })
       .returning();
-    return newBreakdown;
+    return upsertedBreakdown;
   }
-
-  async updateVeganScoreBreakdown(restaurantId: string, breakdown: Partial<InsertVeganScoreBreakdown>): Promise<VeganScoreBreakdown> {
-    const [updatedBreakdown] = await db
-      .update(veganScoreBreakdowns)
-      .set({ ...breakdown, updatedAt: new Date() })
-      .where(eq(veganScoreBreakdowns.restaurantId, restaurantId))
-      .returning();
-    return updatedBreakdown;
-  }
-
-  async getUserFavorites(userId: string): Promise<UserFavorite[]> {
-    return await db
-      .select()
+  
+  // User favorites operations
+  async getUserFavorites(userId: string): Promise<Restaurant[]> {
+    const favorites = await db
+      .select({
+        restaurant: restaurants,
+      })
       .from(userFavorites)
-      .where(eq(userFavorites.userId, userId));
+      .innerJoin(restaurants, eq(userFavorites.restaurantId, restaurants.id))
+      .where(eq(userFavorites.userId, userId))
+      .orderBy(desc(userFavorites.createdAt));
+    
+    return favorites.map(f => f.restaurant);
   }
-
+  
   async addUserFavorite(favorite: InsertUserFavorite): Promise<UserFavorite> {
-    const [newFavorite] = await db
+    const [createdFavorite] = await db
       .insert(userFavorites)
       .values(favorite)
       .returning();
-    return newFavorite;
+    return createdFavorite;
   }
-
+  
   async removeUserFavorite(userId: string, restaurantId: string): Promise<void> {
     await db
       .delete(userFavorites)
@@ -170,53 +265,85 @@ export class DatabaseStorage implements IStorage {
         )
       );
   }
-
+  
+  async isUserFavorite(userId: string, restaurantId: string): Promise<boolean> {
+    const [favorite] = await db
+      .select()
+      .from(userFavorites)
+      .where(
+        and(
+          eq(userFavorites.userId, userId),
+          eq(userFavorites.restaurantId, restaurantId)
+        )
+      );
+    return !!favorite;
+  }
+  
+  // User visits operations
   async getUserVisits(userId: string): Promise<UserVisit[]> {
     return await db
       .select()
       .from(userVisits)
       .where(eq(userVisits.userId, userId))
-      .orderBy(sql`${userVisits.visitDate} DESC`);
+      .orderBy(desc(userVisits.visitDate));
   }
-
+  
   async addUserVisit(visit: InsertUserVisit): Promise<UserVisit> {
-    const [newVisit] = await db
+    const [createdVisit] = await db
       .insert(userVisits)
       .values(visit)
       .returning();
-    return newVisit;
+    return createdVisit;
   }
-
+  
+  // Chat sessions operations
   async getChatSession(userId: string): Promise<ChatSession | undefined> {
     const [session] = await db
       .select()
       .from(chatSessions)
       .where(eq(chatSessions.userId, userId))
-      .orderBy(sql`${chatSessions.updatedAt} DESC`)
-      .limit(1);
+      .orderBy(desc(chatSessions.updatedAt));
     return session;
   }
-
-  async saveChatSession(session: InsertChatSession): Promise<ChatSession> {
-    const existingSession = await this.getChatSession(session.userId!);
+  
+  async upsertChatSession(session: InsertChatSession): Promise<ChatSession> {
+    const existingSession = await this.getChatSession(session.userId);
     
     if (existingSession) {
       const [updatedSession] = await db
         .update(chatSessions)
-        .set({ 
+        .set({
           messages: session.messages,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(chatSessions.id, existingSession.id))
         .returning();
       return updatedSession;
     } else {
-      const [newSession] = await db
+      const [createdSession] = await db
         .insert(chatSessions)
         .values(session)
         .returning();
-      return newSession;
+      return createdSession;
     }
+  }
+  
+  // Analytics operations
+  async addUserAnalytics(analytics: InsertUserAnalytics): Promise<UserAnalytics> {
+    const [createdAnalytics] = await db
+      .insert(userAnalytics)
+      .values(analytics)
+      .returning();
+    return createdAnalytics;
+  }
+  
+  async getUserAnalytics(userId: string, limit: number = 100): Promise<UserAnalytics[]> {
+    return await db
+      .select()
+      .from(userAnalytics)
+      .where(eq(userAnalytics.userId, userId))
+      .orderBy(desc(userAnalytics.timestamp))
+      .limit(limit);
   }
 }
 
