@@ -23,6 +23,8 @@ export default function Home() {
   const { position, loading, error, getCurrentPosition } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
   
   // Check URL parameters for custom location
   const urlParams = new URLSearchParams(window.location.search);
@@ -53,6 +55,19 @@ export default function Home() {
       console.log('Sample restaurant scores:', restaurants.slice(0, 10).map((r: Restaurant) => ({ name: r.name, score: r.veganScore })));
     }
   }, [restaurants]);
+
+  // Filter restaurants based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredRestaurants(restaurants);
+    } else {
+      const filtered = restaurants.filter((restaurant: any) =>
+        restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredRestaurants(filtered);
+    }
+  }, [restaurants, searchQuery]);
 
   const handleCurrentLocation = () => {
     getCurrentPosition();
@@ -135,7 +150,8 @@ export default function Home() {
                 type="text"
                 placeholder="Search for vegan places"
                 className="flex-1 outline-none text-gray-700 font-opensans"
-                onFocus={() => setLocation('/search')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
@@ -200,7 +216,7 @@ export default function Home() {
       >
         <Map
           center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
-          restaurants={restaurants}
+          restaurants={filteredRestaurants}
           onRestaurantClick={handleRestaurantClick}
           onLocationChange={(newCenter) => {
             // Refresh page with new coordinates to trigger restaurant reload

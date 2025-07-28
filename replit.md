@@ -230,21 +230,28 @@ The application is designed to be modular and scalable, with clear separation be
 - System now tracks: 214 total restaurants, 117 with AI scores, average vegan score 1.67/10
 - Cache hit rates and cost savings displayed in real-time dashboard for US expansion planning
 
-### July 28, 2025 - Map Controls & Search Functionality
+### July 28, 2025 - Live Search & Advanced Filtering Implementation
 - Added temporary orange 📊 button in header for easy API stats access per user request
-- Simplified map controls based on user feedback:
-  - Removed complex map style switching and layer controls
-  - Removed location switching buttons (Sofia Center, Vitosha Boulevard)
-  - Added dual filtering system with two sliders:
-    * Min Vegan Score filter (0-10 scale)
-    * Min Google Maps Score filter (0-5 scale)
-- Positioned both score filters in bottom-right corner for easy access
-- Implemented comprehensive search page with advanced filtering:
+- Implemented live search functionality directly in header search bar:
+  - Real-time filtering of restaurants as user types
+  - Search works by restaurant name and address
+  - No need to navigate to separate search page for basic queries
+- Simplified map controls with dual filtering system:
+  - Min Vegan Score filter (0-10 scale) in bottom-right corner
+  - Min Google Maps Score filter (0-5 scale) in same panel
+  - Removed complex map style switching and location buttons per user feedback
+- Created comprehensive advanced search page (/search) with professional filtering:
   - Text search by restaurant name and location
-  - Sort by vegan score, Google rating, or alphabetical
+  - Sort by vegan score, Google rating, or alphabetical order
   - Price range filters (Budget, Mid-range, Fine Dining)
-  - Cuisine type filters with clickable badges
+  - Food-focused cuisine type filters (removed spa, lodging, etc.)
   - Sidebar layout with filters and main results area
   - "View on Map" buttons linking back to map view
-- Clean, minimal UI focusing on core filtering functionality (vegan + Google ratings)
-- System optimized for daily use with streamlined dual-score filtering experience
+- Enhanced cuisine filtering to show only food-related establishments:
+  - Includes bakery, cafe, restaurant, pizza, italian, chinese, etc.
+  - Excludes non-food categories like spa, lodging, establishment
+  - Shows top 12 most relevant food-related cuisine types
+- System optimized for daily use with streamlined search experience:
+  - Basic search works directly from header without page navigation
+  - Advanced filters accessible through profile or /search URL
+  - Clean, minimal UI focusing on core functionality
