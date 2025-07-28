@@ -171,7 +171,8 @@ The application is designed to be modular and scalable, with clear separation be
 - Average vegan score: 1.67/10 across analyzed restaurants
 - Cost optimization: Target $0.24/user/month for US expansion
 - Cache performance: 90% reduction in Google Places API calls
-- Map display: Shows 9-32 restaurants depending on zoom level
+- Map display: Shows all 117 restaurants without radius restrictions
+- Favorites system: Full CRUD operations with user analytics tracking
 
 ### User Experience:
 - Search works directly from header with autocomplete
@@ -179,6 +180,8 @@ The application is designed to be modular and scalable, with clear separation be
 - Results show 3 initially with "Show More" pagination
 - Voice assistant responds in Bulgarian with 2-3 sentence limit
 - Mobile-optimized interface with responsive design
+- Favorites accessible via restaurant modals, profile page, or direct URL (/favorites)
+- All 117 restaurants displayed on map without distance limitations
 
 ## Recent Changes
 
@@ -296,3 +299,23 @@ The application is designed to be modular and scalable, with clear separation be
   - Basic search works directly from header without page navigation
   - Advanced filters accessible through profile or /search URL
   - Clean, minimal UI focusing on core functionality
+
+### July 28, 2025 - Complete Favorites System Implementation
+- Created comprehensive Favorites & Personal Lists System with full database integration:
+  - Added favorites table to database schema with proper user relationships
+  - Built complete API endpoints for adding/removing favorites with analytics tracking
+  - Implemented FavoriteButton component with heart icon and red color when active
+- Integrated Restaurant Modal with favorites functionality:
+  - Added heart button in top-right corner of restaurant modals
+  - Displays current favorite status and allows toggling
+  - Integrated with existing restaurant pin click behavior
+- Created "My Favorites" page (/favorites) with full restaurant listing:
+  - Shows all user's favorite restaurants with vegan scores and details
+  - Accessible through Profile page "My Favorites" button
+  - Direct URL access for bookmarking
+  - Empty state with encouragement to explore restaurants
+- Fixed map display issues:
+  - Removed 2km radius restriction to show all 117 restaurants with AI scores
+  - Fixed restaurant pin clicks to open Restaurant Modal instead of old action menu
+  - Maintained uniform green pins without clustering as requested
+- **Status: Favorites system completed successfully** - Full integration working with authentic data
