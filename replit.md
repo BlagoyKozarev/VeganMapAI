@@ -235,8 +235,10 @@ The application is designed to be modular and scalable, with clear separation be
 - Simplified map controls based on user feedback:
   - Removed complex map style switching and layer controls
   - Removed location switching buttons (Sofia Center, Vitosha Boulevard)
-  - Kept only essential Min Vegan Score filter with slider (0-10 scale)
-- Positioned Min Score filter in bottom-right corner for easy access
+  - Added dual filtering system with two sliders:
+    * Min Vegan Score filter (0-10 scale)
+    * Min Google Maps Score filter (0-5 scale)
+- Positioned both score filters in bottom-right corner for easy access
 - Implemented distance-based filtering using Haversine formula for radius control
-- Clean, minimal UI focusing on core vegan score filtering functionality
-- System optimized for daily use with streamlined user experience
+- Clean, minimal UI focusing on core filtering functionality (vegan + Google ratings)
+- System optimized for daily use with streamlined dual-score filtering experience
