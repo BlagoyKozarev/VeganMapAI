@@ -30,19 +30,19 @@ export default function MapControls({
   minScore,
   radius
 }: MapControlsProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Start expanded for testing
 
   return (
-    <div className="fixed top-20 right-4 z-50">
-      <Card className="bg-white shadow-lg">
+    <div className="fixed top-20 right-4" style={{ zIndex: 2000 }}>
+      <Card className="bg-white shadow-xl border-2 border-blue-300">
         <CardContent className="p-4">
           {/* Toggle Button */}
           <Button
-            variant="ghost"
+            variant="default"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full mb-2 flex items-center justify-between"
+            className="w-full mb-2 flex items-center justify-between bg-blue-500 hover:bg-blue-600 text-white"
           >
-            <span className="text-sm font-medium">Map Controls</span>
+            <span className="text-sm font-medium">🗺️ Map Controls</span>
             <span className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
               ▼
             </span>
