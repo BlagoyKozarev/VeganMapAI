@@ -65,69 +65,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     };
   }, []);
 
-  // Helper function to cluster nearby restaurants
-  const clusterRestaurants = (restaurants: Restaurant[], distance: number) => {
-    const clusters: { representative: Restaurant; count: number; restaurants: Restaurant[]; centerLat?: number; centerLng?: number }[] = [];
-    const processed = new Set<string>();
-
-    restaurants.forEach(restaurant => {
-      if (processed.has(restaurant.id)) return;
-
-      const lat = parseFloat(restaurant.latitude);
-      const lng = parseFloat(restaurant.longitude);
-      
-      if (isNaN(lat) || isNaN(lng)) return;
-
-      const nearbyRestaurants = restaurants.filter(other => {
-        if (processed.has(other.id) || other.id === restaurant.id) return false;
-        
-        const otherLat = parseFloat(other.latitude);
-        const otherLng = parseFloat(other.longitude);
-        
-        if (isNaN(otherLat) || isNaN(otherLng)) return false;
-        
-        const dist = Math.sqrt(Math.pow(lat - otherLat, 2) + Math.pow(lng - otherLng, 2));
-        return dist < distance;
-      });
-
-      // Find the highest scoring restaurant in the cluster to represent it
-      const clusterRestaurants = [restaurant, ...nearbyRestaurants];
-      const representative = clusterRestaurants.reduce((best, current) => {
-        const currentScore = parseFloat(current.veganScore || '0');
-        const bestScore = parseFloat(best.veganScore || '0');
-        return currentScore > bestScore ? current : best;
-      });
-
-      // Calculate cluster center position for better visual distribution
-      const centerLat = clusterRestaurants.reduce((sum, r) => sum + parseFloat(r.latitude), 0) / clusterRestaurants.length;
-      const centerLng = clusterRestaurants.reduce((sum, r) => sum + parseFloat(r.longitude), 0) / clusterRestaurants.length;
-      
-      // Add slight offset for single restaurants to prevent exact overlap
-      let finalLat = centerLat;
-      let finalLng = centerLng;
-      
-      if (clusterRestaurants.length === 1) {
-        // Small random offset for individual restaurants to prevent stacking
-        const offsetLat = (Math.random() - 0.5) * 0.00005; // ~5m offset
-        const offsetLng = (Math.random() - 0.5) * 0.00005;
-        finalLat = centerLat + offsetLat;
-        finalLng = centerLng + offsetLng;
-      }
-
-      clusters.push({
-        representative,
-        count: clusterRestaurants.length,
-        restaurants: clusterRestaurants,
-        centerLat: finalLat,
-        centerLng: finalLng
-      });
-
-      // Mark all restaurants in this cluster as processed
-      clusterRestaurants.forEach(r => processed.add(r.id));
-    });
-
-    return clusters;
-  };
+  // No clustering - show all restaurants individually
 
   const updateMarkers = () => {
     if (!mapInstanceRef.current) return;
@@ -157,84 +95,52 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
              lng <= bounds.getEast() + padding;
     });
 
-    console.log(`Showing ${visibleRestaurants.length} restaurants in current map bounds`);
+    console.log(`Showing ${visibleRestaurants.length} restaurants without clustering`);
 
-    // Dynamic clustering based on zoom level
-    const zoom = map.getZoom();
-    
-    // Balanced clustering - prevent overlapping while showing individual restaurants
-    const clusterDistance = zoom >= 17 ? 0.0001 :  // ~10m at very high zoom
-                           zoom >= 15 ? 0.0003 :    // ~30m at high zoom 
-                           zoom >= 13 ? 0.0006 :    // ~60m at medium zoom
-                           0.0012;                  // ~120m at low zoom
-    
-    const clusteredRestaurants = clusterRestaurants(visibleRestaurants, clusterDistance);
-    console.log(`Zoom: ${zoom.toFixed(1)}, Distance: ${clusterDistance.toFixed(4)}, Displaying ${clusteredRestaurants.length} clustered markers from ${visibleRestaurants.length} visible restaurants`);
-
-    clusteredRestaurants.forEach((cluster) => {
-      // Use cluster center for better positioning, fallback to representative
-      const lat = cluster.centerLat || parseFloat(cluster.representative.latitude);
-      const lng = cluster.centerLng || parseFloat(cluster.representative.longitude);
+    // Show all restaurants individually with green pins
+    visibleRestaurants.forEach((restaurant) => {
+      const lat = parseFloat(restaurant.latitude);
+      const lng = parseFloat(restaurant.longitude);
       
       if (isNaN(lat) || isNaN(lng)) return;
 
-      const veganScore = cluster.representative.veganScore ? parseFloat(cluster.representative.veganScore) : 0;
-      
-      const pinColor = veganScore >= 8.5 ? '#16a34a' : 
-                      veganScore >= 7.5 ? '#22c55e' :
-                      veganScore >= 6.5 ? '#84cc16' :
-                      veganScore >= 5.5 ? '#f59e0b' :
-                      veganScore >= 4.0 ? '#ef4444' : '#9ca3af';
-
-      // Show cluster count if more than 1 restaurant, otherwise show score
-      const displayText = cluster.count > 1 ? cluster.count.toString() : veganScore.toFixed(1);
-      const markerSize = cluster.count > 1 ? 42 : 36;
+      const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
+      const displayText = veganScore > 0 ? veganScore.toFixed(1) : '?';
 
       const customIcon = L.divIcon({
         className: 'custom-restaurant-marker',
         html: `
           <div style="
-            background-color: ${pinColor};
+            background-color: #16a34a;
             color: white;
             border-radius: 50%;
-            width: ${markerSize}px;
-            height: ${markerSize}px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: ${cluster.count > 1 ? '14px' : '12px'};
+            font-size: 12px;
             border: 3px solid white;
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
             cursor: pointer;
-            ${cluster.count > 1 ? 'border: 3px solid #fbbf24;' : ''}
           ">
             ${displayText}
           </div>
         `,
-        iconSize: [markerSize, markerSize],
-        iconAnchor: [markerSize/2, markerSize/2],
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
       });
 
       const marker = L.marker([lat, lng], { icon: customIcon })
         .addTo(mapInstanceRef.current!)
         .on('click', () => {
-          console.log('Map marker clicked:', cluster.representative.name, 'Cluster size:', cluster.count);
-          if (cluster.count > 1) {
-            // Zoom in more aggressively to break clusters
-            const newZoom = Math.min(zoom + 4, 19);
-            map.setView([lat, lng], newZoom);
-            console.log(`Zooming to level ${newZoom} to break cluster of ${cluster.count} restaurants`);
-          } else {
-            // Single restaurant click
-            onRestaurantClick(cluster.representative);
-          }
+          console.log('Map marker clicked:', restaurant.name);
+          onRestaurantClick(restaurant);
         });
 
       // Add tooltip on hover
-      const tooltipText = cluster.count > 1 
-        ? `${cluster.count} restaurants in this area` 
-        : `${cluster.representative.name} (${veganScore.toFixed(1)})`;
+      const tooltipText = `${restaurant.name} (${displayText})`;
         
       marker.bindTooltip(tooltipText, {
         permanent: false,
@@ -247,19 +153,21 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     });
   };
 
-  // Update markers when zoom changes
+  // Update markers when map moves or zooms
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     
     const map = mapInstanceRef.current;
-    const handleZoomEnd = () => {
+    const handleMapChange = () => {
       updateMarkers();
     };
     
-    map.on('zoomend', handleZoomEnd);
+    map.on('moveend', handleMapChange);
+    map.on('zoomend', handleMapChange);
     
     return () => {
-      map.off('zoomend', handleZoomEnd);
+      map.off('moveend', handleMapChange);
+      map.off('zoomend', handleMapChange);
     };
   }, [restaurants]);
 
