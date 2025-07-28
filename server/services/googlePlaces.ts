@@ -29,22 +29,30 @@ export interface GooglePlaceDetails {
 export async function findNearbyRestaurants(
   lat: number,
   lng: number,
-  radiusMeters: number = 2000
+  radiusMeters: number = 8000
 ): Promise<GooglePlaceDetails[]> {
   try {
-    const response = await client.placesNearby({
-      params: {
-        location: { lat, lng },
-        radius: radiusMeters,
-        type: 'restaurant',
-        key: process.env.GOOGLE_MAPS_API_KEY!,
-      },
-    });
-
-    const detailedPlaces: GooglePlaceDetails[] = [];
+    console.log(`Searching for restaurants in ${radiusMeters/1000}km radius from Sofia center`);
     
-    // Get detailed information for each place - maximum limit for comprehensive testing
-    for (const place of response.data.results) { // No limit - get all places
+    const allPlaces: GooglePlaceDetails[] = [];
+    let nextPageToken: string | undefined;
+    
+    // Google Places API returns max 20 results per page, use pagination for comprehensive search
+    do {
+      const response = await client.placesNearby({
+        params: {
+          location: { lat, lng },
+          radius: radiusMeters,
+          type: 'restaurant',
+          key: process.env.GOOGLE_MAPS_API_KEY!,
+          ...(nextPageToken && { pagetoken: nextPageToken })
+        },
+      });
+
+      console.log(`Found ${response.data.results.length} restaurants in this page`);
+      
+      // Get detailed information for each place
+      for (const place of response.data.results) {
       try {
         const detailsResponse = await client.placeDetails({
           params: {
@@ -70,14 +78,28 @@ export async function findNearbyRestaurants(
         });
 
         if (detailsResponse.data.result) {
-          detailedPlaces.push(detailsResponse.data.result as GooglePlaceDetails);
+          allPlaces.push(detailsResponse.data.result as GooglePlaceDetails);
         }
       } catch (error) {
         console.warn(`Failed to get details for place ${place.place_id}:`, error);
       }
+      
+      // Small delay to respect API rate limits
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
+    
+    nextPageToken = response.data.next_page_token;
+    
+    // If there's a next page, wait for it to be ready (Google requires ~2 second delay)
+    if (nextPageToken) {
+      console.log('Waiting for next page to be ready...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+    
+  } while (nextPageToken && allPlaces.length < 200); // Limit to 200 restaurants to avoid excessive API costs
 
-    return detailedPlaces;
+    console.log(`Total restaurants found: ${allPlaces.length}`);
+    return allPlaces;
   } catch (error) {
     console.error('Error fetching nearby restaurants from Google Places:', error);
     throw new Error('Failed to fetch restaurants from Google Places');
