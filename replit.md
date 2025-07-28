@@ -230,7 +230,7 @@ The application is designed to be modular and scalable, with clear separation be
 - System now tracks: 214 total restaurants, 117 with AI scores, average vegan score 1.67/10
 - Cache hit rates and cost savings displayed in real-time dashboard for US expansion planning
 
-### July 28, 2025 - Map Controls & Filtering System
+### July 28, 2025 - Map Controls & Search Functionality
 - Added temporary orange 📊 button in header for easy API stats access per user request
 - Simplified map controls based on user feedback:
   - Removed complex map style switching and layer controls
@@ -239,6 +239,12 @@ The application is designed to be modular and scalable, with clear separation be
     * Min Vegan Score filter (0-10 scale)
     * Min Google Maps Score filter (0-5 scale)
 - Positioned both score filters in bottom-right corner for easy access
-- Implemented distance-based filtering using Haversine formula for radius control
+- Implemented comprehensive search page with advanced filtering:
+  - Text search by restaurant name and location
+  - Sort by vegan score, Google rating, or alphabetical
+  - Price range filters (Budget, Mid-range, Fine Dining)
+  - Cuisine type filters with clickable badges
+  - Sidebar layout with filters and main results area
+  - "View on Map" buttons linking back to map view
 - Clean, minimal UI focusing on core filtering functionality (vegan + Google ratings)
 - System optimized for daily use with streamlined dual-score filtering experience
