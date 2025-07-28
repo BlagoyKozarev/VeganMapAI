@@ -229,3 +229,17 @@ The application is designed to be modular and scalable, with clear separation be
 - Resolved white screen issues in API stats page with proper null handling
 - System now tracks: 214 total restaurants, 117 with AI scores, average vegan score 1.67/10
 - Cache hit rates and cost savings displayed in real-time dashboard for US expansion planning
+
+### July 28, 2025 - Map Controls & Filtering System
+- Added temporary orange 📊 button in header for easy API stats access per user request
+- Created MapControls component with comprehensive filtering options:
+  - Map style switching (Standard, Satellite, Terrain)
+  - Layer controls for traffic and public transit
+  - Vegan score filtering with slider (0-10 scale)
+  - Search radius control (0.5-10km)
+  - Quick action buttons (Reset Filters, High Quality preset)
+- Implemented distance-based filtering using Haversine formula
+- Added dynamic tile layer switching for different map styles
+- Integrated filtered restaurant display system with real-time updates
+- Map controls expandable panel positioned in top-right corner with clean UI
+- System ready for advanced map visualization and user experience enhancements

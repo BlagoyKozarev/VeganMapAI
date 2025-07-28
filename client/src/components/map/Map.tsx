@@ -273,6 +273,20 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
         </div>
       )}
       
+      {/* Map Controls */}
+      <MapControls
+        onViewModeChange={setViewMode}
+        onShowTrafficChange={setShowTraffic}
+        onShowTransitChange={setShowTransit}
+        onScoreFilterChange={setMinScore}
+        onRadiusChange={setRadius}
+        currentViewMode={viewMode}
+        showTraffic={showTraffic}
+        showTransit={showTransit}
+        minScore={minScore}
+        radius={radius}
+      />
+
       {/* Location controls */}
       <div className="absolute bottom-4 right-4 z-[1000] space-y-2">
         <button
