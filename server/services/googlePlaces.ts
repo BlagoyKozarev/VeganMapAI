@@ -29,30 +29,42 @@ export interface GooglePlaceDetails {
 export async function findNearbyRestaurants(
   lat: number,
   lng: number,
-  radiusMeters: number = 4000
+  radiusMeters: number = 6000
 ): Promise<GooglePlaceDetails[]> {
   try {
     console.log(`Searching for restaurants in ${radiusMeters/1000}km radius from Sofia center`);
     
     const allPlaces: GooglePlaceDetails[] = [];
-    let nextPageToken: string | undefined;
+    const processedPlaceIds = new Set<string>();
     
-    // Google Places API returns max 20 results per page, use pagination for comprehensive search
-    do {
-      const response = await client.placesNearby({
-        params: {
-          location: { lat, lng },
-          radius: radiusMeters,
-          type: 'restaurant',
-          key: process.env.GOOGLE_MAPS_API_KEY!,
-          ...(nextPageToken && { pagetoken: nextPageToken })
-        },
-      });
+    // Search for multiple types to get more variety
+    const searchTypes = ['restaurant', 'food', 'meal_takeaway', 'cafe'];
+    
+    for (const searchType of searchTypes) {
+      console.log(`Searching for type: ${searchType}`);
+      let nextPageToken: string | undefined;
+      
+      // Google Places API returns max 20 results per page, use pagination for comprehensive search
+      do {
+        const response = await client.placesNearby({
+          params: {
+            location: { lat, lng },
+            radius: radiusMeters,
+            type: searchType as any,
+            key: process.env.GOOGLE_MAPS_API_KEY!,
+            ...(nextPageToken && { pagetoken: nextPageToken })
+          },
+        });
 
-      console.log(`Found ${response.data.results.length} restaurants in this page`);
+      console.log(`Found ${response.data.results.length} ${searchType} places in this page`);
       
       // Get detailed information for each place
       for (const place of response.data.results) {
+        // Skip if we already processed this place
+        if (processedPlaceIds.has(place.place_id!)) {
+          continue;
+        }
+        processedPlaceIds.add(place.place_id!);
       try {
         const detailsResponse = await client.placeDetails({
           params: {
@@ -84,19 +96,23 @@ export async function findNearbyRestaurants(
         console.warn(`Failed to get details for place ${place.place_id}:`, error);
       }
       
-      // Small delay to respect API rate limits
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+        // Small delay to respect API rate limits
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      nextPageToken = response.data.next_page_token;
+      
+      // If there's a next page, wait for it to be ready (Google requires ~2 second delay)
+      if (nextPageToken) {
+        console.log('Waiting for next page to be ready...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+      
+    } while (nextPageToken && allPlaces.length < 150); // More places per search type
     
-    nextPageToken = response.data.next_page_token;
-    
-    // If there's a next page, wait for it to be ready (Google requires ~2 second delay)
-    if (nextPageToken) {
-      console.log('Waiting for next page to be ready...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-    
-  } while (nextPageToken && allPlaces.length < 100); // Limit to 100 restaurants for 4km radius
+    // Small delay between search types
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
 
     console.log(`Total restaurants found: ${allPlaces.length}`);
     return allPlaces;

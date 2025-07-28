@@ -26,7 +26,7 @@ export default function AdminScoringPage() {
     lng: 23.3219
   };
 
-  const expandedRadius = 4; // 4km radius for focused Sofia center loading
+  const expandedRadius = 6; // 6km radius with multiple search types for comprehensive loading
 
   const calculateScoresMutation = useMutation({
     mutationFn: async (): Promise<ScoreCalculationResponse> => {
