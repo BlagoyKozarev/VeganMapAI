@@ -25,6 +25,8 @@ export default function Home() {
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
+  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   
   // Check URL parameters for custom location
   const urlParams = new URLSearchParams(window.location.search);
@@ -56,18 +58,64 @@ export default function Home() {
     }
   }, [restaurants]);
 
-  // Filter restaurants based on search query
+  // Filter restaurants and generate suggestions based on search query
   useEffect(() => {
     if (!searchQuery.trim()) {
       setFilteredRestaurants(restaurants);
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
     } else {
       const filtered = restaurants.filter((restaurant: any) =>
         restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredRestaurants(filtered);
+      
+      // Generate suggestions - top 5 matching restaurants
+      const suggestions = restaurants
+        .filter((restaurant: any) =>
+          restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        .slice(0, 5)
+        .map((restaurant: any) => ({
+          id: restaurant.id,
+          name: restaurant.name,
+          address: restaurant.address,
+          veganScore: restaurant.veganScore,
+          type: 'restaurant'
+        }));
+      
+      // Add cuisine suggestions
+      const cuisineSuggestions = Array.from(
+        new Set(
+          restaurants
+            .filter((r: any) => r.cuisineTypes)
+            .flatMap((r: any) => r.cuisineTypes)
+            .filter((cuisine: string) => 
+              cuisine.toLowerCase().includes(searchQuery.toLowerCase()) &&
+              !['point_of_interest', 'establishment', 'food', 'restaurant'].includes(cuisine)
+            )
+        )
+      ).slice(0, 3).map((cuisine: string) => ({
+        id: cuisine,
+        name: cuisine.replace(/_/g, ' ').toLowerCase(),
+        type: 'cuisine'
+      }));
+      
+      setSearchSuggestions([...suggestions, ...cuisineSuggestions]);
+      setShowSuggestions(searchQuery.length > 1);
     }
   }, [restaurants, searchQuery]);
+
+  const handleSuggestionClick = (suggestion: any) => {
+    if (suggestion.type === 'restaurant') {
+      setSearchQuery(suggestion.name);
+    } else if (suggestion.type === 'cuisine') {
+      setSearchQuery(suggestion.name);
+    }
+    setShowSuggestions(false);
+  };
 
   const handleCurrentLocation = () => {
     getCurrentPosition();
@@ -152,8 +200,50 @@ export default function Home() {
                 className="flex-1 outline-none text-gray-700 font-opensans"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowSuggestions(searchQuery.length > 1)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setShowSuggestions(false);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 ml-2"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              )}
             </div>
+            
+            {/* Search Suggestions Dropdown */}
+            {showSuggestions && searchSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto" style={{ zIndex: 1002 }}>
+                {searchSuggestions.map((suggestion, index) => (
+                  <div
+                    key={`${suggestion.type}-${suggestion.id}`}
+                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                  >
+                    <div className="flex items-center">
+                      <i className={`fas ${suggestion.type === 'restaurant' ? 'fa-utensils' : 'fa-tag'} text-gray-400 mr-3`}></i>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{suggestion.name}</div>
+                        {suggestion.address && (
+                          <div className="text-sm text-gray-500">{suggestion.address}</div>
+                        )}
+                        {suggestion.veganScore && (
+                          <div className="text-sm text-green-600">Vegan Score: {suggestion.veganScore}/10</div>
+                        )}
+                        {suggestion.type === 'cuisine' && (
+                          <div className="text-sm text-blue-600">Cuisine type</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           {/* Right Icons */}
