@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -13,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function Profile() {
   const { user, isLoading: userLoading } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
 
@@ -62,28 +64,28 @@ export default function Profile() {
   }
 
   const getUserInitials = () => {
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    if ((user as any)?.firstName && (user as any)?.lastName) {
+      return `${(user as any).firstName[0]}${(user as any).lastName[0]}`.toUpperCase();
     }
-    if (user?.email) {
-      return user.email[0].toUpperCase();
+    if ((user as any)?.email) {
+      return (user as any).email[0].toUpperCase();
     }
     return 'U';
   };
 
   const getUserName = () => {
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
+    if ((user as any)?.firstName && (user as any)?.lastName) {
+      return `${(user as any).firstName} ${(user as any).lastName}`;
     }
-    if (user?.firstName) {
-      return user.firstName;
+    if ((user as any)?.firstName) {
+      return (user as any).firstName;
     }
     return 'User';
   };
 
   const getDietaryStyleLabel = () => {
-    if (!user?.profile?.dietaryStyle) return 'Not set';
-    return user.profile.dietaryStyle.charAt(0).toUpperCase() + user.profile.dietaryStyle.slice(1);
+    if (!(user as any)?.profile?.dietaryStyle) return 'Not set';
+    return (user as any).profile.dietaryStyle.charAt(0).toUpperCase() + (user as any).profile.dietaryStyle.slice(1);
   };
 
   return (
@@ -100,9 +102,9 @@ export default function Profile() {
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
               <div className="w-20 h-20 bg-vegan-green rounded-full flex items-center justify-center">
-                {user?.profileImageUrl ? (
+                {(user as any)?.profileImageUrl ? (
                   <img 
-                    src={user.profileImageUrl} 
+                    src={(user as any).profileImageUrl} 
                     alt="Profile" 
                     className="w-full h-full rounded-full object-cover"
                   />
@@ -114,7 +116,7 @@ export default function Profile() {
               </div>
               <div className="flex-1">
                 <h2 className="text-xl font-poppins font-semibold mb-1">{getUserName()}</h2>
-                <p className="text-neutral-gray mb-2">{user?.email || 'No email available'}</p>
+                <p className="text-neutral-gray mb-2">{(user as any)?.email || 'No email available'}</p>
                 <span className="bg-vegan-light-green text-vegan-green px-3 py-1 rounded-full text-sm font-opensans font-medium">
                   {getDietaryStyleLabel()}
                 </span>
@@ -152,7 +154,7 @@ export default function Profile() {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-poppins font-bold text-blue-600 mb-1">
-                {favoritesLoading ? '...' : favorites.length}
+                {favoritesLoading ? '...' : (favorites as any[]).length}
               </div>
               <p className="text-sm font-opensans text-neutral-gray">Favorites</p>
             </CardContent>
@@ -188,14 +190,14 @@ export default function Profile() {
               <div className="flex justify-between">
                 <span className="font-opensans text-neutral-gray">Price Range</span>
                 <span className="font-opensans font-medium">
-                  {user?.profile?.priceRange || 'Not set'}
+                  {(user as any)?.profile?.priceRange || 'Not set'}
                 </span>
               </div>
-              {user?.profile?.allergies && user.profile.allergies.length > 0 && (
+              {(user as any)?.profile?.allergies && (user as any).profile.allergies.length > 0 && (
                 <div>
                   <span className="font-opensans text-neutral-gray block mb-2">Allergies</span>
                   <div className="flex flex-wrap gap-2">
-                    {user.profile.allergies.map((allergy) => (
+                    {(user as any).profile.allergies.map((allergy: string) => (
                       <span 
                         key={allergy}
                         className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-opensans"
@@ -206,11 +208,11 @@ export default function Profile() {
                   </div>
                 </div>
               )}
-              {user?.profile?.preferredCuisines && user.profile.preferredCuisines.length > 0 && (
+              {(user as any)?.profile?.preferredCuisines && (user as any).profile.preferredCuisines.length > 0 && (
                 <div>
                   <span className="font-opensans text-neutral-gray block mb-2">Preferred Cuisines</span>
                   <div className="flex flex-wrap gap-2">
-                    {user.profile.preferredCuisines.map((cuisine) => (
+                    {(user as any).profile.preferredCuisines.map((cuisine: string) => (
                       <span 
                         key={cuisine}
                         className="bg-vegan-light-green text-vegan-green px-3 py-1 rounded-full text-sm font-opensans"
@@ -221,6 +223,36 @@ export default function Profile() {
                   </div>
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Settings & Actions */}
+        <Card className="mb-4">
+          <CardContent className="p-6">
+            <h3 className="font-poppins font-semibold mb-4">Settings & Actions</h3>
+            <div className="space-y-3">
+              <Button
+                onClick={() => setLocation('/search')}
+                variant="outline"
+                className="w-full justify-start text-left p-4 h-auto"
+              >
+                <div>
+                  <div className="font-medium">Advanced Search & Filters</div>
+                  <div className="text-sm text-neutral-gray">Search with price, cuisine and score filters</div>
+                </div>
+              </Button>
+              
+              <Button
+                onClick={() => setLocation('/profile-setup')}
+                variant="outline"
+                className="w-full justify-start text-left p-4 h-auto"
+              >
+                <div>
+                  <div className="font-medium">Complete Profile Setup</div>
+                  <div className="text-sm text-neutral-gray">Set your dietary preferences and restrictions</div>
+                </div>
+              </Button>
             </div>
           </CardContent>
         </Card>
