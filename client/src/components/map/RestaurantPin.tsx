@@ -10,10 +10,7 @@ export default function RestaurantPin({ restaurant, onClick, showLabel }: Restau
   const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
   
   const getPinColor = () => {
-    if (veganScore >= 8) return 'bg-vegan-green';
-    if (veganScore >= 6) return 'bg-warning-orange';
-    if (veganScore >= 4) return 'bg-error-red';
-    return 'bg-gray-400';
+    return 'bg-vegan-green'; // Always green regardless of score
   };
 
   const getScoreText = () => {
