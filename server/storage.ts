@@ -257,39 +257,48 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(restaurants, eq(userFavorites.restaurantId, restaurants.id))
       .where(eq(userFavorites.userId, userId))
       .orderBy(desc(userFavorites.createdAt));
-    
+      
     return favorites.map(f => f.restaurant);
   }
   
   async addUserFavorite(favorite: InsertUserFavorite): Promise<UserFavorite> {
-    const [createdFavorite] = await db
+    // Check if already exists
+    const existing = await db
+      .select()
+      .from(userFavorites)
+      .where(and(
+        eq(userFavorites.userId, favorite.userId),
+        eq(userFavorites.restaurantId, favorite.restaurantId)
+      ));
+      
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    
+    const [newFavorite] = await db
       .insert(userFavorites)
       .values(favorite)
       .returning();
-    return createdFavorite;
+    return newFavorite;
   }
   
   async removeUserFavorite(userId: string, restaurantId: string): Promise<void> {
     await db
       .delete(userFavorites)
-      .where(
-        and(
-          eq(userFavorites.userId, userId),
-          eq(userFavorites.restaurantId, restaurantId)
-        )
-      );
+      .where(and(
+        eq(userFavorites.userId, userId),
+        eq(userFavorites.restaurantId, restaurantId)
+      ));
   }
   
   async isUserFavorite(userId: string, restaurantId: string): Promise<boolean> {
     const [favorite] = await db
       .select()
       .from(userFavorites)
-      .where(
-        and(
-          eq(userFavorites.userId, userId),
-          eq(userFavorites.restaurantId, restaurantId)
-        )
-      );
+      .where(and(
+        eq(userFavorites.userId, userId),
+        eq(userFavorites.restaurantId, restaurantId)
+      ));
     return !!favorite;
   }
   

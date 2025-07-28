@@ -68,6 +68,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Favorites routes
+  app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const favorites = await storage.getUserFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+      res.status(500).json({ message: "Failed to fetch favorites" });
+    }
+  });
+
+  app.post('/api/favorites', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { restaurantId } = insertUserFavoriteSchema.parse(req.body);
+      
+      const favorite = await storage.addUserFavorite({ userId, restaurantId });
+      
+      // Track analytics
+      await analyticsAgent.trackUserAction(userId, 'favorite', { restaurantId });
+      
+      res.json(favorite);
+    } catch (error) {
+      console.error("Error adding favorite:", error);
+      res.status(400).json({ message: "Failed to add favorite" });
+    }
+  });
+
+  app.delete('/api/favorites/:restaurantId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { restaurantId } = req.params;
+      
+      await storage.removeUserFavorite(userId, restaurantId);
+      
+      // Track analytics
+      await analyticsAgent.trackUserAction(userId, 'unfavorite', { restaurantId });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error removing favorite:", error);
+      res.status(400).json({ message: "Failed to remove favorite" });
+    }
+  });
+
+  app.get('/api/favorites/check/:restaurantId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { restaurantId } = req.params;
+      
+      const isFavorite = await storage.isUserFavorite(userId, restaurantId);
+      res.json({ isFavorite });
+    } catch (error) {
+      console.error("Error checking favorite:", error);
+      res.status(500).json({ message: "Failed to check favorite" });
+    }
+  });
+
   app.get('/api/profile/stats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

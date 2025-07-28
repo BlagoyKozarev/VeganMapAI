@@ -244,6 +244,17 @@ export default function Profile() {
               </Button>
               
               <Button
+                onClick={() => setLocation('/favorites')}
+                variant="outline"
+                className="w-full justify-start text-left p-4 h-auto"
+              >
+                <div>
+                  <div className="font-medium">My Favorites</div>
+                  <div className="text-sm text-neutral-gray">View and manage your saved restaurants</div>
+                </div>
+              </Button>
+              
+              <Button
                 onClick={() => setLocation('/profile-setup')}
                 variant="outline"
                 className="w-full justify-start text-left p-4 h-auto"

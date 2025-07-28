@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import Map from '@/components/map/Map';
+import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Restaurant {
@@ -23,6 +24,7 @@ export default function Home() {
   const { position, loading, error, getCurrentPosition } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
+  const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
@@ -430,6 +432,17 @@ export default function Home() {
         </div>
       )}
 
+      {/* Restaurant Modal */}
+      {selectedRestaurant && (
+        <RestaurantModal 
+          restaurant={selectedRestaurant}
+          isOpen={showRestaurantModal}
+          onClose={() => {
+            setShowRestaurantModal(false);
+            setSelectedRestaurant(null);
+          }}
+        />
+      )}
 
     </div>
   );
