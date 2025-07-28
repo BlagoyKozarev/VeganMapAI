@@ -30,6 +30,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
   const [showTraffic, setShowTraffic] = useState(false);
   const [showTransit, setShowTransit] = useState(false);
   const [minScore, setMinScore] = useState(0);
+  const [minGoogleScore, setMinGoogleScore] = useState(0);
   const [radius, setRadius] = useState(2);
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(restaurants);
 
@@ -78,9 +79,13 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
   useEffect(() => {
     const filtered = restaurants.filter(restaurant => {
       const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
+      const googleScore = restaurant.rating ? parseFloat(restaurant.rating) : 0;
       
       // Filter by minimum vegan score
       if (veganScore < minScore) return false;
+      
+      // Filter by minimum Google Maps score
+      if (googleScore < minGoogleScore) return false;
       
       // Filter by radius (distance from map center)
       const lat = parseFloat(restaurant.latitude);
@@ -95,7 +100,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     });
     
     setFilteredRestaurants(filtered);
-  }, [restaurants, minScore, radius, center]);
+  }, [restaurants, minScore, minGoogleScore, radius, center]);
 
   // Calculate distance between two points in km
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
@@ -273,22 +278,44 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
         </div>
       )}
       
-      {/* Min Score Filter - Bottom Right */}
-      <div className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg border" style={{ zIndex: 1001 }}>
-        <div className="text-sm font-medium mb-2">Min Vegan Score: {minScore}/10</div>
-        <input 
-          type="range" 
-          min="0" 
-          max="10" 
-          step="0.5" 
-          value={minScore}
-          onChange={(e) => setMinScore(parseFloat(e.target.value))}
-          className="w-32"
-        />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>0</span>
-          <span>5</span>
-          <span>10</span>
+      {/* Score Filters - Bottom Right */}
+      <div className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg border space-y-3" style={{ zIndex: 1001 }}>
+        {/* Vegan Score Filter */}
+        <div>
+          <div className="text-sm font-medium mb-2">Min Vegan Score: {minScore}/10</div>
+          <input 
+            type="range" 
+            min="0" 
+            max="10" 
+            step="0.5" 
+            value={minScore}
+            onChange={(e) => setMinScore(parseFloat(e.target.value))}
+            className="w-32"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>0</span>
+            <span>5</span>
+            <span>10</span>
+          </div>
+        </div>
+        
+        {/* Google Maps Score Filter */}
+        <div>
+          <div className="text-sm font-medium mb-2">Min Google Score: {minGoogleScore}/5</div>
+          <input 
+            type="range" 
+            min="0" 
+            max="5" 
+            step="0.1" 
+            value={minGoogleScore}
+            onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
+            className="w-32"
+          />
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <span>0</span>
+            <span>2.5</span>
+            <span>5</span>
+          </div>
         </div>
       </div>
       
