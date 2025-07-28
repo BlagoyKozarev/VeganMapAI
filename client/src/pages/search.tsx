@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,12 @@ export default function Search() {
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [priceFilter, setPriceFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'vegan' | 'google' | 'name'>('vegan');
+  const [displayedResults, setDisplayedResults] = useState(3);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const { data: restaurants = [], isLoading } = useQuery({
     queryKey: ['/api/restaurants/all-available'],
@@ -107,6 +113,8 @@ export default function Search() {
     setSelectedCuisines([]);
     setPriceFilter('all');
     setSortBy('vegan');
+    setDisplayedResults(3); // Reset to show only 3 results
+    setDisplayedResults(3); // Reset to show only 3 results
   };
 
   return (
@@ -253,9 +261,12 @@ export default function Search() {
 
           {isLoading ? (
             <div className="text-center py-8">Loading restaurants...</div>
+          ) : filteredRestaurants.length === 0 ? (
+            <div className="text-center py-8">No restaurants found matching your criteria.</div>
           ) : (
-            <div className="grid gap-4">
-              {filteredRestaurants.map((restaurant: Restaurant) => (
+            <>
+              <div className="grid gap-4">
+                {filteredRestaurants.slice(0, displayedResults).map((restaurant: Restaurant) => (
                 <Card key={restaurant.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
@@ -310,8 +321,22 @@ export default function Search() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+              
+              {/* Load More Button */}
+              {displayedResults < filteredRestaurants.length && (
+                <div className="text-center mt-6">
+                  <Button
+                    onClick={() => setDisplayedResults(prev => prev + 3)}
+                    variant="outline"
+                    className="px-8 py-2"
+                  >
+                    Show More Results ({filteredRestaurants.length - displayedResults} remaining)
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
