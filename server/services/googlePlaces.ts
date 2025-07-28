@@ -29,7 +29,7 @@ export interface GooglePlaceDetails {
 export async function findNearbyRestaurants(
   lat: number,
   lng: number,
-  radiusMeters: number = 6000
+  radiusMeters: number = 4000
 ): Promise<GooglePlaceDetails[]> {
   try {
     console.log(`Searching for restaurants in ${radiusMeters/1000}km radius from Sofia center`);
@@ -37,8 +37,8 @@ export async function findNearbyRestaurants(
     const allPlaces: GooglePlaceDetails[] = [];
     const processedPlaceIds = new Set<string>();
     
-    // Search for multiple types to get more variety
-    const searchTypes = ['restaurant', 'food', 'meal_takeaway', 'cafe'];
+    // Search for multiple types to get more variety including specific Bulgarian establishments
+    const searchTypes = ['restaurant', 'food', 'meal_takeaway', 'cafe', 'bar', 'night_club'];
     
     for (const searchType of searchTypes) {
       console.log(`Searching for type: ${searchType}`);
@@ -108,9 +108,114 @@ export async function findNearbyRestaurants(
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
       
-    } while (nextPageToken && allPlaces.length < 150); // More places per search type
+    } while (nextPageToken && allPlaces.length < 100); // Limit per search type for 4km radius
     
     // Small delay between search types
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+
+  // Additional keyword-based searches for specific establishment types
+  const keywordSearches = [
+    'steakhouse', 'seafood', 'механа', 'бистро', 'tavern', 'diner'
+  ];
+
+  for (const keyword of keywordSearches) {
+    console.log(`Searching for keyword: ${keyword}`);
+    let nextPageToken: string | undefined;
+    
+    do {
+      const response = await client.textSearch({
+        params: {
+          query: `${keyword} restaurant Sofia Bulgaria`,
+          location: { lat, lng },
+          radius: radiusMeters,
+          key: process.env.GOOGLE_MAPS_API_KEY!,
+          ...(nextPageToken && { pagetoken: nextPageToken })
+        },
+      });
+
+      console.log(`Found ${response.data.results.length} ${keyword} places in this page`);
+      
+      // Filter for restaurant-related places only
+      const restaurantPlaces = response.data.results.filter(place => 
+        place.types?.some(type => 
+          ['restaurant', 'food', 'meal_takeaway', 'establishment', 'bar'].includes(type)
+        )
+      );
+
+      for (const place of restaurantPlaces) {
+        // Skip if we already processed this place
+        if (processedPlaceIds.has(place.place_id!)) {
+          continue;
+        }
+        processedPlaceIds.add(place.place_id!);
+
+        try {
+          // Get detailed place information
+          const detailsResponse = await client.placeDetails({
+            params: {
+              place_id: place.place_id!,
+              fields: [
+                'place_id', 'name', 'formatted_address', 'geometry',
+                'formatted_phone_number', 'website', 'price_level',
+                'rating', 'user_ratings_total', 'types', 'photos',
+                'opening_hours', 'reviews'
+              ],
+              key: process.env.GOOGLE_MAPS_API_KEY!,
+            },
+          });
+
+          const placeDetails = detailsResponse.data.result;
+          if (placeDetails.geometry?.location) {
+            const distance = calculateDistance(
+              lat, lng,
+              placeDetails.geometry.location.lat,
+              placeDetails.geometry.location.lng
+            );
+
+            console.log(`${keyword.charAt(0).toUpperCase() + keyword.slice(1)} ${placeDetails.name}: distance ~${distance.toFixed(2)}km`);
+
+            if (distance <= radiusMeters / 1000) { // Within radius
+              allPlaces.push({
+                place_id: placeDetails.place_id!,
+                name: placeDetails.name!,
+                formatted_address: placeDetails.formatted_address!,
+                geometry: {
+                  location: {
+                    lat: placeDetails.geometry.location.lat,
+                    lng: placeDetails.geometry.location.lng,
+                  },
+                },
+                formatted_phone_number: placeDetails.formatted_phone_number,
+                website: placeDetails.website,
+                price_level: placeDetails.price_level,
+                rating: placeDetails.rating,
+                user_ratings_total: placeDetails.user_ratings_total,
+                types: placeDetails.types,
+                photos: placeDetails.photos?.map(photo => photo.photo_reference),
+                opening_hours: placeDetails.opening_hours,
+                reviews: placeDetails.reviews,
+              });
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to get details for ${keyword} place ${place.place_id}:`, error);
+        }
+        
+        // Small delay to respect API rate limits
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      nextPageToken = response.data.next_page_token;
+      
+      if (nextPageToken) {
+        console.log('Waiting for next page to be ready...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+      
+    } while (nextPageToken && allPlaces.length < 500); // Overall limit
+    
+    // Small delay between keyword searches
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
