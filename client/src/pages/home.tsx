@@ -12,14 +12,15 @@ interface Restaurant {
   latitude: string;
   longitude: string;
   veganScore: string | null;
-  rating?: string;
+  rating?: string | null;
   priceLevel?: string;
   cuisineTypes?: string[];
+  website?: string | null;
 }
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const { position, loading, error, getCurrentLocation } = useGeolocation();
+  const { position, loading, error, getCurrentPosition } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
   
@@ -57,7 +58,7 @@ export default function Home() {
     getCurrentPosition();
   };
 
-  const handleRestaurantClick = (restaurant: Restaurant) => {
+  const handleRestaurantClick = (restaurant: any) => {
     console.log('Restaurant clicked:', restaurant.name);
     setSelectedRestaurant(restaurant);
     setShowActionMenu(true);
