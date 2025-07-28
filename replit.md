@@ -9,6 +9,25 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 Preferred communication style: Simple, everyday language.
 AI Chat Response Style: Brief, clear, direct responses. No task repetition, focus on results only. Maximum 2-3 sentences per response.
 
+## Business Planning Context (July 28, 2025)
+
+**US Market Launch Planning:**
+- Target: Top 20 US cities expansion
+- Cost management priority for API expenses
+- Analysis completed for scaling architecture:
+  - Google Maps API: $0.10/user/month
+  - AI Agent (GPT-4o): $0.12/user/month  
+  - Other APIs: $0.02/user/month
+  - Total: $0.24/user/month (revised from $0.17)
+
+**Key Optimization Strategies Identified:**
+- Geo-hash based caching system (-90% Place Search calls)
+- Local storage for restaurant details (-95% Details calls)  
+- Periodic refresh instead of real-time (-70% photo calls)
+- Target cost reduction: 50-90% through intelligent caching
+
+**User Request:** Remember this cost optimization analysis to return to after completing current vision development phase.
+
 ## System Architecture
 
 ### Frontend Architecture
