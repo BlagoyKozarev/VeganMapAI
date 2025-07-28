@@ -31,19 +31,30 @@ export default function Search() {
     queryKey: ['/api/restaurants/all-available'],
   });
 
-  // Get unique cuisines for filter
+  // Define food-related cuisine types only
+  const foodRelatedTypes = [
+    'bakery', 'bar', 'cafe', 'meal_delivery', 'meal_takeaway', 
+    'night_club', 'restaurant', 'food', 'pizza', 'fast_food',
+    'italian', 'chinese', 'japanese', 'indian', 'mexican',
+    'thai', 'french', 'greek', 'mediterranean', 'vegetarian',
+    'vegan', 'asian', 'european', 'american', 'seafood',
+    'steakhouse', 'sushi', 'buffet', 'barbecue', 'breakfast',
+    'brunch', 'lunch', 'dinner', 'dessert', 'ice_cream'
+  ];
+
+  // Get unique cuisines for filter - only food-related
   const allCuisines = Array.from(
     new Set(
-      restaurants.flatMap((r: Restaurant) => 
+      (restaurants as Restaurant[]).flatMap((r: Restaurant) => 
         r.cuisineTypes?.filter(type => 
-          !['point_of_interest', 'establishment', 'food', 'restaurant'].includes(type)
+          foodRelatedTypes.includes(type.toLowerCase())
         ) || []
       )
     )
-  ).slice(0, 10); // Limit to top 10 cuisine types
+  ).slice(0, 12); // Show top 12 food-related cuisine types
 
   // Filter and sort restaurants
-  const filteredRestaurants = restaurants
+  const filteredRestaurants = (restaurants as Restaurant[])
     .filter((restaurant: Restaurant) => {
       // Text search
       if (searchQuery && !restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
@@ -215,7 +226,7 @@ export default function Search() {
                     className="cursor-pointer"
                     onClick={() => toggleCuisine(cuisine)}
                   >
-                    {cuisine.replace(/_/g, ' ')}
+                    {cuisine.replace(/_/g, ' ').toLowerCase()}
                   </Badge>
                 ))}
               </div>
@@ -277,11 +288,11 @@ export default function Search() {
                         {restaurant.cuisineTypes && (
                           <div className="flex flex-wrap gap-1">
                             {restaurant.cuisineTypes
-                              .filter(type => !['point_of_interest', 'establishment', 'food', 'restaurant'].includes(type))
+                              .filter(type => foodRelatedTypes.includes(type.toLowerCase()))
                               .slice(0, 3)
                               .map((type) => (
                                 <Badge key={type} variant="secondary" className="text-xs">
-                                  {type.replace(/_/g, ' ')}
+                                  {type.replace(/_/g, ' ').toLowerCase()}
                                 </Badge>
                               ))}
                           </div>
