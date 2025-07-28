@@ -273,19 +273,56 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
         </div>
       )}
       
-      {/* Map Controls */}
-      <MapControls
-        onViewModeChange={setViewMode}
-        onShowTrafficChange={setShowTraffic}
-        onShowTransitChange={setShowTransit}
-        onScoreFilterChange={setMinScore}
-        onRadiusChange={setRadius}
-        currentViewMode={viewMode}
-        showTraffic={showTraffic}
-        showTransit={showTransit}
-        minScore={minScore}
-        radius={radius}
-      />
+      {/* Map Controls - Simple Version */}
+      <div className="absolute top-20 right-4 bg-white p-4 rounded-lg shadow-lg border" style={{ zIndex: 1001 }}>
+        <div className="text-sm font-medium mb-2">🗺️ Map Controls</div>
+        <div className="space-y-2">
+          <div className="flex gap-1">
+            <button 
+              onClick={() => setViewMode('standard')}
+              className={`px-2 py-1 text-xs rounded ${viewMode === 'standard' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            >
+              Standard
+            </button>
+            <button 
+              onClick={() => setViewMode('satellite')} 
+              className={`px-2 py-1 text-xs rounded ${viewMode === 'satellite' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            >
+              Satellite
+            </button>
+            <button 
+              onClick={() => setViewMode('terrain')}
+              className={`px-2 py-1 text-xs rounded ${viewMode === 'terrain' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            >
+              Terrain
+            </button>
+          </div>
+          <div className="text-xs">
+            Min Score: {minScore}
+            <input 
+              type="range" 
+              min="0" 
+              max="10" 
+              step="0.5" 
+              value={minScore}
+              onChange={(e) => setMinScore(parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+          <div className="text-xs">
+            Radius: {radius}km
+            <input 
+              type="range" 
+              min="0.5" 
+              max="10" 
+              step="0.5" 
+              value={radius}
+              onChange={(e) => setRadius(parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Location controls */}
       <div className="absolute bottom-4 right-4 z-[1000] space-y-2">
