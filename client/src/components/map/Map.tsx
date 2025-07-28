@@ -75,7 +75,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     };
   }, []);
 
-  // Filter restaurants based on controls
+  // Filter restaurants based on controls (remove radius restriction)
   useEffect(() => {
     const filtered = restaurants.filter(restaurant => {
       const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
@@ -87,20 +87,11 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
       // Filter by minimum Google Maps score
       if (googleScore < minGoogleScore) return false;
       
-      // Filter by radius (distance from map center)
-      const lat = parseFloat(restaurant.latitude);
-      const lng = parseFloat(restaurant.longitude);
-      
-      if (isNaN(lat) || isNaN(lng)) return false;
-      
-      const distance = calculateDistance(center[0], center[1], lat, lng);
-      if (distance > radius) return false;
-      
       return true;
     });
     
     setFilteredRestaurants(filtered);
-  }, [restaurants, minScore, minGoogleScore, radius, center]);
+  }, [restaurants, minScore, minGoogleScore]);
 
   // Calculate distance between two points in km
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {

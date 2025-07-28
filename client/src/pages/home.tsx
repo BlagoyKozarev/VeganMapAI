@@ -23,7 +23,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { position, loading, error, getCurrentPosition } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [showActionMenu, setShowActionMenu] = useState(false);
+
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
@@ -126,19 +126,13 @@ export default function Home() {
   const handleRestaurantClick = (restaurant: any) => {
     console.log('Restaurant clicked:', restaurant.name);
     setSelectedRestaurant(restaurant);
-    setShowActionMenu(true);
-    console.log('Setting selectedRestaurant and showActionMenu to true');
-    console.log('State after setting:', { showActionMenu: true, selectedRestaurant: restaurant.name });
+    setShowRestaurantModal(true);
+    console.log('Setting selectedRestaurant and showRestaurantModal to true');
   };
 
-  const handleCloseActionMenu = () => {
-    setShowActionMenu(false);
-    setSelectedRestaurant(null);
-  };
 
-  useEffect(() => {
-    console.log('Action menu state changed:', { showActionMenu, selectedRestaurant: selectedRestaurant?.name });
-  }, [showActionMenu, selectedRestaurant]);
+
+
 
   if (loading) {
     return (
@@ -294,17 +288,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Map Container with overlay for closing action menu */}
+      {/* Map Container */}
       <div 
         className="absolute inset-0 pt-16" 
         style={{ zIndex: 1 }}
-        onClick={() => {
-          // Close action menu when clicking on map
-          if (showActionMenu) {
-            setShowActionMenu(false);
-            setSelectedRestaurant(null);
-          }
-        }}
       >
         <Map
           center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
@@ -363,74 +350,7 @@ export default function Home() {
 
 
 
-      {/* Action Menu */}
-      {showActionMenu && selectedRestaurant && (
-        <div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1001] bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 min-w-80 max-w-sm"
-          onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside menu
-        >
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <h3 className="text-xl font-poppins font-bold text-gray-900 mb-1">{selectedRestaurant.name}</h3>
-              <div className="flex items-center mb-2">
-                <div className="bg-vegan-green text-white rounded-full px-3 py-1 text-sm font-medium mr-2">
-                  {selectedRestaurant.veganScore ? parseFloat(selectedRestaurant.veganScore).toFixed(1) : '?'}
-                </div>
-                <span className="text-sm text-gray-600">Vegan Score</span>
-              </div>
-              <p className="text-sm text-gray-500 leading-relaxed">{selectedRestaurant.address}</p>
-            </div>
-            <Button 
-              variant="ghost" 
-              onClick={handleCloseActionMenu} 
-              className="p-2 hover:bg-gray-100 rounded-full -mt-1 -mr-1"
-            >
-              <span className="text-gray-400 text-xl">×</span>
-            </Button>
-          </div>
-          
-          <div className="space-y-3">
-            <Button 
-              className="w-full bg-vegan-green hover:bg-vegan-dark-green text-white py-3 px-4 rounded-xl font-medium text-base"
-              onClick={() => {
-                setLocation(`/restaurant/${selectedRestaurant.id}`);
-              }}
-            >
-              <i className="fas fa-eye mr-2"></i>
-              View Details
-            </Button>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <Button 
-                className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium"
-                onClick={() => {
-                  const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedRestaurant.latitude},${selectedRestaurant.longitude}`;
-                  window.open(url, '_blank');
-                }}
-              >
-                <i className="fas fa-directions mr-1"></i>
-                Navigate
-              </Button>
-              
-              <Button 
-                className="bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-xl font-medium"
-                onClick={() => {
-                  if (selectedRestaurant.website) {
-                    window.open(selectedRestaurant.website, '_blank');
-                  } else {
-                    // Fallback to Google search
-                    const searchQuery = encodeURIComponent(`${selectedRestaurant.name} Sofia restaurant`);
-                    window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
-                  }
-                }}
-              >
-                <i className="fas fa-globe mr-1"></i>
-                Website
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Restaurant Modal */}
       {selectedRestaurant && (
