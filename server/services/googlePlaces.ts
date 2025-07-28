@@ -1,6 +1,23 @@
 import { Client } from '@googlemaps/google-maps-services-js';
+import { geoCache, detailsCache, photoCache } from '../utils/geoCache';
 
 const client = new Client({});
+
+// Track API call statistics for cost optimization
+let apiCallStats = {
+  placesSearch: 0,
+  placeDetails: 0,
+  photos: 0,
+  cacheHits: 0,
+  cacheMisses: 0
+};
+
+export function getApiStats() {
+  return {
+    ...apiCallStats,
+    cacheHitRate: apiCallStats.cacheHits / (apiCallStats.cacheHits + apiCallStats.cacheMisses) * 100
+  };
+}
 
 export interface GooglePlaceDetails {
   place_id: string;
@@ -32,7 +49,20 @@ export async function findNearbyRestaurants(
   radiusMeters: number = 4000
 ): Promise<GooglePlaceDetails[]> {
   try {
-    console.log(`Searching for restaurants in ${radiusMeters/1000}km radius from Sofia center`);
+    console.log(`Searching for restaurants in ${radiusMeters/1000}km radius from coordinates`);
+    
+    // Check cache first for this geographic area
+    const cacheKey = geoCache.generatePlacesSearchKey(lat, lng, radiusMeters, 'restaurant');
+    const cachedResults = geoCache.get(cacheKey);
+    
+    if (cachedResults) {
+      apiCallStats.cacheHits++;
+      console.log(`Cache HIT: Returning ${cachedResults.length} cached restaurants for area`);
+      return cachedResults;
+    }
+    
+    apiCallStats.cacheMisses++;
+    console.log(`Cache MISS: Fetching fresh data from Google Places API`);
     
     const allPlaces: GooglePlaceDetails[] = [];
     const processedPlaceIds = new Set<string>();
@@ -46,15 +76,33 @@ export async function findNearbyRestaurants(
       
       // Google Places API returns max 20 results per page, use pagination for comprehensive search
       do {
-        const response = await client.placesNearby({
-          params: {
-            location: { lat, lng },
-            radius: radiusMeters,
-            type: searchType as any,
-            key: process.env.GOOGLE_MAPS_API_KEY!,
-            ...(nextPageToken && { pagetoken: nextPageToken })
-          },
-        });
+        // Check cache for this specific search type
+        const typeKey = geoCache.generatePlacesSearchKey(lat, lng, radiusMeters, searchType);
+        let response;
+        
+        const cachedTypeResults = geoCache.get(typeKey);
+        if (cachedTypeResults && !nextPageToken) {
+          console.log(`Cache HIT for ${searchType}: Using cached results`);
+          response = { data: { results: cachedTypeResults, next_page_token: undefined } };
+          apiCallStats.cacheHits++;
+        } else {
+          console.log(`Fetching ${searchType} from Google Places API`);
+          response = await client.placesNearby({
+            params: {
+              location: { lat, lng },
+              radius: radiusMeters,
+              type: searchType as any,
+              key: process.env.GOOGLE_MAPS_API_KEY!,
+              ...(nextPageToken && { pagetoken: nextPageToken })
+            },
+          });
+          apiCallStats.placesSearch++;
+          
+          // Cache the raw results for this search type (without nextPageToken for first page)
+          if (!nextPageToken) {
+            geoCache.set(typeKey, response.data.results, 12 * 60 * 60 * 1000); // 12 hours
+          }
+        }
 
       console.log(`Found ${response.data.results.length} ${searchType} places in this page`);
       
@@ -65,14 +113,26 @@ export async function findNearbyRestaurants(
           continue;
         }
         processedPlaceIds.add(place.place_id!);
-      try {
-        const detailsResponse = await client.placeDetails({
-          params: {
-            place_id: place.place_id!,
-            fields: [
-              'place_id',
-              'name',
-              'formatted_address',
+        
+        try {
+          // Check cache for place details first
+          const detailsKey = detailsCache.generatePlacesDetailsKey(place.place_id!);
+          let detailsResponse;
+          
+          const cachedDetails = detailsCache.get(detailsKey);
+          if (cachedDetails) {
+            console.log(`Cache HIT for place details: ${place.name}`);
+            detailsResponse = { data: { result: cachedDetails } };
+            apiCallStats.cacheHits++;
+          } else {
+            console.log(`Fetching place details for: ${place.name}`);
+            detailsResponse = await client.placeDetails({
+              params: {
+                place_id: place.place_id!,
+                fields: [
+                  'place_id',
+                  'name',
+                  'formatted_address',
               'geometry',
               'formatted_phone_number',
               'website',
@@ -88,6 +148,13 @@ export async function findNearbyRestaurants(
             key: process.env.GOOGLE_MAPS_API_KEY!,
           },
         });
+        apiCallStats.placeDetails++;
+        
+        // Cache the place details
+        if (detailsResponse.data.result) {
+          detailsCache.set(detailsKey, detailsResponse.data.result, 7 * 24 * 60 * 60 * 1000); // 7 days
+        }
+      }
 
         if (detailsResponse.data.result) {
           allPlaces.push(detailsResponse.data.result as GooglePlaceDetails);
@@ -151,19 +218,36 @@ export async function findNearbyRestaurants(
         processedPlaceIds.add(place.place_id!);
 
         try {
-          // Get detailed place information
-          const detailsResponse = await client.placeDetails({
-            params: {
-              place_id: place.place_id!,
-              fields: [
-                'place_id', 'name', 'formatted_address', 'geometry',
-                'formatted_phone_number', 'website', 'price_level',
-                'rating', 'user_ratings_total', 'types', 'photos',
-                'opening_hours', 'reviews'
-              ],
-              key: process.env.GOOGLE_MAPS_API_KEY!,
-            },
-          });
+          // Check cache for place details first
+          const detailsKey = detailsCache.generatePlacesDetailsKey(place.place_id!);
+          let detailsResponse;
+          
+          const cachedDetails = detailsCache.get(detailsKey);
+          if (cachedDetails) {
+            console.log(`Cache HIT for ${keyword} place: ${place.name}`);
+            detailsResponse = { data: { result: cachedDetails } };
+            apiCallStats.cacheHits++;
+          } else {
+            console.log(`Fetching ${keyword} place details: ${place.name}`);
+            detailsResponse = await client.placeDetails({
+              params: {
+                place_id: place.place_id!,
+                fields: [
+                  'place_id', 'name', 'formatted_address', 'geometry',
+                  'formatted_phone_number', 'website', 'price_level',
+                  'rating', 'user_ratings_total', 'types', 'photos',
+                  'opening_hours', 'reviews'
+                ],
+                key: process.env.GOOGLE_MAPS_API_KEY!,
+              },
+            });
+            apiCallStats.placeDetails++;
+            
+            // Cache the place details
+            if (detailsResponse.data.result) {
+              detailsCache.set(detailsKey, detailsResponse.data.result, 7 * 24 * 60 * 60 * 1000); // 7 days
+            }
+          }
 
           const placeDetails = detailsResponse.data.result;
           if (placeDetails.geometry?.location) {
@@ -220,6 +304,12 @@ export async function findNearbyRestaurants(
   }
 
     console.log(`Total restaurants found: ${allPlaces.length}`);
+    
+    // Cache the complete results for this area
+    geoCache.set(cacheKey, allPlaces, 24 * 60 * 60 * 1000); // 24 hours
+    
+    console.log(`Cost optimization stats - API calls: ${apiCallStats.placesSearch + apiCallStats.placeDetails}, Cache hit rate: ${apiCallStats.cacheHits > 0 ? (apiCallStats.cacheHits / (apiCallStats.cacheHits + apiCallStats.cacheMisses) * 100).toFixed(1) : 0}%`);
+    
     return allPlaces;
   } catch (error) {
     console.error('Error fetching nearby restaurants from Google Places:', error);
@@ -229,6 +319,17 @@ export async function findNearbyRestaurants(
 
 export async function getPlaceDetails(placeId: string): Promise<GooglePlaceDetails | null> {
   try {
+    // Check cache first
+    const cacheKey = detailsCache.generatePlacesDetailsKey(placeId);
+    const cachedDetails = detailsCache.get(cacheKey);
+    
+    if (cachedDetails) {
+      console.log(`Cache HIT for place details: ${placeId}`);
+      apiCallStats.cacheHits++;
+      return cachedDetails;
+    }
+    
+    console.log(`Fetching place details from API: ${placeId}`);
     const response = await client.placeDetails({
       params: {
         place_id: placeId,
@@ -251,6 +352,12 @@ export async function getPlaceDetails(placeId: string): Promise<GooglePlaceDetai
         key: process.env.GOOGLE_MAPS_API_KEY!,
       },
     });
+    apiCallStats.placeDetails++;
+    
+    // Cache the result
+    if (response.data.result) {
+      detailsCache.set(cacheKey, response.data.result, 7 * 24 * 60 * 60 * 1000); // 7 days
+    }
 
     return response.data.result as GooglePlaceDetails || null;
   } catch (error) {

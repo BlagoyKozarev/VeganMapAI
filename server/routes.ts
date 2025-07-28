@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { registerApiStatsRoutes } from "./routes/api-stats";
 import { Client } from '@googlemaps/google-maps-services-js';
 import { 
   mapAgent, 
@@ -625,6 +626,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get trends" });
     }
   });
+
+  // Register API stats routes for cost monitoring
+  registerApiStatsRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;
