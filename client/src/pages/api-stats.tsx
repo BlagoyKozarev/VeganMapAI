@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 
 interface ApiStats {
   apiCalls: {
@@ -31,11 +29,9 @@ interface ApiStats {
 }
 
 export default function ApiStatsPage() {
-  const { toast } = useToast();
-  
   const { data: stats, isLoading, refetch } = useQuery<ApiStats>({
     queryKey: ['/api/stats/usage'],
-    refetchInterval: 5000, // Refresh every 5 seconds
+    refetchInterval: 10000, // Refresh every 10 seconds
   });
 
   const clearCache = async () => {
@@ -45,19 +41,11 @@ export default function ApiStatsPage() {
       });
       
       if (response.ok) {
-        const result = await response.json();
-        toast({
-          title: 'Cache Cleared',
-          description: `Cleared ${Object.values(result.clearedEntries).reduce((a: number, b: number) => a + b, 0)} cache entries`,
-        });
+        alert('Cache cleared successfully');
         refetch();
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to clear cache',
-        variant: 'destructive',
-      });
+      alert('Failed to clear cache');
     }
   };
 
@@ -90,10 +78,7 @@ export default function ApiStatsPage() {
             {/* API Calls Stats */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <i className="fas fa-chart-bar text-blue-500 mr-2"></i>
-                  API Calls Today
-                </CardTitle>
+                <CardTitle>API Calls Today</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -120,10 +105,7 @@ export default function ApiStatsPage() {
             {/* Cache Performance */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <i className="fas fa-memory text-green-500 mr-2"></i>
-                  Cache Performance
-                </CardTitle>
+                <CardTitle>Cache Performance</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -150,10 +132,7 @@ export default function ApiStatsPage() {
             {/* Cost Savings */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <i className="fas fa-dollar-sign text-yellow-500 mr-2"></i>
-                  Cost Optimization
-                </CardTitle>
+                <CardTitle>Cost Optimization</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -180,10 +159,7 @@ export default function ApiStatsPage() {
             {/* Cache Sizes */}
             <Card className="md:col-span-2 lg:col-span-3">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <i className="fas fa-database text-purple-500 mr-2"></i>
-                  Cache Storage Details
-                </CardTitle>
+                <CardTitle>Cache Storage Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -223,35 +199,17 @@ export default function ApiStatsPage() {
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-3">Current Performance</h3>
                       <ul className="space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <i className="fas fa-check-circle text-green-500 mr-2"></i>
-                          {stats.cache.hitRate.toFixed(1)}% cache hit rate achieved
-                        </li>
-                        <li className="flex items-center">
-                          <i className="fas fa-coins text-yellow-500 mr-2"></i>
-                          {stats.costOptimization.savingsPercentage} cost reduction
-                        </li>
-                        <li className="flex items-center">
-                          <i className="fas fa-bolt text-blue-500 mr-2"></i>
-                          {stats.cache.hits} API calls avoided today
-                        </li>
+                        <li>✓ {stats.cache.hitRate.toFixed(1)}% cache hit rate achieved</li>
+                        <li>✓ {stats.costOptimization.savingsPercentage} cost reduction</li>
+                        <li>✓ {stats.cache.hits} API calls avoided today</li>
                       </ul>
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-3">Target Goals</h3>
                       <ul className="space-y-2 text-sm">
-                        <li className="flex items-center">
-                          <i className="fas fa-target text-green-500 mr-2"></i>
-                          Target: 90% cache hit rate for Places API
-                        </li>
-                        <li className="flex items-center">
-                          <i className="fas fa-chart-line text-blue-500 mr-2"></i>
-                          Goal: 50-90% cost reduction through caching
-                        </li>
-                        <li className="flex items-center">
-                          <i className="fas fa-globe text-purple-500 mr-2"></i>
-                          Scale: Optimize for US expansion to 20 cities
-                        </li>
+                        <li>→ Target: 90% cache hit rate for Places API</li>
+                        <li>→ Goal: 50-90% cost reduction through caching</li>
+                        <li>→ Scale: Optimize for US expansion to 20 cities</li>
                       </ul>
                     </div>
                   </div>
