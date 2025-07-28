@@ -13,6 +13,7 @@ import AiChat from "@/pages/ai-chat";
 import RestaurantDetail from "@/pages/restaurant-detail";
 import Profile from "@/pages/profile";
 import AdminScoring from "@/pages/admin-scoring";
+import ApiStats from "@/pages/api-stats";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/restaurant/:id" component={RestaurantDetail} />
           <Route path="/profile" component={Profile} />
           <Route path="/admin-scoring" component={AdminScoring} />
+          <Route path="/api-stats" component={ApiStats} />
         </>
       )}
       <Route component={NotFound} />
