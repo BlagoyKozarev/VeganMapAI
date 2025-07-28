@@ -119,13 +119,22 @@ export default function Profile() {
                   {getDietaryStyleLabel()}
                 </span>
               </div>
-              <Button 
-                variant="ghost"
-                onClick={handleEditProfile}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <i className="fas fa-edit text-neutral-gray"></i>
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost"
+                  onClick={handleEditProfile}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <i className="fas fa-edit text-neutral-gray"></i>
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={handleLogout}
+                  className="px-3 py-1 text-sm bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                >
+                  Изход
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
