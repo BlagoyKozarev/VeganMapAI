@@ -132,7 +132,7 @@ export default function Profile() {
                   onClick={handleLogout}
                   className="px-3 py-1 text-sm bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
                 >
-                  Изход
+                  Log Out
                 </Button>
               </div>
             </div>

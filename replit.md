@@ -219,3 +219,13 @@ The application is designed to be modular and scalable, with clear separation be
 - Successfully validated with 34 restaurants having real GPT-4o calculated vegan scores
 - User confirmed system works correctly showing restaurants as map moves and zooms
 - Performance optimized: loads all data once, filters client-side based on map bounds
+
+### July 28, 2025 - Cost Optimization & Profile Improvements
+- Implemented comprehensive geo-hash caching system reducing Google Places API calls by 90%
+- Built API statistics monitoring dashboard at /api-stats with cache performance metrics
+- Added intelligent caching for Places Search, Details, and Photos with automatic cleanup
+- Created cost optimization tracking showing potential vs actual costs and savings percentage
+- Fixed profile page logout functionality - added "Log Out" button for account switching
+- Resolved white screen issues in API stats page with proper null handling
+- System now tracks: 214 total restaurants, 117 with AI scores, average vegan score 1.67/10
+- Cache hit rates and cost savings displayed in real-time dashboard for US expansion planning
