@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Restaurant } from '@shared/schema';
+import MapControls from './MapControls';
 
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -23,6 +24,14 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  
+  // Map controls state
+  const [viewMode, setViewMode] = useState<'standard' | 'satellite' | 'terrain'>('standard');
+  const [showTraffic, setShowTraffic] = useState(false);
+  const [showTransit, setShowTransit] = useState(false);
+  const [minScore, setMinScore] = useState(0);
+  const [radius, setRadius] = useState(2);
+  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(restaurants);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -65,12 +74,84 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     };
   }, []);
 
-  // No clustering - show all restaurants individually
+  // Filter restaurants based on controls
+  useEffect(() => {
+    const filtered = restaurants.filter(restaurant => {
+      const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
+      
+      // Filter by minimum vegan score
+      if (veganScore < minScore) return false;
+      
+      // Filter by radius (distance from map center)
+      const lat = parseFloat(restaurant.latitude);
+      const lng = parseFloat(restaurant.longitude);
+      
+      if (isNaN(lat) || isNaN(lng)) return false;
+      
+      const distance = calculateDistance(center[0], center[1], lat, lng);
+      if (distance > radius) return false;
+      
+      return true;
+    });
+    
+    setFilteredRestaurants(filtered);
+  }, [restaurants, minScore, radius, center]);
 
+  // Calculate distance between two points in km
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Change map tile layer based on view mode
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    
+    const map = mapInstanceRef.current;
+    
+    // Remove existing tile layers
+    map.eachLayer((layer) => {
+      if (layer instanceof L.TileLayer) {
+        map.removeLayer(layer);
+      }
+    });
+    
+    // Add new tile layer based on view mode
+    let tileLayer;
+    switch (viewMode) {
+      case 'satellite':
+        tileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Esri',
+          maxZoom: 19,
+        });
+        break;
+      case 'terrain':
+        tileLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+          attribution: 'OpenTopoMap',
+          maxZoom: 17,
+        });
+        break;
+      default:
+        tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '',
+          maxZoom: 19,
+        });
+    }
+    
+    tileLayer.addTo(map);
+  }, [viewMode]);
+
+  // No clustering - show all filtered restaurants individually
   const updateMarkers = () => {
     if (!mapInstanceRef.current) return;
 
-    console.log('Map component - rendering restaurants:', restaurants.length);
+    console.log('Map component - rendering restaurants:', filteredRestaurants.length);
 
     // Clear existing restaurant markers
     markersRef.current.forEach(marker => {
@@ -83,7 +164,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     const bounds = map.getBounds();
     const padding = 0.05; // Add padding to show restaurants just outside visible area
     
-    const visibleRestaurants = restaurants.filter(restaurant => {
+    const visibleRestaurants = filteredRestaurants.filter(restaurant => {
       const lat = parseFloat(restaurant.latitude);
       const lng = parseFloat(restaurant.longitude);
       
@@ -169,11 +250,11 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
       map.off('moveend', handleMapChange);
       map.off('zoomend', handleMapChange);
     };
-  }, [restaurants]);
+  }, [filteredRestaurants]);
 
   useEffect(() => {
     updateMarkers();
-  }, [restaurants]);
+  }, [filteredRestaurants]);
 
   useEffect(() => {
     if (mapInstanceRef.current) {
