@@ -26,7 +26,7 @@ export default function AdminScoringPage() {
     lng: 23.3219
   };
 
-  const expandedRadius = 6; // 6km radius with multiple search types for comprehensive loading
+  const expandedRadius = 4; // 4km radius with diverse search types including bars, seafood, steakhouses
 
   const calculateScoresMutation = useMutation({
     mutationFn: async (): Promise<ScoreCalculationResponse> => {
