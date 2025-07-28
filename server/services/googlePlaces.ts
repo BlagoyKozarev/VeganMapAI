@@ -29,7 +29,7 @@ export interface GooglePlaceDetails {
 export async function findNearbyRestaurants(
   lat: number,
   lng: number,
-  radiusMeters: number = 8000
+  radiusMeters: number = 4000
 ): Promise<GooglePlaceDetails[]> {
   try {
     console.log(`Searching for restaurants in ${radiusMeters/1000}km radius from Sofia center`);
@@ -96,7 +96,7 @@ export async function findNearbyRestaurants(
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
     
-  } while (nextPageToken && allPlaces.length < 200); // Limit to 200 restaurants to avoid excessive API costs
+  } while (nextPageToken && allPlaces.length < 100); // Limit to 100 restaurants for 4km radius
 
     console.log(`Total restaurants found: ${allPlaces.length}`);
     return allPlaces;
