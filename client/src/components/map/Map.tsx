@@ -273,104 +273,23 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
         </div>
       )}
       
-      {/* Map Controls - Simple Version */}
-      <div className="absolute top-20 right-4 bg-white p-4 rounded-lg shadow-lg border" style={{ zIndex: 1001 }}>
-        <div className="text-sm font-medium mb-2">🗺️ Map Controls</div>
-        <div className="space-y-2">
-          <div className="flex gap-1">
-            <button 
-              onClick={() => setViewMode('standard')}
-              className={`px-2 py-1 text-xs rounded ${viewMode === 'standard' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            >
-              Standard
-            </button>
-            <button 
-              onClick={() => setViewMode('satellite')} 
-              className={`px-2 py-1 text-xs rounded ${viewMode === 'satellite' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            >
-              Satellite
-            </button>
-            <button 
-              onClick={() => setViewMode('terrain')}
-              className={`px-2 py-1 text-xs rounded ${viewMode === 'terrain' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            >
-              Terrain
-            </button>
-          </div>
-          <div className="text-xs">
-            Min Score: {minScore}
-            <input 
-              type="range" 
-              min="0" 
-              max="10" 
-              step="0.5" 
-              value={minScore}
-              onChange={(e) => setMinScore(parseFloat(e.target.value))}
-              className="w-full"
-            />
-          </div>
-          <div className="text-xs">
-            Radius: {radius}km
-            <input 
-              type="range" 
-              min="0.5" 
-              max="10" 
-              step="0.5" 
-              value={radius}
-              onChange={(e) => setRadius(parseFloat(e.target.value))}
-              className="w-full"
-            />
-          </div>
+      {/* Min Score Filter - Bottom Right */}
+      <div className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg border" style={{ zIndex: 1001 }}>
+        <div className="text-sm font-medium mb-2">Min Vegan Score: {minScore}/10</div>
+        <input 
+          type="range" 
+          min="0" 
+          max="10" 
+          step="0.5" 
+          value={minScore}
+          onChange={(e) => setMinScore(parseFloat(e.target.value))}
+          className="w-32"
+        />
+        <div className="flex justify-between text-xs text-gray-500 mt-1">
+          <span>0</span>
+          <span>5</span>
+          <span>10</span>
         </div>
-      </div>
-
-      {/* Location controls */}
-      <div className="absolute bottom-4 right-4 z-[1000] space-y-2">
-        <button
-          onClick={() => {
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition((position) => {
-                const newCenter: [number, number] = [position.coords.latitude, position.coords.longitude];
-                mapInstanceRef.current?.setView(newCenter, 15);
-                onLocationChange?.(newCenter);
-              });
-            }
-          }}
-          className="block w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-          title="My Location"
-        >
-          <span className="text-blue-500 text-lg">📍</span>
-        </button>
-        
-        <button
-          onClick={() => {
-            // Sofia center - много ресторанти
-            const sofiaCenter: [number, number] = [42.6977, 23.3219];
-            mapInstanceRef.current?.setView(sofiaCenter, 15);
-            console.log('Switching to Sofia center:', sofiaCenter);
-            // Reload page with new location
-            window.location.href = `/?lat=${sofiaCenter[0]}&lng=${sofiaCenter[1]}`;
-          }}
-          className="block w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-          title="Sofia Center"
-        >
-          <span className="text-green-500 text-lg">🏛️</span>
-        </button>
-        
-        <button
-          onClick={() => {
-            // Vitosha Boulevard area - различни ресторанти  
-            const vitoshaArea: [number, number] = [42.6837, 23.3207];
-            mapInstanceRef.current?.setView(vitoshaArea, 15);
-            console.log('Switching to Vitosha area:', vitoshaArea);
-            // Reload page with new location
-            window.location.href = `/?lat=${vitoshaArea[0]}&lng=${vitoshaArea[1]}`;
-          }}
-          className="block w-12 h-12 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-          title="Vitosha Boulevard"
-        >
-          <span className="text-purple-500 text-lg">🛍️</span>
-        </button>
       </div>
       
       {/* Restaurant count indicator */}

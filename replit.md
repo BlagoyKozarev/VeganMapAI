@@ -232,14 +232,11 @@ The application is designed to be modular and scalable, with clear separation be
 
 ### July 28, 2025 - Map Controls & Filtering System
 - Added temporary orange 📊 button in header for easy API stats access per user request
-- Created MapControls component with comprehensive filtering options:
-  - Map style switching (Standard, Satellite, Terrain)
-  - Layer controls for traffic and public transit
-  - Vegan score filtering with slider (0-10 scale)
-  - Search radius control (0.5-10km)
-  - Quick action buttons (Reset Filters, High Quality preset)
-- Implemented distance-based filtering using Haversine formula
-- Added dynamic tile layer switching for different map styles
-- Integrated filtered restaurant display system with real-time updates
-- Map controls expandable panel positioned in top-right corner with clean UI
-- System ready for advanced map visualization and user experience enhancements
+- Simplified map controls based on user feedback:
+  - Removed complex map style switching and layer controls
+  - Removed location switching buttons (Sofia Center, Vitosha Boulevard)
+  - Kept only essential Min Vegan Score filter with slider (0-10 scale)
+- Positioned Min Score filter in bottom-right corner for easy access
+- Implemented distance-based filtering using Haversine formula for radius control
+- Clean, minimal UI focusing on core vegan score filtering functionality
+- System optimized for daily use with streamlined user experience
