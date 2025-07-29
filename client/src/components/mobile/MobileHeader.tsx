@@ -8,7 +8,7 @@ interface MobileHeaderProps {
 export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps) {
   return (
     <header 
-      className="lg:hidden fixed top-0 left-0 right-0 bg-red-600 border-b-4 border-black shadow-2xl h-16 z-[99999]"
+      className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg h-16 z-[99999]"
       style={{ 
         position: 'fixed',
         top: 0,
@@ -16,9 +16,7 @@ export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps)
         right: 0,
         width: '100%',
         height: '64px',
-        zIndex: 99999,
-        backgroundColor: '#dc2626',
-        borderBottom: '4px solid #000000'
+        zIndex: 99999
       }}
     >
       <div className="flex items-center px-4 py-2 h-full">
