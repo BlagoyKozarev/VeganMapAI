@@ -470,8 +470,9 @@ export default function Home() {
           </div>
 
           {/* Mobile Filter Controls - Fixed Window */}
-          <div className="absolute bottom-25 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+          <div className="absolute right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
                style={{ 
+                 bottom: '6.5rem',
                  zIndex: showDropdown ? 1 : 998,
                  opacity: showDropdown ? 0.7 : 1
                }}>
