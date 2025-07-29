@@ -288,7 +288,7 @@ export default function Home() {
   return (
     <>
       {/* MOBILE HEADER - ALWAYS VISIBLE */}
-      <header className="sm:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
+      <header className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
         <div className="flex items-center px-4 py-2 h-full">
           <div className="flex-1 relative mr-2">
             <div className="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5">
@@ -317,13 +317,13 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="h-screen relative bg-gray-50 pt-14 sm:pt-0">
+      <div className="h-screen relative bg-gray-50 pt-14 lg:pt-0">
 
 
       
       {/* Enhanced Google Maps Style Header - Desktop Only */}
       <div 
-        className="hidden sm:block fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-16" 
+        className="hidden lg:block fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-16" 
         style={{ zIndex: 1000 }}
       >
         <div className="flex items-center px-2 sm:px-4 py-3 h-full max-w-7xl mx-auto">
