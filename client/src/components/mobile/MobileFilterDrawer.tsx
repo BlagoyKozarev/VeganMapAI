@@ -18,13 +18,14 @@ export function MobileFilterDrawer({
 
   return (
     <>
-      {/* Mobile Filter Toggle Button */}
-      <div className="sm:hidden fixed bottom-4 left-4">
+      {/* Enhanced Mobile Filter Toggle Button */}
+      <div className="sm:hidden">
         <Button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+          className="w-14 h-14 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center active:scale-95"
+          style={{ touchAction: 'manipulation' }}
         >
-          <span className="text-white text-lg">🎚️</span>
+          <span className="text-white text-xl">🎚️</span>
         </Button>
       </div>
 
