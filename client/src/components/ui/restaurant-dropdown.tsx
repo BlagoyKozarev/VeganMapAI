@@ -1,11 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Navigation, Eye, Star, Utensils } from 'lucide-react';
+import { MapPin, Navigation, Eye, Star, Utensils, X } from 'lucide-react';
 import type { Restaurant } from '@shared/schema';
 
 interface RestaurantDropdownProps {
   restaurant: Restaurant;
-  position: { x: number; y: number };
   onClose: () => void;
   onNavigate: () => void;
   onViewDetails: () => void;
@@ -13,7 +12,6 @@ interface RestaurantDropdownProps {
 
 export function RestaurantDropdown({ 
   restaurant, 
-  position, 
   onClose, 
   onNavigate, 
   onViewDetails 
@@ -37,24 +35,30 @@ export function RestaurantDropdown({
         onClick={onClose}
       />
       
-      {/* Dropdown Menu */}
+      {/* Bottom Footer Menu */}
       <div 
-        className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-4 w-80 z-[1000]"
-        style={{ 
-          left: `${position.x - 160}px`, // Center horizontally (width 320px / 2 = 160px)
-          top: `${position.y - 200}px`   // Position above marker (approximate height + margin)
-        }}
+        className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 p-4 z-[1000]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Restaurant Header */}
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
-            {restaurant.name}
-          </h3>
-          <div className="flex items-center text-gray-600 mb-3">
-            <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-            <span className="text-sm line-clamp-1">{restaurant.address}</span>
+        {/* Header with Close Button */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
+              {restaurant.name}
+            </h3>
+            <div className="flex items-center text-gray-600">
+              <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="text-sm line-clamp-1">{restaurant.address}</span>
+            </div>
           </div>
+          <Button
+            onClick={onClose}
+            variant="ghost"
+            size="sm"
+            className="p-1 h-8 w-8 rounded-full hover:bg-gray-100"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Scores Section */}
@@ -83,20 +87,20 @@ export function RestaurantDropdown({
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <Button 
             onClick={onNavigate}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded-lg flex items-center justify-center"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg flex items-center justify-center font-medium"
           >
-            <Navigation className="h-4 w-4 mr-1" />
+            <Navigation className="h-5 w-5 mr-2" />
             Навигирай
           </Button>
           
           <Button 
             onClick={onViewDetails}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-3 rounded-lg flex items-center justify-center"
+            className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg flex items-center justify-center font-medium"
           >
-            <Eye className="h-4 w-4 mr-1" />
+            <Eye className="h-5 w-5 mr-2" />
             Разгледай
           </Button>
         </div>

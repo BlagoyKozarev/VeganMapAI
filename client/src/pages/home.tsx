@@ -27,7 +27,7 @@ export default function Home() {
 
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
+  // Removed position state since we're using bottom footer
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
@@ -129,31 +129,6 @@ export default function Home() {
   const handleRestaurantClick = (restaurant: any, event?: any) => {
     console.log('Restaurant clicked:', restaurant.name);
     setSelectedRestaurant(restaurant);
-    
-    // Show dropdown instead of modal
-    if (event) {
-      const rect = event.target.getBoundingClientRect();
-      console.log('Dropdown positioning:', {
-        rectLeft: rect.left,
-        rectTop: rect.top,
-        rectWidth: rect.width,
-        rectHeight: rect.height,
-        finalX: rect.left + rect.width / 2,
-        finalY: rect.top,
-        calculatedLeft: (rect.left + rect.width / 2) - 160,
-        calculatedTop: rect.top - 200
-      });
-      setDropdownPosition({
-        x: rect.left + rect.width / 2,
-        y: rect.top
-      });
-    } else {
-      // Fallback position if no event (center of screen)
-      setDropdownPosition({
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2
-      });
-    }
     setShowDropdown(true);
     console.log('Setting selectedRestaurant and showDropdown to true');
   };
@@ -406,7 +381,6 @@ export default function Home() {
       {selectedRestaurant && showDropdown && (
         <RestaurantDropdown
           restaurant={selectedRestaurant}
-          position={dropdownPosition}
           onClose={handleCloseDropdown}
           onNavigate={handleNavigate}
           onViewDetails={handleViewDetails}
