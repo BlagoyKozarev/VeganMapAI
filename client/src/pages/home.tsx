@@ -439,6 +439,39 @@ export default function Home() {
             }}
             loading={restaurantsLoading}
           />
+          
+          {/* Mobile Vegan Score Legend */}
+          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]">
+            <div className="flex items-center mb-2">
+              <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                <span className="text-green-600 text-xs">🌱</span>
+              </div>
+              <h3 className="text-xs font-bold text-gray-800">Vegan Guide</h3>
+            </div>
+            
+            <div className="space-y-1">
+              <div className="flex items-center text-xs">
+                <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
+                <span className="text-gray-700">8.5+ Excellent</span>
+              </div>
+              <div className="flex items-center text-xs">
+                <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                <span className="text-gray-700">7.5+ Very Good</span>
+              </div>
+              <div className="flex items-center text-xs">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                <span className="text-gray-700">6.5+ Good</span>
+              </div>
+              <div className="flex items-center text-xs">
+                <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                <span className="text-gray-700">5.5+ Fair</span>
+              </div>
+              <div className="flex items-center text-xs">
+                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                <span className="text-gray-700">&lt;5.5 Poor</span>
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Desktop Map */}
