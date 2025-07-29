@@ -33,6 +33,15 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       zoom: 15,
       zoomControl: true,
       attributionControl: false,
+      // Mobile optimizations
+      touchZoom: true,
+      doubleClickZoom: true,
+      scrollWheelZoom: true,
+      boxZoom: true,
+      keyboard: true,
+      dragging: true,
+      maxBounds: null,
+      maxBoundsViscosity: 0.0
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -266,9 +275,9 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
   }, [restaurants, onRestaurantClick]);
 
   return (
-    <div ref={mapRef} className="w-full h-full">
+    <div ref={mapRef} className="w-full h-full relative z-0 touch-manipulation" style={{ minHeight: '400px' }}>
       {loading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-[1000]">
+        <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
             <p className="mt-2 text-sm text-gray-600">Loading restaurants...</p>

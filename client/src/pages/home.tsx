@@ -74,10 +74,15 @@ export default function Home() {
     if (restaurants.length > 0) {
       console.log('Sample restaurant scores:', restaurants.slice(0, 10).map((r: Restaurant) => ({ name: r.name, score: r.veganScore })));
     }
-  }, [restaurants]);
+  }, [restaurants.length]); // Only depend on length to prevent infinite loops
 
-  // Filter restaurants and generate suggestions based on search query and scores
+  // Filter restaurants based on search query and scores
   useEffect(() => {
+    if (!restaurants.length) {
+      setFilteredRestaurants([]);
+      return;
+    }
+
     let filtered = restaurants;
     
     // Apply search filter
@@ -101,50 +106,58 @@ export default function Home() {
     });
     
     setFilteredRestaurants(filtered);
-    
-    // Generate search suggestions only when searching
+    console.log('Showing', filtered.length, 'restaurants');
+  }, [restaurants, searchQuery, minVeganScore, minGoogleScore]);
+
+  // Generate search suggestions separately to avoid complex dependencies
+  useEffect(() => {
+    if (!restaurants.length) {
+      setSearchSuggestions([]);
+      return;
+    }
+
     if (!searchQuery.trim()) {
       setSearchSuggestions([]);
       setShowSuggestions(false);
-    } else {
-      
-      // Generate suggestions - top 5 matching restaurants
-      const suggestions = restaurants
-        .filter((restaurant: any) =>
-          restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        .slice(0, 5)
-        .map((restaurant: any) => ({
-          id: restaurant.id,
-          name: restaurant.name,
-          address: restaurant.address,
-          veganScore: restaurant.veganScore,
-          type: 'restaurant'
-        }));
-      
-      // Add cuisine suggestions
-      const cuisineSuggestions = Array.from(
-        new Set(
-          restaurants
-            .filter((r: any) => r.cuisineTypes)
-            .flatMap((r: any) => r.cuisineTypes)
-            .filter((cuisine: any) => 
-              typeof cuisine === 'string' &&
-              cuisine.toLowerCase().includes(searchQuery.toLowerCase()) &&
-              !['point_of_interest', 'establishment', 'food', 'restaurant'].includes(cuisine)
-            )
-        )
-      ).slice(0, 3).map((cuisine: any) => ({
-        id: cuisine as string,
-        name: (cuisine as string).replace(/_/g, ' ').toLowerCase(),
-        type: 'cuisine'
-      }));
-      
-      setSearchSuggestions([...suggestions, ...cuisineSuggestions]);
-      setShowSuggestions(searchQuery.length > 1);
+      return;
     }
-  }, [restaurants, searchQuery, minVeganScore, minGoogleScore]);
+    
+    // Generate suggestions - top 5 matching restaurants
+    const suggestions = restaurants
+      .filter((restaurant: any) =>
+        restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .slice(0, 5)
+      .map((restaurant: any) => ({
+        id: restaurant.id,
+        name: restaurant.name,
+        address: restaurant.address,
+        veganScore: restaurant.veganScore,
+        type: 'restaurant'
+      }));
+    
+    // Add cuisine suggestions
+    const cuisineSuggestions = Array.from(
+      new Set(
+        restaurants
+          .filter((r: any) => r.cuisineTypes)
+          .flatMap((r: any) => r.cuisineTypes)
+          .filter((cuisine: any) => 
+            typeof cuisine === 'string' &&
+            cuisine.toLowerCase().includes(searchQuery.toLowerCase()) &&
+            !['point_of_interest', 'establishment', 'food', 'restaurant'].includes(cuisine)
+          )
+      )
+    ).slice(0, 3).map((cuisine: any) => ({
+      id: cuisine as string,
+      name: (cuisine as string).replace(/_/g, ' ').toLowerCase(),
+      type: 'cuisine'
+    }));
+    
+    setSearchSuggestions([...suggestions, ...cuisineSuggestions]);
+    setShowSuggestions(searchQuery.length > 1);
+  }, [restaurants.length, searchQuery]); // Only essential dependencies
 
   const handleSuggestionClick = (suggestion: any) => {
     if (suggestion.type === 'restaurant') {
@@ -241,14 +254,16 @@ export default function Home() {
   return (
     <div className="h-screen relative bg-gray-50">
       {/* Mobile Header */}
-      <MobileHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        showSuggestions={showSuggestions}
-        onShowSuggestions={setShowSuggestions}
-        searchSuggestions={searchSuggestions}
-        onSuggestionClick={handleSuggestionClick}
-      />
+      <div className="sm:hidden">
+        <MobileHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          showSuggestions={showSuggestions}
+          onShowSuggestions={setShowSuggestions}
+          searchSuggestions={searchSuggestions}
+          onSuggestionClick={handleSuggestionClick}
+        />
+      </div>
       
       {/* Enhanced Google Maps Style Header - Desktop Only */}
       <div 
