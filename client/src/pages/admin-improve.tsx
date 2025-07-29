@@ -28,13 +28,20 @@ export default function AdminImprove() {
 
   const improveMutation = useMutation({
     mutationFn: async ({ batchSize, onlyLowScores }: { batchSize: number; onlyLowScores: boolean }) => {
-      return await apiRequest('/api/admin/improve-scoring', {
+      const response = await fetch('/api/admin/improve-scoring', {
         method: 'POST',
-        body: JSON.stringify({ batchSize, onlyLowScores }),
         headers: {
           'Content-Type': 'application/json',
         },
-      }) as ImproveResponse;
+        body: JSON.stringify({ batchSize, onlyLowScores }),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json() as ImproveResponse;
     },
     onSuccess: (data) => {
       toast({
