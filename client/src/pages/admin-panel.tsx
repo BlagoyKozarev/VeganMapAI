@@ -580,55 +580,6 @@ export default function AdminPanel() {
                       </Button>
                     </div>
                   </div>
-                  
-                  {/* Visual weight distribution */}
-                  <div className="space-y-2">
-                    <h5 className="font-medium text-sm">Weight Distribution</h5>
-                    <div className="grid grid-cols-6 gap-1 h-6">
-                      <div 
-                        className="bg-blue-500 flex items-center justify-center text-xs text-white font-medium"
-                        style={{ width: `${weights.menuVarietyWeight * 100}%` }}
-                        title={`Menu Variety: ${Math.round(weights.menuVarietyWeight * 100)}%`}
-                      >
-                        MV
-                      </div>
-                      <div 
-                        className="bg-green-500 flex items-center justify-center text-xs text-white font-medium"
-                        style={{ width: `${weights.ingredientClarityWeight * 100}%` }}
-                        title={`Ingredient Clarity: ${Math.round(weights.ingredientClarityWeight * 100)}%`}
-                      >
-                        IC
-                      </div>
-                      <div 
-                        className="bg-yellow-500 flex items-center justify-center text-xs text-white font-medium"
-                        style={{ width: `${weights.staffKnowledgeWeight * 100}%` }}
-                        title={`Staff Knowledge: ${Math.round(weights.staffKnowledgeWeight * 100)}%`}
-                      >
-                        SK
-                      </div>
-                      <div 
-                        className="bg-red-500 flex items-center justify-center text-xs text-white font-medium"
-                        style={{ width: `${weights.crossContaminationWeight * 100}%` }}
-                        title={`Cross-Contamination: ${Math.round(weights.crossContaminationWeight * 100)}%`}
-                      >
-                        CC
-                      </div>
-                      <div 
-                        className="bg-purple-500 flex items-center justify-center text-xs text-white font-medium"
-                        style={{ width: `${weights.nutritionalInformationWeight * 100}%` }}
-                        title={`Nutritional Info: ${Math.round(weights.nutritionalInformationWeight * 100)}%`}
-                      >
-                        NI
-                      </div>
-                      <div 
-                        className="bg-orange-500 flex items-center justify-center text-xs text-white font-medium"
-                        style={{ width: `${weights.allergenManagementWeight * 100}%` }}
-                        title={`Allergen Management: ${Math.round(weights.allergenManagementWeight * 100)}%`}
-                      >
-                        AM
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
