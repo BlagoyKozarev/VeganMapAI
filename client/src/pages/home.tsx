@@ -293,6 +293,9 @@ export default function Home() {
       <MobileHeader 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        showSuggestions={showSuggestions}
+        onShowSuggestions={setShowSuggestions}
+        searchSuggestions={searchSuggestions}
       />
 
       <div 

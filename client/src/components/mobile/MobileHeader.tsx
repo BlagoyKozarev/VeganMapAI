@@ -3,9 +3,12 @@ import React from 'react';
 interface MobileHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  showSuggestions: boolean;
+  onShowSuggestions: (show: boolean) => void;
+  searchSuggestions: any[];
 }
 
-export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps) {
+export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions }: MobileHeaderProps) {
   return (
     <header 
       className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg h-16 z-[99999]"
@@ -29,8 +32,50 @@ export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps)
               className="flex-1 outline-none text-gray-700 text-sm bg-transparent"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
+              onFocus={() => onShowSuggestions(searchQuery.length > 1)}
+              onBlur={() => setTimeout(() => onShowSuggestions(false), 200)}
             />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="ml-2 text-gray-400 hover:text-gray-600 text-lg"
+              >
+                ×
+              </button>
+            )}
           </div>
+          
+          {/* Search Suggestions Dropdown for Mobile */}
+          {showSuggestions && searchSuggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto z-50">
+              {searchSuggestions.slice(0, 4).map((suggestion, index) => (
+                <div
+                  key={index}
+                  className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                  onClick={() => {
+                    onSearchChange(suggestion.name || suggestion);
+                    onShowSuggestions(false);
+                  }}
+                >
+                  {suggestion.name ? (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-600">🏪</span>
+                      <div>
+                        <div className="font-medium text-gray-900">{suggestion.name}</div>
+                        <div className="text-sm text-gray-500">{suggestion.address}</div>
+                        <div className="text-sm text-green-600">Vegan Score: {suggestion.veganScore}/10</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-blue-600">🍽️</span>
+                      <span className="text-gray-700 capitalize">{suggestion}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <a href="/ai-chat">
