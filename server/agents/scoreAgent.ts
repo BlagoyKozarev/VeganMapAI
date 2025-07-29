@@ -31,6 +31,11 @@ export class ScoreAgent {
     cuisineTypes?: string[]
   ): Promise<VeganScoreResult> {
     try {
+      // Check if this is a food establishment first
+      if (!this.isFoodEstablishment(cuisineTypes || [])) {
+        return this.getNonFoodScore();
+      }
+
       // Get detailed place information from Google Places
       const placeDetails = await this.getPlaceDetails(placeId);
       
@@ -54,6 +59,52 @@ export class ScoreAgent {
       // Fallback scoring based on cuisine type
       return this.getFallbackScore(cuisineTypes || []);
     }
+  }
+
+  /**
+   * Check if establishment is food-related
+   */
+  private isFoodEstablishment(cuisineTypes: string[]): boolean {
+    const foodTypes = [
+      'restaurant', 'food', 'cafe', 'bakery', 'bar', 'meal_takeaway', 
+      'meal_delivery', 'pizza', 'chinese', 'italian', 'indian', 'thai',
+      'mexican', 'japanese', 'greek', 'mediterranean', 'vietnamese',
+      'fast_food', 'deli', 'bistro', 'pub', 'grill', 'buffet'
+    ];
+    
+    const nonFoodTypes = [
+      'lodging', 'hotel', 'apartment', 'real_estate', 'spa', 'gym',
+      'hospital', 'pharmacy', 'bank', 'store', 'shopping_mall'
+    ];
+    
+    // If any non-food type is present, it's not a food establishment
+    if (cuisineTypes.some(type => nonFoodTypes.includes(type.toLowerCase()))) {
+      return false;
+    }
+    
+    // Must have at least one food-related type
+    return cuisineTypes.some(type => foodTypes.includes(type.toLowerCase()));
+  }
+
+  /**
+   * Return appropriate score for non-food establishments
+   */
+  private getNonFoodScore(): VeganScoreResult {
+    const breakdown: VeganScoreBreakdown = {
+      menuVariety: 0,
+      ingredientClarity: 0,
+      staffKnowledge: 0,
+      crossContamination: 0,
+      nutritionalInfo: 0,
+      allergenManagement: 0
+    };
+
+    return {
+      overallScore: 0,
+      breakdown,
+      confidence: 1.0, // High confidence - not a food place
+      reasoning: 'Not a food establishment - vegan scoring not applicable'
+    };
   }
 
   /**
@@ -82,26 +133,43 @@ export class ScoreAgent {
    * Use AI to analyze vegan-friendliness
    */
   private async analyzeVeganFriendliness(restaurantData: any): Promise<VeganScoreResult> {
-    const prompt = `Analyze this restaurant for vegan-friendliness and provide a detailed scoring breakdown.
+    const reviewText = restaurantData.reviews.length > 0 
+      ? restaurantData.reviews.map((review: any, index: number) => 
+          `${index + 1}. "${review.text}" (Rating: ${review.rating}/5)`
+        ).join('\n')
+      : 'No reviews available for analysis';
+    
+    const prompt = `Analyze this Sofia, Bulgaria restaurant for vegan-friendliness. Be realistic but fair in scoring.
 
 Restaurant: ${restaurantData.name}
 Cuisine Types: ${restaurantData.cuisineTypes.join(', ')}
 Website: ${restaurantData.website || 'Not available'}
 Price Level: ${restaurantData.priceLevel || 'Not specified'}
 
-Reviews (for analysis):
-${restaurantData.reviews.map((review: any, index: number) => 
-  `${index + 1}. "${review.text}" (Rating: ${review.rating}/5)`
-).join('\n')}
+Customer Reviews:
+${reviewText}
 
-Please analyze and score on a scale of 0-10 for each dimension:
+SCORING GUIDELINES (0-10 scale):
+- 8-10: Excellent vegan options, clearly marked, knowledgeable staff
+- 6-7: Good vegan choices, some clarity, decent awareness  
+- 4-5: Limited but available vegan options, basic awareness
+- 2-3: Very few vegan options, minimal awareness
+- 0-1: No clear vegan options or hostile to vegan dining
 
-1. Menu Variety (0-10): How many vegan options are available?
-2. Ingredient Clarity (0-10): Are ingredients clearly listed/labeled?
-3. Staff Knowledge (0-10): How knowledgeable is staff about vegan options?
-4. Cross-contamination Prevention (0-10): Measures to prevent cross-contamination?
-5. Nutritional Information (0-10): Available nutritional details?
-6. Allergen Management (0-10): Allergen awareness and management?
+Score each dimension realistically:
+1. Menu Variety: How many vegan dishes/options are clearly available?
+2. Ingredient Clarity: Are vegan items clearly marked or ingredients listed?
+3. Staff Knowledge: Based on reviews, how aware is staff of vegan needs?
+4. Cross-contamination Prevention: Evidence of separate cooking/preparation?
+5. Nutritional Information: Availability of nutritional/calorie details?
+6. Allergen Management: How well do they handle dietary restrictions?
+
+Consider cuisine type context:
+- Pizza/Italian: Usually has vegan options (marinara, vegetables)
+- Indian/Mediterranean: Traditionally more vegan-friendly
+- Chinese/Thai: Often has tofu/vegetable dishes
+- Cafes: Usually have plant milk, salads, some vegan pastries
+- Fast food: Limited but often has some vegan options
 
 Respond with JSON in this exact format:
 {
@@ -166,31 +234,51 @@ Respond with JSON in this exact format:
    * Fallback scoring when AI analysis fails
    */
   private getFallbackScore(cuisineTypes: string[]): VeganScoreResult {
+    // Check if it's a food establishment first
+    if (!this.isFoodEstablishment(cuisineTypes)) {
+      return this.getNonFoodScore();
+    }
+
     const veganFriendlyCuisines = [
       'vegan', 'vegetarian', 'mediterranean', 'indian', 'thai', 'vietnamese', 
-      'middle_eastern', 'lebanese', 'ethiopian', 'mexican'
+      'middle_eastern', 'lebanese', 'ethiopian', 'mexican', 'chinese', 'japanese'
+    ];
+    
+    const moderatelyFriendly = [
+      'pizza', 'italian', 'cafe', 'bakery', 'greek'
     ];
     
     const hasVeganCuisine = cuisineTypes.some(cuisine => 
       veganFriendlyCuisines.includes(cuisine.toLowerCase())
     );
     
-    const baseScore = hasVeganCuisine ? 6.5 : 4.0;
+    const hasModerateOptions = cuisineTypes.some(cuisine => 
+      moderatelyFriendly.includes(cuisine.toLowerCase())
+    );
+    
+    let baseScore: number;
+    if (hasVeganCuisine) {
+      baseScore = 6.0; // Higher baseline for vegan-friendly cuisines
+    } else if (hasModerateOptions) {
+      baseScore = 4.5; // Moderate baseline for pizza, cafes etc
+    } else {
+      baseScore = 3.0; // Conservative baseline for other food places
+    }
     
     const breakdown: VeganScoreBreakdown = {
-      menuVariety: baseScore,
-      ingredientClarity: baseScore - 1,
-      staffKnowledge: baseScore - 0.5,
-      crossContamination: baseScore - 1.5,
-      nutritionalInfo: baseScore - 2,
-      allergenManagement: baseScore - 1
+      menuVariety: Math.max(1, baseScore - 0.5),
+      ingredientClarity: Math.max(1, baseScore - 1.5),
+      staffKnowledge: Math.max(1, baseScore - 1.0),
+      crossContamination: Math.max(1, baseScore - 2.0),
+      nutritionalInfo: Math.max(1, baseScore - 2.5),
+      allergenManagement: Math.max(1, baseScore - 1.5)
     };
 
     return {
       overallScore: baseScore,
       breakdown,
-      confidence: 0.3, // Low confidence for fallback
-      reasoning: 'Fallback scoring based on cuisine type analysis'
+      confidence: 0.4, // Moderate confidence for fallback
+      reasoning: `Fallback scoring: ${hasVeganCuisine ? 'Vegan-friendly' : hasModerateOptions ? 'Moderate' : 'Basic'} cuisine type`
     };
   }
 
