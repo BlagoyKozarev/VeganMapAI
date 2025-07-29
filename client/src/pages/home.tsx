@@ -288,15 +288,7 @@ export default function Home() {
         />
       </div>
 
-      {/* Mobile Filter Button - Floating */}
-      <div className="sm:hidden fixed bottom-6 left-6 z-[999]">
-        <MobileFilterDrawer
-          minVeganScore={minVeganScore}
-          minGoogleScore={minGoogleScore}
-          onVeganScoreChange={setMinVeganScore}
-          onGoogleScoreChange={setMinGoogleScore}
-        />
-      </div>
+
       
       {/* Enhanced Google Maps Style Header - Desktop Only */}
       <div 
@@ -441,7 +433,11 @@ export default function Home() {
           />
           
           {/* Mobile Vegan Score Legend */}
-          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]">
+          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+               style={{ 
+                 zIndex: showDropdown ? 1 : 999,
+                 opacity: showDropdown ? 0.7 : 1
+               }}>
             <div className="flex items-center mb-2">
               <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center mr-2">
                 <span className="text-green-600 text-xs">🌱</span>
@@ -450,25 +446,81 @@ export default function Home() {
             </div>
             
             <div className="space-y-1">
-              <div className="flex items-center text-xs">
+              <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
                 <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
                 <span className="text-gray-700">8.5+ Excellent</span>
               </div>
-              <div className="flex items-center text-xs">
+              <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
                 <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
                 <span className="text-gray-700">7.5+ Very Good</span>
               </div>
-              <div className="flex items-center text-xs">
+              <div className="flex items-center text-xs hover:bg-yellow-50 rounded px-1 py-0.5 transition-colors">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
                 <span className="text-gray-700">6.5+ Good</span>
               </div>
-              <div className="flex items-center text-xs">
+              <div className="flex items-center text-xs hover:bg-orange-50 rounded px-1 py-0.5 transition-colors">
                 <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
                 <span className="text-gray-700">5.5+ Fair</span>
               </div>
-              <div className="flex items-center text-xs">
+              <div className="flex items-center text-xs hover:bg-red-50 rounded px-1 py-0.5 transition-colors">
                 <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
                 <span className="text-gray-700">&lt;5.5 Poor</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Filter Controls - Fixed Window */}
+          <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+               style={{ 
+                 zIndex: showDropdown ? 1 : 998,
+                 opacity: showDropdown ? 0.7 : 1
+               }}>
+            <div className="flex items-center mb-2">
+              <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                <span className="text-blue-600 text-xs">🎚️</span>
+              </div>
+              <h3 className="text-xs font-bold text-gray-800">Filters</h3>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Min Vegan Score Filter */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">
+                  Min Vegan: {minVeganScore}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  step="0.5"
+                  value={minVeganScore}
+                  onChange={(e) => setMinVeganScore(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0</span>
+                  <span>10</span>
+                </div>
+              </div>
+
+              {/* Min Google Score Filter */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">
+                  Min Google: {minGoogleScore}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="5"
+                  step="0.1"
+                  value={minGoogleScore}
+                  onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0</span>
+                  <span>5</span>
+                </div>
               </div>
             </div>
           </div>
