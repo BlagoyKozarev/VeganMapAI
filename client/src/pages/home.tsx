@@ -269,6 +269,15 @@ export default function Home() {
           
           {/* Right Icons */}
           <div className="flex items-center ml-3 space-x-2">
+            <a href="/admin">
+              <Button 
+                variant="ghost" 
+                className="w-10 h-10 p-0 bg-purple-500 hover:bg-purple-600 rounded-full"
+                title="Admin Panel"
+              >
+                <span className="text-white text-lg">⚙️</span>
+              </Button>
+            </a>
             <a href="/api-stats">
               <Button 
                 variant="ghost" 
@@ -276,24 +285,6 @@ export default function Home() {
                 title="API Stats"
               >
                 <span className="text-white text-lg">📊</span>
-              </Button>
-            </a>
-            <a href="/admin-scoring">
-              <Button 
-                variant="ghost" 
-                className="w-10 h-10 p-0 bg-purple-500 hover:bg-purple-600 rounded-full"
-                title="Admin Scoring"
-              >
-                <span className="text-white text-lg">⚡</span>
-              </Button>
-            </a>
-            <a href="/admin-improve">
-              <Button 
-                variant="ghost" 
-                className="w-10 h-10 p-0 bg-blue-500 hover:bg-blue-600 rounded-full"
-                title="Improve Scoring"
-              >
-                <span className="text-white text-lg">🔧</span>
               </Button>
             </a>
             <a href="/ai-chat">
