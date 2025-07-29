@@ -42,7 +42,7 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       boxZoom: false, // Disable on mobile for better touch
       keyboard: false, // Disable on mobile
       dragging: true,
-      maxBounds: null,
+      maxBounds: undefined,
       maxBoundsViscosity: 0.0,
       // Mobile-specific settings
       renderer: L.canvas({ tolerance: 15 }) // Better touch tolerance
@@ -182,22 +182,10 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       markersRef.current.forEach(marker => map.removeLayer(marker));
       markersRef.current = [];
 
-      const bounds = map.getBounds();
-      const padding = 0.02;
+      // Show ALL restaurants regardless of viewport bounds  
+      const visibleRestaurants = restaurants;
 
-      const visibleRestaurants = restaurants.filter(restaurant => {
-        const lat = parseFloat(restaurant.latitude);
-        const lng = parseFloat(restaurant.longitude);
-        
-        if (isNaN(lat) || isNaN(lng)) return false;
-        
-        return lat >= bounds.getSouth() - padding && 
-               lat <= bounds.getNorth() + padding &&
-               lng >= bounds.getWest() - padding && 
-               lng <= bounds.getEast() + padding;
-      });
-
-      console.log(`Showing ${visibleRestaurants.length} restaurants`);
+      console.log(`Showing ${visibleRestaurants.length} restaurants globally`);
 
       visibleRestaurants.forEach((restaurant) => {
         const lat = parseFloat(restaurant.latitude);
@@ -271,10 +259,13 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       });
     };
 
-    // Remove old listeners and add new ones
-    map.off('moveend zoomend');
-    map.on('moveend', updateMarkersOnMove);
-    map.on('zoomend', updateMarkersOnMove);
+    // Initialize markers immediately without waiting for map events
+    updateMarkersOnMove();
+    
+    // Disable viewport-based updates - show all restaurants always
+    // map.off('moveend zoomend');
+    // map.on('moveend', updateMarkersOnMove);
+    // map.on('zoomend', updateMarkersOnMove);
 
   }, [restaurants, onRestaurantClick]);
 
