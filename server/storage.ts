@@ -47,6 +47,7 @@ export interface IStorage {
   getAllRestaurantsWithScores(): Promise<Restaurant[]>;
   getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]>;
   searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]>;
+  getAllRestaurants(): Promise<Restaurant[]>;
   
   // Vegan score operations
   getVeganScoreBreakdown(restaurantId: string): Promise<VeganScoreBreakdown | undefined>;
@@ -196,6 +197,14 @@ export class DatabaseStorage implements IStorage {
     return filteredRestaurants;
   }
   
+  async getAllRestaurants(): Promise<Restaurant[]> {
+    const result = await db.select()
+      .from(restaurants)
+      .orderBy(desc(restaurants.createdAt));
+    
+    return result;
+  }
+
   async searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]> {
     let baseQuery = db.select().from(restaurants);
     
