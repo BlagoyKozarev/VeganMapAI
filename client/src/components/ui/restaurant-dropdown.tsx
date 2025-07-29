@@ -86,11 +86,12 @@ export function RestaurantDropdown({
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Mobile Optimized */}
         <div className="grid grid-cols-2 gap-3">
           <Button 
             onClick={onNavigate}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg flex items-center justify-center font-medium"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-lg flex items-center justify-center font-semibold text-base touch-manipulation"
+            size="lg"
           >
             <Navigation className="h-5 w-5 mr-2" />
             Навигирай
@@ -98,7 +99,8 @@ export function RestaurantDropdown({
           
           <Button 
             onClick={onViewDetails}
-            className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg flex items-center justify-center font-medium"
+            className="bg-green-600 hover:bg-green-700 text-white py-4 px-4 rounded-lg flex items-center justify-center font-semibold text-base touch-manipulation"
+            size="lg"
           >
             <Eye className="h-5 w-5 mr-2" />
             Разгледай

@@ -69,17 +69,20 @@ export default function Home() {
     },
   });
 
+  // Log restaurants data once when loaded
   useEffect(() => {
-    console.log('Home component - restaurants count:', restaurants.length);
     if (restaurants.length > 0) {
+      console.log('Home component - restaurants count:', restaurants.length);
       console.log('Sample restaurant scores:', restaurants.slice(0, 10).map((r: Restaurant) => ({ name: r.name, score: r.veganScore })));
     }
-  }, [restaurants.length]); // Only depend on length to prevent infinite loops
+  }, [restaurants.length]); // Stable dependency
 
-  // Filter restaurants based on search query and scores
+  // Filter restaurants based on search query and scores - memoized to prevent loops
   useEffect(() => {
     if (!restaurants.length) {
-      setFilteredRestaurants([]);
+      if (filteredRestaurants.length > 0) {
+        setFilteredRestaurants([]);
+      }
       return;
     }
 
@@ -105,9 +108,12 @@ export default function Home() {
       return googleScore >= minGoogleScore;
     });
     
-    setFilteredRestaurants(filtered);
-    console.log('Showing', filtered.length, 'restaurants');
-  }, [restaurants, searchQuery, minVeganScore, minGoogleScore]);
+    // Only update if actually different to prevent loops
+    if (JSON.stringify(filtered) !== JSON.stringify(filteredRestaurants)) {
+      setFilteredRestaurants(filtered);
+      console.log('Showing', filtered.length, 'restaurants');
+    }
+  }, [restaurants.length, searchQuery, minVeganScore, minGoogleScore]); // Use length instead of full array
 
   // Generate search suggestions separately to avoid complex dependencies
   useEffect(() => {
@@ -387,7 +393,7 @@ export default function Home() {
       {/* Map Container */}
       <div 
         className="absolute inset-0 pt-14 sm:pt-16" 
-        style={{ zIndex: 1 }}
+        style={{ zIndex: 1, minHeight: '100vh' }}
       >
         <Map
           center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
