@@ -188,8 +188,23 @@ export default function Home() {
 
   const handleNavigate = () => {
     if (selectedRestaurant) {
-      const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedRestaurant.latitude},${selectedRestaurant.longitude}`;
-      window.open(url, '_blank');
+      // Enhanced mobile-compatible navigation
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedRestaurant.latitude},${selectedRestaurant.longitude}&travelmode=walking`;
+      
+      console.log('Opening navigation to:', url);
+      
+      // Try multiple methods for mobile compatibility
+      try {
+        const opened = window.open(url, '_blank');
+        if (!opened) {
+          // Fallback for mobile browsers that block popups
+          window.location.href = url;
+        }
+      } catch (error) {
+        console.log('Popup blocked, using direct navigation');
+        window.location.href = url;
+      }
+      
       setShowDropdown(false);
     }
   };
@@ -259,13 +274,7 @@ export default function Home() {
 
   return (
     <div className="h-screen relative bg-gray-50">
-      {/* Debug Mobile Info - Enhanced */}
-      <div className="sm:hidden fixed top-0 right-0 bg-red-500 text-white text-xs p-2 z-[2000] rounded-bl">
-        <div>Mobile Debug</div>
-        <div>Restaurants: {filteredRestaurants.length}</div>
-        <div>Position: {currentPosition ? '✓' : '✗'}</div>
-        <div>Loading: {restaurantsLoading ? '✓' : '✗'}</div>
-      </div>
+
       
       {/* Mobile Header */}
       <div className="sm:hidden">
@@ -409,51 +418,17 @@ export default function Home() {
           overflow: 'hidden'
         }}
       >
-        {/* Emergency Mobile Map Test */}
-        <div className="sm:hidden w-full h-full bg-green-100 relative overflow-y-auto">
-          <div className="p-4">
-            <div className="bg-white rounded-lg p-4 shadow-lg mb-4">
-              <h2 className="text-lg font-bold mb-2 text-green-700">🌱 VeganMapAI Mobile</h2>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>Restaurants: <span className="font-bold">{filteredRestaurants.length}</span></div>
-                <div>Loading: <span className="font-bold">{restaurantsLoading ? 'Yes' : 'No'}</span></div>
-                <div className="col-span-2">
-                  Location: <span className="font-bold">
-                    {currentPosition ? `${currentPosition.lat.toFixed(4)}, ${currentPosition.lng.toFixed(4)}` : 'Loading...'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              {filteredRestaurants.slice(0, 10).map((restaurant: any) => (
-                <div 
-                  key={restaurant.id} 
-                  className="bg-white p-3 rounded-lg shadow-md border-l-4 border-green-500"
-                  onClick={() => handleRestaurantClick(restaurant)}
-                >
-                  <div className="font-semibold text-gray-900 mb-1">{restaurant.name}</div>
-                  <div className="text-xs text-gray-600 mb-2">{restaurant.address}</div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs">
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                        Vegan: {restaurant.veganScore || '?'}/10
-                      </span>
-                    </div>
-                    <div className="text-xs text-blue-600">
-                      Maps: {restaurant.rating || '?'}/5
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {filteredRestaurants.length > 10 && (
-              <div className="mt-4 text-center text-sm text-gray-600">
-                Showing first 10 of {filteredRestaurants.length} restaurants
-              </div>
-            )}
-          </div>
+        {/* Mobile Map with Leaflet */}
+        <div className="sm:hidden w-full h-full relative">
+          <Map
+            center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
+            restaurants={filteredRestaurants}
+            onRestaurantClick={handleRestaurantClick}
+            onLocationChange={() => {
+              // Map center is managed internally by Leaflet
+            }}
+            loading={restaurantsLoading}
+          />
         </div>
         
         {/* Desktop Map */}

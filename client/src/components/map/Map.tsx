@@ -280,10 +280,7 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
   return (
     <div ref={mapRef} className="w-full h-full relative z-0 touch-manipulation" style={{ minHeight: '400px', maxHeight: '100vh' }}>
-      {/* Debug info for mobile */}
-      <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs p-1 z-[100] sm:hidden">
-        Map: {restaurants.length} pins
-      </div>
+
       
       {loading && (
         <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
