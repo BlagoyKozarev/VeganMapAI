@@ -333,14 +333,17 @@ The application is designed to be modular and scalable, with clear separation be
   - "Разгледай" button opens full Restaurant Modal with details
 - **Status: Bottom menu system completed successfully** - User confirmed working as expected
 
-### July 29, 2025 - AI Scoring Algorithm Improvements
-- Enhanced ScoreAgent with better filtering to eliminate problematic 0.0 scores:
-  - Added isFoodEstablishment() check to filter out hotels, spas, lodging
-  - Improved AI prompts with more detailed 6-dimensional scoring criteria
-  - Enhanced context analysis for better accuracy in vegan-friendliness assessment
-- Successfully tested improved algorithm on 3 restaurants with 0.0 scores:
-  - Hemingway Restaurant: 0.0 → 1.3/10 (confidence 0.6)  
-  - Wood-Lark Pub: 0.0 → 1.3/10 (confidence 0.6)
-  - Ресторант - Басейн "Синьо лято": 0.0 → 1.3/10 (confidence 1.0)
-- Added admin improve panel (/admin-improve) with 🔧 icon in header for batch processing
-- **Status: Improved scoring algorithm working effectively** - Eliminates unrealistic 0.0 scores
+### July 29, 2025 - AI Scoring Algorithm Improvements & Complete Rescoring
+- Enhanced ScoreAgent with intelligent filtering to eliminate problematic 0.0 scores:
+  - Added isFoodEstablishment() check to filter out hotels, spas, lodging establishments
+  - Improved AI prompts with detailed 6-dimensional scoring criteria and cuisine context
+  - Enhanced weight distribution: Menu Variety (25%), Ingredient Clarity (20%), Cross-contamination (20%)
+- Completed comprehensive rescoring of all 94 restaurants with 0.0 scores:
+  - **First batch (25)**: 9 food establishments improved, 16 non-food kept at 0.0
+  - **Second batch (30)**: 6 food establishments improved, 24 non-food kept at 0.0  
+  - **Final batch (39)**: 18 food establishments improved, 21 non-food kept at 0.0
+  - **Total improvement**: 33 restaurants upgraded from 0.0 to realistic scores (0.2-1.7/10)
+- Final database statistics: 214 total restaurants, 153 with AI scores, 61 non-food establishments at 0.0
+- Average vegan score improved to 1.52/10 across all food establishments
+- Added admin improve panel (/admin-improve) with 🔧 icon in header for future batch processing
+- **Status: Complete AI scoring overhaul successful** - All legitimate restaurants now have realistic vegan scores
