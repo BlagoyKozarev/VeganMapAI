@@ -605,7 +605,7 @@ export default function AdminPanel() {
                       {cacheStats ? 
                         (cacheStats.placesSearchHits + cacheStats.placesSearchMisses + 
                          cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses + 
-                         cacheStats.photosHits + cacheStats.photosMisses + 217).toLocaleString() : '0'}
+                         cacheStats.photosHits + cacheStats.photosMisses + 217).toLocaleString('fr-FR') : '0'}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">Общо Заявки</div>
                   </div>
@@ -614,13 +614,13 @@ export default function AdminPanel() {
                       ${cacheStats ? 
                         ((cacheStats.placesSearchMisses * 0.032) + 
                          (cacheStats.placeDetailsMisses * 0.017) + 
-                         (cacheStats.photosMisses * 0.007) + (217 * 0.12)).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                         (cacheStats.photosMisses * 0.007) + (217 * 0.12)).toLocaleString('fr-FR', {minimumFractionDigits: 2}) : '0.00'}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">Общо Разходи</div>
                   </div>
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
                     <div className="text-3xl font-bold text-purple-600">
-                      ${cacheStats ? cacheStats.totalSavings.toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                      ${cacheStats ? cacheStats.totalSavings.toLocaleString('fr-FR', {minimumFractionDigits: 2}) : '0.00'}
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">Спестени Средства</div>
                   </div>
@@ -645,25 +645,25 @@ export default function AdminPanel() {
                   <div className="flex justify-between text-sm">
                     <span>Заявки:</span>
                     <span className="font-medium">
-                      {cacheStats ? (cacheStats.placesSearchHits + cacheStats.placesSearchMisses).toLocaleString() : '0'}
+                      {cacheStats ? (cacheStats.placesSearchHits + cacheStats.placesSearchMisses).toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Cache Hits:</span>
                     <span className="font-medium text-green-600">
-                      {cacheStats ? cacheStats.placesSearchHits.toLocaleString() : '0'}
+                      {cacheStats ? cacheStats.placesSearchHits.toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>API Calls:</span>
                     <span className="font-medium text-orange-600">
-                      {cacheStats ? cacheStats.placesSearchMisses.toLocaleString() : '0'}
+                      {cacheStats ? cacheStats.placesSearchMisses.toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm border-t pt-2">
                     <span>Разходи:</span>
                     <span className="font-bold">
-                      ${cacheStats ? (cacheStats.placesSearchMisses * 0.032).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                      ${cacheStats ? (cacheStats.placesSearchMisses * 0.032).toLocaleString('fr-FR', {minimumFractionDigits: 2}) : '0,00'}
                     </span>
                   </div>
                 </CardContent>
@@ -678,25 +678,25 @@ export default function AdminPanel() {
                   <div className="flex justify-between text-sm">
                     <span>Заявки:</span>
                     <span className="font-medium">
-                      {cacheStats ? (cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses).toLocaleString() : '0'}
+                      {cacheStats ? (cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses).toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Cache Hits:</span>
                     <span className="font-medium text-green-600">
-                      {cacheStats ? cacheStats.placeDetailsHits.toLocaleString() : '0'}
+                      {cacheStats ? cacheStats.placeDetailsHits.toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>API Calls:</span>
                     <span className="font-medium text-orange-600">
-                      {cacheStats ? cacheStats.placeDetailsMisses.toLocaleString() : '0'}
+                      {cacheStats ? cacheStats.placeDetailsMisses.toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm border-t pt-2">
                     <span>Разходи:</span>
                     <span className="font-bold">
-                      ${cacheStats ? (cacheStats.placeDetailsMisses * 0.017).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                      ${cacheStats ? (cacheStats.placeDetailsMisses * 0.017).toLocaleString('fr-FR', {minimumFractionDigits: 2}) : '0,00'}
                     </span>
                   </div>
                 </CardContent>
@@ -711,25 +711,25 @@ export default function AdminPanel() {
                   <div className="flex justify-between text-sm">
                     <span>Заявки:</span>
                     <span className="font-medium">
-                      {cacheStats ? (cacheStats.photosHits + cacheStats.photosMisses).toLocaleString() : '0'}
+                      {cacheStats ? (cacheStats.photosHits + cacheStats.photosMisses).toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Cache Hits:</span>
                     <span className="font-medium text-green-600">
-                      {cacheStats ? cacheStats.photosHits.toLocaleString() : '0'}
+                      {cacheStats ? cacheStats.photosHits.toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>API Calls:</span>
                     <span className="font-medium text-orange-600">
-                      {cacheStats ? cacheStats.photosMisses.toLocaleString() : '0'}
+                      {cacheStats ? cacheStats.photosMisses.toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm border-t pt-2">
                     <span>Разходи:</span>
                     <span className="font-bold">
-                      ${cacheStats ? (cacheStats.photosMisses * 0.007).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                      ${cacheStats ? (cacheStats.photosMisses * 0.007).toLocaleString('fr-FR', {minimumFractionDigits: 2}) : '0,00'}
                     </span>
                   </div>
                 </CardContent>
@@ -744,7 +744,7 @@ export default function AdminPanel() {
                   <div className="flex justify-between text-sm">
                     <span>AI Scorings:</span>
                     <span className="font-medium">
-                      {dbStats ? dbStats.withScores.toLocaleString() : '0'}
+                      {dbStats ? dbStats.withScores.toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -754,13 +754,13 @@ export default function AdminPanel() {
                   <div className="flex justify-between text-sm">
                     <span>API Calls:</span>
                     <span className="font-medium text-orange-600">
-                      {dbStats ? dbStats.withScores.toLocaleString() : '0'}
+                      {dbStats ? dbStats.withScores.toLocaleString('fr-FR') : '0'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm border-t pt-2">
                     <span>Разходи:</span>
                     <span className="font-bold">
-                      ${dbStats ? (dbStats.withScores * 0.12).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                      ${dbStats ? (dbStats.withScores * 0.12).toLocaleString('fr-FR', {minimumFractionDigits: 2}) : '0,00'}
                     </span>
                   </div>
                 </CardContent>
