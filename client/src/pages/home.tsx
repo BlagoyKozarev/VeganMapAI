@@ -381,54 +381,50 @@ export default function Home() {
       </div>
 
       {/* Enhanced Vegan Score Legend - Top Right */}
-      <div className="fixed top-20 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl p-4 w-64 transition-all duration-300 hover:shadow-3xl" 
+      <div className="fixed top-20 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-48 sm:w-52 transition-all duration-300 hover:shadow-xl" 
            style={{ 
              zIndex: showDropdown ? 1 : 999,
              opacity: showDropdown ? 0.7 : 1
            }}>
-        <div className="flex items-center mb-3">
-          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
-            <i className="fas fa-leaf text-green-600 text-xs"></i>
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-2">
+            <span className="text-green-600 text-xs">🌱</span>
           </div>
-          <h3 className="text-sm font-opensans font-bold text-gray-800">Vegan Score Guide</h3>
+          <h3 className="text-xs font-opensans font-bold text-gray-800">Vegan Guide</h3>
         </div>
         
-        <div className="space-y-2">
-          <div className="flex items-center text-xs group hover:bg-green-50 rounded-lg px-2 py-1 transition-colors">
-            <div className="w-3 h-3 bg-gradient-to-r from-green-600 to-green-700 rounded-full mr-3 shadow-sm"></div>
+        <div className="space-y-1">
+          <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
+            <div className="w-2.5 h-2.5 bg-green-600 rounded-full mr-2"></div>
             <span className="text-gray-700 font-medium">8.5+ Excellent</span>
           </div>
-          <div className="flex items-center text-xs group hover:bg-green-50 rounded-lg px-2 py-1 transition-colors">
-            <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full mr-3 shadow-sm"></div>
+          <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
+            <div className="w-2.5 h-2.5 bg-green-400 rounded-full mr-2"></div>
             <span className="text-gray-700 font-medium">7.5+ Very Good</span>
           </div>
-          <div className="flex items-center text-xs group hover:bg-yellow-50 rounded-lg px-2 py-1 transition-colors">
-            <div className="w-3 h-3 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full mr-3 shadow-sm"></div>
+          <div className="flex items-center text-xs hover:bg-yellow-50 rounded px-1 py-0.5 transition-colors">
+            <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full mr-2"></div>
             <span className="text-gray-700 font-medium">6.5+ Good</span>
           </div>
-          <div className="flex items-center text-xs group hover:bg-orange-50 rounded-lg px-2 py-1 transition-colors">
-            <div className="w-3 h-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full mr-3 shadow-sm"></div>
+          <div className="flex items-center text-xs hover:bg-orange-50 rounded px-1 py-0.5 transition-colors">
+            <div className="w-2.5 h-2.5 bg-orange-500 rounded-full mr-2"></div>
             <span className="text-gray-700 font-medium">5.5+ Fair</span>
           </div>
-          <div className="flex items-center text-xs group hover:bg-red-50 rounded-lg px-2 py-1 transition-colors">
-            <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-red-600 rounded-full mr-3 shadow-sm"></div>
-            <span className="text-gray-700 font-medium">4.0+ Poor</span>
-          </div>
-          <div className="flex items-center text-xs group hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors">
-            <div className="w-3 h-3 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full mr-3 shadow-sm"></div>
-            <span className="text-gray-700 font-medium">&lt;4.0 Very Poor</span>
+          <div className="flex items-center text-xs hover:bg-red-50 rounded px-1 py-0.5 transition-colors">
+            <div className="w-2.5 h-2.5 bg-red-500 rounded-full mr-2"></div>
+            <span className="text-gray-700 font-medium">&lt;5.5 Poor</span>
           </div>
         </div>
         
-        {/* Enhanced Location Button */}
-        <div className="mt-4 pt-3 border-t border-gray-100">
+        {/* Compact Location Button */}
+        <div className="mt-3 pt-2 border-t border-gray-100">
           <Button
             onClick={handleCurrentLocation}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-[1.02] font-medium"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg text-xs font-medium"
             disabled={loading}
           >
-            <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-crosshairs'} mr-2`}></i>
-            {loading ? 'Getting Location...' : 'My Location'}
+            <span className="mr-1">📍</span>
+            {loading ? 'Loading...' : 'My Location'}
           </Button>
         </div>
       </div>
@@ -438,23 +434,23 @@ export default function Home() {
 
 
       {/* Enhanced Filter Controls - Bottom Right */}
-      <div className="fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl p-4 w-64 transition-all duration-300 hover:shadow-3xl" 
+      <div className="fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 sm:w-56 transition-all duration-300 hover:shadow-xl" 
            style={{ 
              zIndex: showDropdown ? 1 : 998,  // Lower z-index than legend
              opacity: showDropdown ? 0.7 : 1,
              transform: showDropdown ? 'translateY(10px)' : 'translateY(0)'
            }}>
-        <div className="flex items-center mb-3">
-          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+        <div className="flex items-center mb-2">
+          <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mr-2">
             <span className="text-blue-600 text-xs">🎚️</span>
           </div>
-          <h3 className="text-sm font-opensans font-bold text-gray-800">Filter Controls</h3>
+          <h3 className="text-xs font-opensans font-bold text-gray-800">Filters</h3>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Min Vegan Score Filter */}
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-2 block">
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
               Min Vegan Score: {minVeganScore}
             </label>
             <input
@@ -479,7 +475,7 @@ export default function Home() {
 
           {/* Min Google Score Filter */}
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-2 block">
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
               Min Google Score: {minGoogleScore}
             </label>
             <input
