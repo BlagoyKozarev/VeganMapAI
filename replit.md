@@ -348,7 +348,9 @@ The application is designed to be modular and scalable, with clear separation be
   - Mangia Station (3.2/10), Piatto Collezione (2.3/10), HAMACHI-Ni (1.3/10)
   - Sasaguri Sushi Bar (1.2/10), The Butcher (0.9/10), Osteria Tartufo (1.3/10)
   - The Rusty Grill Burger (0.9/10), Mania 5 (1.2/10), JoVan Bakery (0.0/10)
-- Final database statistics: 227 total establishments, 166 with AI vegan scores
-- Average vegan score: 1.51/10 across all food establishments
+- **Added missing premium vegan restaurants**: Loving Hut Sofia (8.0/10), Soul Kitchen (7.8/10), SATSANGA (6.8/10), Vita Rama, Veda House
+- Final database statistics: 232 total establishments, 167 with AI vegan scores
+- Average vegan score: 1.64/10 across all food establishments
+- **Highest vegan score**: Loving Hut Sofia with 8.0/10 (100% vegan restaurant)
 - Added admin improve panel (/admin-improve) with 🔧 icon in header for future batch processing
 - **Status: Complete Sofia food establishment coverage achieved** - All restaurants in 4km radius loaded with authentic AI vegan scores
