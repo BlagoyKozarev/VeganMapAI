@@ -133,6 +133,14 @@ export default function Home() {
     // Show dropdown instead of modal
     if (event) {
       const rect = event.target.getBoundingClientRect();
+      console.log('Dropdown positioning:', {
+        rectLeft: rect.left,
+        rectTop: rect.top,
+        rectWidth: rect.width,
+        rectHeight: rect.height,
+        finalX: rect.left + rect.width / 2,
+        finalY: rect.top
+      });
       setDropdownPosition({
         x: rect.left + rect.width / 2,
         y: rect.top
