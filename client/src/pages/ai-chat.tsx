@@ -143,6 +143,11 @@ export default function AiChat() {
 
   const startListening = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast({
+        title: 'Гласово разпознаване не се поддържа',
+        description: 'Вашият браузър не поддържа гласово разпознаване.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -189,15 +194,41 @@ export default function AiChat() {
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
-      if (event.error === 'no-speech') {
-        // Restart listening after no speech detected
-        if (conversationActive) {
-          setTimeout(() => {
-            if (conversationActive) {
-              startListening();
-            }
-          }, 1000);
-        }
+      
+      let errorMessage = 'Грешка при гласовото разпознаване';
+      switch (event.error) {
+        case 'not-allowed':
+          errorMessage = 'Достъпът до микрофона е отказан. Моля, разрешете достъп в браузъра си.';
+          endConversation();
+          break;
+        case 'no-speech':
+          // Restart listening after no speech detected - don't show error
+          if (conversationActive) {
+            setTimeout(() => {
+              if (conversationActive) {
+                startListening();
+              }
+            }, 1000);
+          }
+          return;
+        case 'audio-capture':
+          errorMessage = 'Проблем с микрофона. Проверете дали е свързан правилно.';
+          endConversation();
+          break;
+        case 'network':
+          errorMessage = 'Мрежова грешка. Проверете интернет връзката си.';
+          break;
+        case 'aborted':
+          // Normal stop, don't show error
+          return;
+      }
+      
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        toast({
+          title: 'Грешка с гласа',
+          description: errorMessage,
+          variant: 'destructive',
+        });
       }
     };
 
@@ -213,7 +244,17 @@ export default function AiChat() {
       }
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error('Failed to start speech recognition:', error);
+      setIsListening(false);
+      toast({
+        title: 'Грешка при стартиране',
+        description: 'Не можа да се стартира гласовото разпознаване.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const resetConversationTimeout = () => {
@@ -343,7 +384,18 @@ export default function AiChat() {
       setIsRecording(false);
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error('Failed to start voice recording:', error);
+      setIsRecording(false);
+      setConversationActive(false);
+      toast({
+        title: 'Грешка при стартиране',
+        description: 'Не можа да се стартира гласовото записване.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const speakText = (text: string) => {
