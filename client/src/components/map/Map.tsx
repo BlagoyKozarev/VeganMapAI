@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Restaurant } from '@shared/schema';
@@ -144,7 +144,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
   }, [viewMode]);
 
   // No clustering - show all filtered restaurants individually
-  const updateMarkers = () => {
+  const updateMarkers = useCallback(() => {
     if (!mapInstanceRef.current) return;
 
     console.log('Map component - rendering restaurants:', filteredRestaurants.length);
@@ -250,19 +250,21 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
 
       markersRef.current.push(marker);
     });
-  };
+  }, [filteredRestaurants, onRestaurantClick]);
 
-  // Update markers when map moves or zooms
+  // Update markers when restaurants change
   useEffect(() => {
-    if (!mapInstanceRef.current || filteredRestaurants.length === 0) return;
+    updateMarkers();
+  }, [updateMarkers]);
+
+  // Setup map event handlers
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
     
     const map = mapInstanceRef.current;
     const handleMapChange = () => {
       updateMarkers();
     };
-    
-    // Initial markers
-    updateMarkers();
     
     map.on('moveend', handleMapChange);
     map.on('zoomend', handleMapChange);
@@ -271,7 +273,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
       map.off('moveend', handleMapChange);
       map.off('zoomend', handleMapChange);
     };
-  }, [restaurants.length]); // Only depend on restaurants length to avoid infinite loop
+  }, [updateMarkers]); // Depend on updateMarkers callback
 
   useEffect(() => {
     if (mapInstanceRef.current) {
