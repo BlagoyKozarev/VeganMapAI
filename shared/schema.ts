@@ -131,6 +131,21 @@ export const userAnalytics = pgTable("user_analytics", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
+// AI Scoring weights configuration table
+export const scoringWeights = pgTable("scoring_weights", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // Configuration name
+  menuVarietyWeight: decimal("menu_variety_weight", { precision: 4, scale: 3 }).notNull().default("0.250"),
+  ingredientClarityWeight: decimal("ingredient_clarity_weight", { precision: 4, scale: 3 }).notNull().default("0.200"),
+  staffKnowledgeWeight: decimal("staff_knowledge_weight", { precision: 4, scale: 3 }).notNull().default("0.150"),
+  crossContaminationWeight: decimal("cross_contamination_weight", { precision: 4, scale: 3 }).notNull().default("0.200"),
+  nutritionalInformationWeight: decimal("nutritional_information_weight", { precision: 4, scale: 3 }).notNull().default("0.100"),
+  allergenManagementWeight: decimal("allergen_management_weight", { precision: 4, scale: 3 }).notNull().default("0.100"),
+  isActive: boolean("is_active").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Insert schemas
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
   id: true,
@@ -170,6 +185,12 @@ export const insertUserAnalyticsSchema = createInsertSchema(userAnalytics).omit(
   timestamp: true,
 });
 
+export const insertScoringWeightsSchema = createInsertSchema(scoringWeights).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -181,6 +202,7 @@ export type UserFavorite = typeof userFavorites.$inferSelect;
 export type UserVisit = typeof userVisits.$inferSelect;
 export type ChatSession = typeof chatSessions.$inferSelect;
 export type UserAnalytics = typeof userAnalytics.$inferSelect;
+export type ScoringWeights = typeof scoringWeights.$inferSelect;
 
 // Insert types
 export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
@@ -190,6 +212,7 @@ export type InsertUserFavorite = z.infer<typeof insertUserFavoriteSchema>;
 export type InsertUserVisit = z.infer<typeof insertUserVisitSchema>;
 export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
 export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
+export type InsertScoringWeights = z.infer<typeof insertScoringWeightsSchema>;
 
 // Additional types for frontend
 export interface SearchFilters {

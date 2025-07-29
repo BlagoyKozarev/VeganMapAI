@@ -341,6 +341,18 @@ The application is designed to be modular and scalable, with clear separation be
   - "Разгледай" button opens full Restaurant Modal with details
 - **Status: Bottom menu system completed successfully** - User confirmed working as expected
 
+### July 29, 2025 - Scoring Weights Management System Implementation
+- Added comprehensive AI scoring weights configuration interface in admin panel:
+  - Interactive sliders and numeric inputs for all 6 scoring dimensions
+  - Real-time validation ensuring weights total exactly 1.0 (100%)
+  - Visual weight distribution with color-coded progress bars
+  - Default weights: Menu Variety (25%), Ingredient Clarity (20%), Cross-Contamination (20%), Staff Knowledge (15%), Nutritional Info (10%), Allergen Management (10%)
+- Created scoring weights database schema with decimal precision for accurate calculations
+- Implemented backend API endpoints for weight management with validation
+- Added "Scoring Weights" tab to admin panel with modern tabbed interface (5 tabs total)
+- System allows real-time adjustment of AI scoring algorithm priorities for business optimization
+- **Status: Scoring weights management system completed** - Ready for fine-tuning AI scoring priorities based on user feedback and business requirements
+
 ### July 29, 2025 - AI Scoring Algorithm Improvements & Complete Rescoring
 - Enhanced ScoreAgent with intelligent filtering to eliminate problematic 0.0 scores:
   - Added isFoodEstablishment() check to filter out hotels, spas, lodging establishments
