@@ -68,7 +68,7 @@ export const restaurants = pgTable("restaurants", {
   longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
   phoneNumber: varchar("phone_number"),
   website: varchar("website"),
-  priceLevel: priceRangeEnum("price_level"),
+  priceLevel: integer("price_level"),
   cuisineTypes: text("cuisine_types").array(),
   openingHours: jsonb("opening_hours"),
   photos: text("photos").array(),
