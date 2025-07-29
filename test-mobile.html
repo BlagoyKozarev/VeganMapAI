@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Header Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile Header Test -->
+    <div class="sm:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
+        <div class="flex items-center px-4 py-2 h-full">
+            <!-- Search Bar -->
+            <div class="flex-1 relative">
+                <div class="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5">
+                    <i class="fas fa-search text-gray-400 mr-2 text-sm"></i>
+                    <input
+                        type="text"
+                        placeholder="Search for vegan places..."
+                        class="flex-1 outline-none text-gray-700 text-sm bg-transparent"
+                    />
+                </div>
+            </div>
+            
+            <!-- Right Icons -->
+            <div class="flex items-center ml-2 space-x-1">
+                <button class="w-10 h-10 p-0">
+                    <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                        <span class="text-white text-lg">🎤</span>
+                    </div>
+                </button>
+                <button class="w-10 h-10">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-lg">
+                        BK
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Content -->
+    <div class="pt-16 p-4">
+        <h1 class="text-xl font-bold">Mobile Header Test</h1>
+        <p>This should show a header on mobile devices only.</p>
+        <div class="mt-4 h-96 bg-green-100 rounded-lg flex items-center justify-center">
+            <span>Map would go here</span>
+        </div>
+    </div>
+</body>
+</html>
