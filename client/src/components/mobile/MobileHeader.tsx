@@ -79,26 +79,26 @@ export function MobileHeader({
           )}
         </div>
         
-        {/* Compact Action Buttons */}
-        <div className="flex items-center ml-2 space-x-1">
-          <a href="/ai-chat">
+        {/* Enhanced Action Buttons */}
+        <div className="flex items-center ml-2 space-x-2">
+          <a href="/ai-chat" style={{ touchAction: 'manipulation' }}>
             <Button 
               variant="ghost" 
-              className="w-8 h-8 p-0 rounded-full"
+              className="w-10 h-10 p-0 rounded-full active:scale-95 transition-transform"
               title="AI Assistant"
             >
-              <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">🎤</span>
+              <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-white text-sm">🎤</span>
               </div>
             </Button>
           </a>
-          <a href="/profile">
+          <a href="/profile" style={{ touchAction: 'manipulation' }}>
             <Button 
               variant="ghost" 
-              className="w-8 h-8 p-0 rounded-full"
+              className="w-10 h-10 p-0 rounded-full active:scale-95 transition-transform"
               title="Profile"
             >
-              <div className="w-6 h-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-lg">
                 BK
               </div>
             </Button>

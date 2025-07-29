@@ -29,16 +29,18 @@ export function RestaurantDropdown({
 
   return (
     <>
-      {/* Backdrop to close dropdown */}
+      {/* Enhanced Mobile Backdrop */}
       <div 
-        className="fixed inset-0 z-[999]" 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1999]" 
         onClick={onClose}
+        style={{ touchAction: 'manipulation' }}
       />
       
-      {/* Bottom Footer Menu */}
+      {/* Enhanced Bottom Footer Menu */}
       <div 
-        className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 p-4 z-[1000]"
+        className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 p-4 z-[2000] rounded-t-2xl"
         onClick={(e) => e.stopPropagation()}
+        style={{ touchAction: 'manipulation' }}
       >
         {/* Header with Close Button */}
         <div className="flex items-start justify-between mb-4">
