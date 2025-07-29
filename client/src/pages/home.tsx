@@ -287,6 +287,15 @@ export default function Home() {
                 <span className="text-white text-lg">⚡</span>
               </Button>
             </a>
+            <a href="/admin-improve">
+              <Button 
+                variant="ghost" 
+                className="w-10 h-10 p-0 bg-blue-500 hover:bg-blue-600 rounded-full"
+                title="Improve Scoring"
+              >
+                <span className="text-white text-lg">🔧</span>
+              </Button>
+            </a>
             <a href="/ai-chat">
               <Button 
                 variant="ghost" 
