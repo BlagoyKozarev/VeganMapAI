@@ -19,10 +19,12 @@ interface Restaurant {
   priceLevel: number | null;
   cuisineTypes: string[] | null;
   rating: string | null;
+  reviewCount: number;
   veganScore: string | null;
   veganScoreBreakdown: any | null;
   openingHours: any | null;
   photos: any | null;
+  isVerified: boolean;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -434,7 +436,7 @@ export default function Home() {
 
 
       {/* Enhanced Filter Controls - Bottom Right */}
-      <div className="fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 sm:w-56 transition-all duration-300 hover:shadow-xl" 
+      <div className="fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-48 sm:w-52 transition-all duration-300 hover:shadow-xl" 
            style={{ 
              zIndex: showDropdown ? 1 : 998,  // Lower z-index than legend
              opacity: showDropdown ? 0.7 : 1,
