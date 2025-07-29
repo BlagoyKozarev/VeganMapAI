@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import Map from '@/components/map/Map';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
+import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
+import { MobileHeader } from '@/components/mobile/MobileHeader';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Restaurant {
@@ -238,9 +240,19 @@ export default function Home() {
 
   return (
     <div className="h-screen relative bg-gray-50">
-      {/* Enhanced Google Maps Style Header */}
+      {/* Mobile Header */}
+      <MobileHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        showSuggestions={showSuggestions}
+        onShowSuggestions={setShowSuggestions}
+        searchSuggestions={searchSuggestions}
+        onSuggestionClick={handleSuggestionClick}
+      />
+      
+      {/* Enhanced Google Maps Style Header - Desktop Only */}
       <div 
-        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-16" 
+        className="hidden sm:block fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-16" 
         style={{ zIndex: 1000 }}
       >
         <div className="flex items-center px-2 sm:px-4 py-3 h-full max-w-7xl mx-auto">
@@ -368,7 +380,7 @@ export default function Home() {
 
       {/* Map Container */}
       <div 
-        className="absolute inset-0 pt-16" 
+        className="absolute inset-0 pt-14 sm:pt-16" 
         style={{ zIndex: 1 }}
       >
         <Map
@@ -382,8 +394,8 @@ export default function Home() {
         />
       </div>
 
-      {/* Enhanced Vegan Score Legend - Top Right */}
-      <div className="fixed top-20 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-48 sm:w-52 transition-all duration-300 hover:shadow-xl" 
+      {/* Enhanced Vegan Score Legend - Mobile Hidden */}
+      <div className="hidden sm:block fixed top-20 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 transition-all duration-300 hover:shadow-xl" 
            style={{ 
              zIndex: showDropdown ? 1 : 999,
              opacity: showDropdown ? 0.7 : 1
@@ -435,8 +447,8 @@ export default function Home() {
 
 
 
-      {/* Enhanced Filter Controls - Bottom Right */}
-      <div className="fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-48 sm:w-52 transition-all duration-300 hover:shadow-xl" 
+      {/* Enhanced Filter Controls - Desktop Only */}
+      <div className="hidden sm:block fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 transition-all duration-300 hover:shadow-xl" 
            style={{ 
              zIndex: showDropdown ? 1 : 998,  // Lower z-index than legend
              opacity: showDropdown ? 0.7 : 1,
@@ -501,6 +513,14 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Filter Drawer */}
+      <MobileFilterDrawer
+        minVeganScore={minVeganScore}
+        minGoogleScore={minGoogleScore}
+        onVeganScoreChange={setMinVeganScore}
+        onGoogleScoreChange={setMinGoogleScore}
+      />
 
       {/* Restaurant Dropdown */}
       {selectedRestaurant && showDropdown && (
