@@ -686,6 +686,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin route for improved scoring
+  app.post('/api/admin/improve-scoring', isAuthenticated, async (req: any, res) => {
+    try {
+      const { batchSize = 10, onlyLowScores = true } = req.body;
+      
+      // Get restaurants that need improved scoring
+      let restaurants;
+      if (onlyLowScores) {
+        // Get restaurants with low scores (< 2.0) or no scores
+        const allRestaurants = await storage.getAllRestaurants();
+        restaurants = allRestaurants.filter(r => 
+          !r.veganScore || parseFloat(r.veganScore) < 2.0
+        ).slice(0, batchSize);
+      } else {
+        const allRestaurants = await storage.getAllRestaurants();
+        restaurants = allRestaurants.slice(0, batchSize);
+      }
+
+      console.log(`Starting improved scoring for ${restaurants.length} restaurants`);
+      let processed = 0;
+      let improved = 0;
+      const results = [];
+      
+      for (const restaurant of restaurants) {
+        try {
+          const oldScore = parseFloat(restaurant.veganScore || '0');
+          
+          // Calculate new score with improved algorithm
+          const scoreResult = await scoreAgent.calculateVeganScore(
+            restaurant.placeId,
+            restaurant.name,
+            restaurant.cuisineTypes
+          );
+          
+          // Update restaurant with new score
+          await storage.updateRestaurant(restaurant.id, {
+            veganScore: scoreResult.overallScore.toString()
+          });
+          
+          processed++;
+          if (scoreResult.overallScore > oldScore) {
+            improved++;
+          }
+          
+          results.push({
+            name: restaurant.name,
+            oldScore,
+            newScore: scoreResult.overallScore,
+            reasoning: scoreResult.reasoning
+          });
+          
+          console.log(`Processed ${restaurant.name}: ${oldScore} → ${scoreResult.overallScore}`);
+          
+          // Add delay to respect API limits
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+        } catch (error) {
+          console.error(`Error processing ${restaurant.name}:`, error);
+          processed++;
+          results.push({
+            name: restaurant.name,
+            error: error.message
+          });
+        }
+      }
+      
+      res.json({
+        success: true,
+        processed,
+        improved,
+        results,
+        message: `Processed ${processed} restaurants, improved ${improved} scores`
+      });
+      
+    } catch (error) {
+      console.error("Error in improved scoring:", error);
+      res.status(500).json({ message: "Failed to improve scoring" });
+    }
+  });
+
   // Register API stats routes for cost monitoring
   registerApiStatsRoutes(app);
 
