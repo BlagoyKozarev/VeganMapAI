@@ -6,7 +6,6 @@ import Map from '@/components/map/Map';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
 import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
-import { MobileHeader } from '@/components/mobile/MobileHeader';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Restaurant {
@@ -486,7 +485,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Map Container - Force Mobile Optimization */}
+      {/* Map Container - Fixed positioning with new header */}
       <div 
         className="absolute inset-0 pt-14 sm:pt-16" 
         style={{ 
@@ -497,8 +496,8 @@ export default function Home() {
           overflow: 'hidden'
         }}
       >
-        {/* Mobile Map with Leaflet */}
-        <div className="sm:hidden w-full h-full relative">
+        {/* Full Map View */}
+        <div className="w-full h-full relative">
           <Map
             center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
             restaurants={filteredRestaurants}
