@@ -72,18 +72,20 @@ export class ScoreAgent {
       'fast_food', 'deli', 'bistro', 'pub', 'grill', 'buffet'
     ];
     
-    const nonFoodTypes = [
-      'lodging', 'hotel', 'apartment', 'real_estate', 'spa', 'gym',
-      'hospital', 'pharmacy', 'bank', 'store', 'shopping_mall'
+    const primaryNonFoodTypes = [
+      'lodging', 'night_club', 'real_estate_agency', 'hospital', 'gas_station'
     ];
     
-    // If any non-food type is present, it's not a food establishment
-    if (cuisineTypes.some(type => nonFoodTypes.includes(type.toLowerCase()))) {
+    // If any primary non-food type is present without food types, it's not a food establishment
+    const hasPrimaryNonFood = cuisineTypes.some(type => primaryNonFoodTypes.includes(type.toLowerCase()));
+    const hasFood = cuisineTypes.some(type => foodTypes.includes(type.toLowerCase()));
+    
+    if (hasPrimaryNonFood && !hasFood) {
       return false;
     }
     
-    // Must have at least one food-related type
-    return cuisineTypes.some(type => foodTypes.includes(type.toLowerCase()));
+    // Must have at least one food-related type to be considered food establishment
+    return hasFood;
   }
 
   /**
@@ -258,20 +260,20 @@ Respond with JSON in this exact format:
     
     let baseScore: number;
     if (hasVeganCuisine) {
-      baseScore = 6.0; // Higher baseline for vegan-friendly cuisines
+      baseScore = 5.5; // Higher baseline for vegan-friendly cuisines
     } else if (hasModerateOptions) {
-      baseScore = 4.5; // Moderate baseline for pizza, cafes etc
+      baseScore = 3.0; // Moderate baseline for pizza, cafes etc
     } else {
-      baseScore = 3.0; // Conservative baseline for other food places
+      baseScore = 1.5; // Conservative baseline for other food places
     }
     
     const breakdown: VeganScoreBreakdown = {
-      menuVariety: Math.max(1, baseScore - 0.5),
-      ingredientClarity: Math.max(1, baseScore - 1.5),
-      staffKnowledge: Math.max(1, baseScore - 1.0),
-      crossContamination: Math.max(1, baseScore - 2.0),
-      nutritionalInfo: Math.max(1, baseScore - 2.5),
-      allergenManagement: Math.max(1, baseScore - 1.5)
+      menuVariety: Math.max(0.5, baseScore - 0.5),
+      ingredientClarity: Math.max(0.5, baseScore - 1.5),
+      staffKnowledge: Math.max(0.5, baseScore - 1.0),
+      crossContamination: Math.max(0.5, baseScore - 2.0),
+      nutritionalInfo: Math.max(0.5, baseScore - 2.5),
+      allergenManagement: Math.max(0.5, baseScore - 1.5)
     };
 
     return {
