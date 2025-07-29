@@ -137,6 +137,12 @@ export default function Home() {
         x: rect.left + rect.width / 2,
         y: rect.top
       });
+    } else {
+      // Fallback position if no event (center of screen)
+      setDropdownPosition({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2
+      });
     }
     setShowDropdown(true);
     console.log('Setting selectedRestaurant and showDropdown to true');
