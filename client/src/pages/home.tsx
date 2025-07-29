@@ -380,8 +380,12 @@ export default function Home() {
         />
       </div>
 
-      {/* Enhanced Vegan Score Legend - Responsive */}
-      <div className="fixed top-20 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl p-4 max-w-xs transition-all duration-300 hover:shadow-3xl" style={{ zIndex: 999 }}>
+      {/* Enhanced Vegan Score Legend - Top Right */}
+      <div className="fixed top-20 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl p-4 w-64 transition-all duration-300 hover:shadow-3xl" 
+           style={{ 
+             zIndex: showDropdown ? 1 : 999,
+             opacity: showDropdown ? 0.7 : 1
+           }}>
         <div className="flex items-center mb-3">
           <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
             <i className="fas fa-leaf text-green-600 text-xs"></i>
@@ -434,10 +438,11 @@ export default function Home() {
 
 
       {/* Enhanced Filter Controls - Bottom Right */}
-      <div className="fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl p-4 max-w-xs transition-all duration-300 hover:shadow-3xl" 
+      <div className="fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl p-4 w-64 transition-all duration-300 hover:shadow-3xl" 
            style={{ 
-             zIndex: showDropdown ? 1 : 999,  // Lower z-index when menu is open
-             opacity: showDropdown ? 0.7 : 1  // Semi-transparent when menu is open
+             zIndex: showDropdown ? 1 : 998,  // Lower z-index than legend
+             opacity: showDropdown ? 0.7 : 1,
+             transform: showDropdown ? 'translateY(10px)' : 'translateY(0)'
            }}>
         <div className="flex items-center mb-3">
           <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
