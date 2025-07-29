@@ -276,7 +276,7 @@ export default function Home() {
 
       
       {/* Mobile Header - Fixed */}
-      <div className="sm:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-14 z-[1000]">
+      <div className="block sm:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-14 z-[1000]">
         <div className="flex items-center px-4 py-2 h-full">
           {/* Search Bar */}
           <div className="flex-1 relative">
@@ -508,8 +508,8 @@ export default function Home() {
             loading={restaurantsLoading}
           />
           
-          {/* Mobile Vegan Score Legend */}
-          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+          {/* Vegan Score Legend - Mobile and Desktop */}
+          <div className="block sm:hidden absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
                style={{ 
                  zIndex: showDropdown ? 1 : 999,
                  opacity: showDropdown ? 0.7 : 1
