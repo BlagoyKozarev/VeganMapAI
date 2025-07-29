@@ -332,3 +332,15 @@ The application is designed to be modular and scalable, with clear separation be
   - "Навигирай" button opens Google Maps directions
   - "Разгледай" button opens full Restaurant Modal with details
 - **Status: Bottom menu system completed successfully** - User confirmed working as expected
+
+### July 29, 2025 - AI Scoring Algorithm Improvements
+- Enhanced ScoreAgent with better filtering to eliminate problematic 0.0 scores:
+  - Added isFoodEstablishment() check to filter out hotels, spas, lodging
+  - Improved AI prompts with more detailed 6-dimensional scoring criteria
+  - Enhanced context analysis for better accuracy in vegan-friendliness assessment
+- Successfully tested improved algorithm on 3 restaurants with 0.0 scores:
+  - Hemingway Restaurant: 0.0 → 1.3/10 (confidence 0.6)  
+  - Wood-Lark Pub: 0.0 → 1.3/10 (confidence 0.6)
+  - Ресторант - Басейн "Синьо лято": 0.0 → 1.3/10 (confidence 1.0)
+- Added admin improve panel (/admin-improve) with 🔧 icon in header for batch processing
+- **Status: Improved scoring algorithm working effectively** - Eliminates unrealistic 0.0 scores
