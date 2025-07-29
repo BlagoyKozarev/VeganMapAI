@@ -26,6 +26,12 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
 - Periodic refresh instead of real-time (-70% photo calls)
 - Target cost reduction: 50-90% through intelligent caching
 
+**Cost Analysis Update (July 29, 2025):**
+- Current coverage: 45% (232 of ~514 establishments)
+- Missing establishments: ~282 (38 cafes, 56 bakeries, 32 bars, 41 takeaway, 35 delivery, 80 from text search)
+- Complete Sofia coverage cost: ~$9.50 one-time + $25/month operational (10K users)
+- US expansion (20 cities): ~$15K setup + $6,250/month ($0.0125/user)
+- Geo-hash caching reduces operational costs by 90%
 **User Request:** Remember this cost optimization analysis to return to after completing current vision development phase.
 
 ## System Architecture
