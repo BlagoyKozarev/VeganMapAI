@@ -213,19 +213,29 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
         .addTo(mapInstanceRef.current!)
         .on('click', (e) => {
           console.log('Map marker clicked:', restaurant.name);
-          // Pass the marker event to get position
-          const markerElement = e.target.getElement();
-          if (markerElement) {
-            const rect = markerElement.getBoundingClientRect();
-            const mockEvent = {
-              target: {
-                getBoundingClientRect: () => rect
-              }
-            };
-            onRestaurantClick(restaurant, mockEvent);
-          } else {
-            onRestaurantClick(restaurant);
-          }
+          // Get the screen coordinates of the marker
+          const map = mapInstanceRef.current!;
+          const point = map.latLngToContainerPoint([lat, lng]);
+          const mapContainer = map.getContainer();
+          const mapRect = mapContainer.getBoundingClientRect();
+          
+          const screenX = mapRect.left + point.x;
+          const screenY = mapRect.top + point.y;
+          
+          const mockEvent = {
+            target: {
+              getBoundingClientRect: () => ({
+                left: screenX - 18, // Half of marker width (36px / 2)
+                top: screenY - 18,  // Half of marker height
+                width: 36,
+                height: 36,
+                right: screenX + 18,
+                bottom: screenY + 18
+              })
+            }
+          };
+          
+          onRestaurantClick(restaurant, mockEvent);
         });
 
       // Add tooltip on hover
