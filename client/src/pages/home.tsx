@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import Map from '@/components/map/Map';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
+import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Restaurant {
@@ -25,6 +26,8 @@ export default function Home() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
 
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
@@ -123,11 +126,42 @@ export default function Home() {
     getCurrentPosition();
   };
 
-  const handleRestaurantClick = (restaurant: any) => {
+  const handleRestaurantClick = (restaurant: any, event?: any) => {
     console.log('Restaurant clicked:', restaurant.name);
     setSelectedRestaurant(restaurant);
+    
+    // Show dropdown instead of modal
+    if (event) {
+      const rect = event.target.getBoundingClientRect();
+      setDropdownPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top
+      });
+    }
+    setShowDropdown(true);
+    console.log('Setting selectedRestaurant and showDropdown to true');
+  };
+
+  const handleNavigate = () => {
+    if (selectedRestaurant) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedRestaurant.latitude},${selectedRestaurant.longitude}`;
+      window.open(url, '_blank');
+      setShowDropdown(false);
+    }
+  };
+
+  const handleViewDetails = () => {
+    setShowDropdown(false);
     setShowRestaurantModal(true);
-    console.log('Setting selectedRestaurant and showRestaurantModal to true');
+  };
+
+  const handleCloseDropdown = () => {
+    setShowDropdown(false);
+  };
+
+  const handleCloseModal = () => {
+    setShowRestaurantModal(false);
+    setSelectedRestaurant(null);
   };
 
 
@@ -352,15 +386,23 @@ export default function Home() {
 
 
 
+      {/* Restaurant Dropdown */}
+      {selectedRestaurant && showDropdown && (
+        <RestaurantDropdown
+          restaurant={selectedRestaurant}
+          position={dropdownPosition}
+          onClose={handleCloseDropdown}
+          onNavigate={handleNavigate}
+          onViewDetails={handleViewDetails}
+        />
+      )}
+
       {/* Restaurant Modal */}
       {selectedRestaurant && (
         <RestaurantModal 
           restaurant={selectedRestaurant}
           isOpen={showRestaurantModal}
-          onClose={() => {
-            setShowRestaurantModal(false);
-            setSelectedRestaurant(null);
-          }}
+          onClose={handleCloseModal}
         />
       )}
 

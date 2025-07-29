@@ -35,9 +35,13 @@ export function RestaurantModal({ restaurant, isOpen, onClose }: RestaurantModal
 
   const formatOpeningHours = () => {
     if (!restaurant.openingHours || !restaurant.openingHours.weekday_text) {
-      return 'Hours not available';
+      return ['Hours not available'];
     }
-    return restaurant.openingHours.weekday_text.slice(0, 3); // Show first 3 days
+    const weekdayText = restaurant.openingHours.weekday_text;
+    if (Array.isArray(weekdayText)) {
+      return weekdayText.slice(0, 3); // Show first 3 days
+    }
+    return ['Hours not available'];
   };
 
   return (

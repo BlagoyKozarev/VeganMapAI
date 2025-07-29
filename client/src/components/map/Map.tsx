@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 interface MapProps {
   center: [number, number];
   restaurants: Restaurant[];
-  onRestaurantClick: (restaurant: Restaurant) => void;
+  onRestaurantClick: (restaurant: Restaurant, event?: any) => void;
   onLocationChange?: (center: [number, number]) => void;
   loading?: boolean;
 }
@@ -211,9 +211,21 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
 
       const marker = L.marker([lat, lng], { icon: customIcon })
         .addTo(mapInstanceRef.current!)
-        .on('click', () => {
+        .on('click', (e) => {
           console.log('Map marker clicked:', restaurant.name);
-          onRestaurantClick(restaurant);
+          // Pass the marker event to get position
+          const markerElement = e.target.getElement();
+          if (markerElement) {
+            const rect = markerElement.getBoundingClientRect();
+            const mockEvent = {
+              target: {
+                getBoundingClientRect: () => rect
+              }
+            };
+            onRestaurantClick(restaurant, mockEvent);
+          } else {
+            onRestaurantClick(restaurant);
+          }
         });
 
       // Add tooltip on hover
