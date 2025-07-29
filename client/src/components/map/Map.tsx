@@ -254,12 +254,15 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
 
   // Update markers when map moves or zooms
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current || filteredRestaurants.length === 0) return;
     
     const map = mapInstanceRef.current;
     const handleMapChange = () => {
       updateMarkers();
     };
+    
+    // Initial markers
+    updateMarkers();
     
     map.on('moveend', handleMapChange);
     map.on('zoomend', handleMapChange);
@@ -268,11 +271,7 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
       map.off('moveend', handleMapChange);
       map.off('zoomend', handleMapChange);
     };
-  }, [filteredRestaurants]);
-
-  useEffect(() => {
-    updateMarkers();
-  }, [filteredRestaurants]);
+  }, [restaurants.length]); // Only depend on restaurants length to avoid infinite loop
 
   useEffect(() => {
     if (mapInstanceRef.current) {
