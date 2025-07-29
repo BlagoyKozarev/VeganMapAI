@@ -343,15 +343,6 @@ export default function Home() {
                 <span className="text-white text-sm sm:text-lg">⚙️</span>
               </Button>
             </a>
-            <a href="/api-stats" className="hidden sm:block">
-              <Button 
-                variant="ghost" 
-                className="w-9 h-9 sm:w-10 sm:h-10 p-0 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                title="API Stats"
-              >
-                <span className="text-white text-sm sm:text-lg">📊</span>
-              </Button>
-            </a>
             <a href="/ai-chat">
               <Button 
                 variant="ghost" 
