@@ -49,7 +49,7 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
           {showSuggestions && searchSuggestions.length > 0 && (
             <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-xl mt-1 max-h-80 overflow-y-auto z-50">
               {/* Restaurant Results */}
-              {searchSuggestions.filter(s => s.name).map((restaurant, index) => (
+              {searchSuggestions.filter(s => s.type === 'restaurant').map((restaurant, index) => (
                 <div
                   key={`restaurant-${index}`}
                   className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 flex items-start space-x-3"
@@ -81,12 +81,12 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
               ))}
               
               {/* Cuisine Type Results */}
-              {searchSuggestions.filter(s => !s.name).map((cuisine, index) => (
+              {searchSuggestions.filter(s => s.type === 'cuisine').map((cuisine, index) => (
                 <div
                   key={`cuisine-${index}`}
                   className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 flex items-center space-x-3"
                   onClick={() => {
-                    onSearchChange(cuisine);
+                    onSearchChange(cuisine.name);
                     onShowSuggestions(false);
                   }}
                 >
@@ -96,7 +96,7 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
                     </div>
                   </div>
                   <div className="flex-1">
-                    <div className="text-gray-700 capitalize font-medium">{cuisine}</div>
+                    <div className="text-gray-700 capitalize font-medium">{cuisine.name}</div>
                     <div className="text-sm text-gray-500">Cuisine type</div>
                   </div>
                 </div>
