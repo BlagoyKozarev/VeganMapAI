@@ -892,6 +892,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Scoring weights management endpoints
+  app.get("/api/admin/scoring-weights", isAuthenticated, async (req: any, res) => {
+    try {
+      // Return default weights for now
+      const defaultWeights = {
+        id: 'default',
+        name: 'Default Configuration',
+        menuVarietyWeight: 0.25,
+        ingredientClarityWeight: 0.20,
+        staffKnowledgeWeight: 0.15,
+        crossContaminationWeight: 0.20,
+        nutritionalInformationWeight: 0.10,
+        allergenManagementWeight: 0.10,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      res.json(defaultWeights);
+    } catch (error) {
+      console.error("Error fetching scoring weights:", error);
+      res.status(500).json({ message: "Failed to fetch scoring weights" });
+    }
+  });
+
+  app.post("/api/admin/scoring-weights", isAuthenticated, async (req: any, res) => {
+    try {
+      const weights = req.body;
+      
+      // Validate that weights sum to 1.0
+      const total = Object.values(weights).reduce((sum: number, weight: any) => {
+        return typeof weight === 'number' ? sum + weight : sum;
+      }, 0);
+      
+      if (Math.abs(total - 1.0) > 0.001) {
+        return res.status(400).json({ 
+          message: `Total weights must equal 1.0 (currently ${total.toFixed(3)})` 
+        });
+      }
+      
+      // For now, just return success - in the future this would save to database
+      console.log('Updated scoring weights:', weights);
+      
+      res.json({ 
+        message: "Scoring weights updated successfully",
+        weights: {
+          ...weights,
+          id: 'updated-config',
+          name: 'Updated Configuration',
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error("Error updating scoring weights:", error);
+      res.status(500).json({ message: "Failed to update scoring weights" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -1,17 +1,24 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 import { 
   BarChart3, 
   Database, 
   RefreshCw,
   CheckCircle,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Settings,
+  Save
 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface DatabaseStats {
   totalRestaurants: number;
@@ -44,8 +51,32 @@ interface ScoringJob {
   startedAt: string;
 }
 
+interface ScoringWeights {
+  id: string;
+  name: string;
+  menuVarietyWeight: number;
+  ingredientClarityWeight: number;
+  staffKnowledgeWeight: number;
+  crossContaminationWeight: number;
+  nutritionalInformationWeight: number;
+  allergenManagementWeight: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function AdminPanel() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [refreshInterval] = useState<number>(30000);
+  const [weights, setWeights] = useState({
+    menuVarietyWeight: 0.25,
+    ingredientClarityWeight: 0.20,
+    staffKnowledgeWeight: 0.15,
+    crossContaminationWeight: 0.20,
+    nutritionalInformationWeight: 0.10,
+    allergenManagementWeight: 0.10
+  });
 
   // Database statistics
   const { data: dbStats, isLoading: dbLoading } = useQuery<DatabaseStats>({
@@ -65,11 +96,69 @@ export default function AdminPanel() {
     refetchInterval: 10000,
   });
 
+  // Current active weights
+  const { data: activeWeights } = useQuery<ScoringWeights>({
+    queryKey: ["/api/admin/scoring-weights"],
+    refetchInterval: refreshInterval,
+  });
+
+  // Update weights mutation
+  const updateWeightsMutation = useMutation({
+    mutationFn: async (newWeights: typeof weights) => {
+      return apiRequest("/api/admin/scoring-weights", "POST", newWeights);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Scoring weights updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/scoring-weights"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update scoring weights",
+        variant: "destructive",
+      });
+    },
+  });
+
   const completionPercentage = dbStats ? 
     Math.round((dbStats.withScores / dbStats.totalRestaurants) * 100) : 0;
 
   const cacheHitRate = cacheStats ? 
     Math.round(cacheStats.cacheHitRate * 100) : 0;
+
+  const handleWeightChange = (key: keyof typeof weights, value: number) => {
+    setWeights(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleSaveWeights = () => {
+    const total = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+    if (Math.abs(total - 1.0) > 0.001) {
+      toast({
+        title: "Error",
+        description: `Total weights must equal 1.0 (currently ${total.toFixed(3)})`,
+        variant: "destructive",
+      });
+      return;
+    }
+    updateWeightsMutation.mutate(weights);
+  };
+
+  const resetWeights = () => {
+    setWeights({
+      menuVarietyWeight: 0.25,
+      ingredientClarityWeight: 0.20,
+      staffKnowledgeWeight: 0.15,
+      crossContaminationWeight: 0.20,
+      nutritionalInformationWeight: 0.10,
+      allergenManagementWeight: 0.10
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -85,10 +174,11 @@ export default function AdminPanel() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="database">Database</TabsTrigger>
             <TabsTrigger value="scoring">AI Scoring</TabsTrigger>
+            <TabsTrigger value="weights">Scoring Weights</TabsTrigger>
             <TabsTrigger value="cache">Cache Management</TabsTrigger>
           </TabsList>
 
@@ -289,6 +379,254 @@ export default function AdminPanel() {
                       <p className="text-sm text-muted-foreground">
                         Across {dbStats?.withScores || 0} scored restaurants
                       </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Scoring Weights Tab */}
+          <TabsContent value="weights" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5" />
+                  <span>AI Scoring Weights Configuration</span>
+                </CardTitle>
+                <CardDescription>
+                  Adjust the importance of each scoring dimension. Total must equal 1.0 (100%)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Menu Variety */}
+                  <div className="space-y-2">
+                    <Label htmlFor="menuVariety">Menu Variety</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="menuVariety"
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={weights.menuVarietyWeight}
+                        onChange={(e) => handleWeightChange('menuVarietyWeight', parseFloat(e.target.value) || 0)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        ({Math.round(weights.menuVarietyWeight * 100)}%)
+                      </span>
+                      <div className="flex-1">
+                        <Progress value={weights.menuVarietyWeight * 100} />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Quality and variety of vegan menu options
+                    </p>
+                  </div>
+
+                  {/* Ingredient Clarity */}
+                  <div className="space-y-2">
+                    <Label htmlFor="ingredientClarity">Ingredient Clarity</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="ingredientClarity"
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={weights.ingredientClarityWeight}
+                        onChange={(e) => handleWeightChange('ingredientClarityWeight', parseFloat(e.target.value) || 0)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        ({Math.round(weights.ingredientClarityWeight * 100)}%)
+                      </span>
+                      <div className="flex-1">
+                        <Progress value={weights.ingredientClarityWeight * 100} />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Clear labeling of ingredients and vegan options
+                    </p>
+                  </div>
+
+                  {/* Staff Knowledge */}
+                  <div className="space-y-2">
+                    <Label htmlFor="staffKnowledge">Staff Knowledge</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="staffKnowledge"
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={weights.staffKnowledgeWeight}
+                        onChange={(e) => handleWeightChange('staffKnowledgeWeight', parseFloat(e.target.value) || 0)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        ({Math.round(weights.staffKnowledgeWeight * 100)}%)
+                      </span>
+                      <div className="flex-1">
+                        <Progress value={weights.staffKnowledgeWeight * 100} />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Staff understanding of vegan dietary requirements
+                    </p>
+                  </div>
+
+                  {/* Cross Contamination */}
+                  <div className="space-y-2">
+                    <Label htmlFor="crossContamination">Cross-Contamination Prevention</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="crossContamination"
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={weights.crossContaminationWeight}
+                        onChange={(e) => handleWeightChange('crossContaminationWeight', parseFloat(e.target.value) || 0)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        ({Math.round(weights.crossContaminationWeight * 100)}%)
+                      </span>
+                      <div className="flex-1">
+                        <Progress value={weights.crossContaminationWeight * 100} />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Measures to prevent cross-contamination with animal products
+                    </p>
+                  </div>
+
+                  {/* Nutritional Information */}
+                  <div className="space-y-2">
+                    <Label htmlFor="nutritionalInfo">Nutritional Information</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="nutritionalInfo"
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={weights.nutritionalInformationWeight}
+                        onChange={(e) => handleWeightChange('nutritionalInformationWeight', parseFloat(e.target.value) || 0)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        ({Math.round(weights.nutritionalInformationWeight * 100)}%)
+                      </span>
+                      <div className="flex-1">
+                        <Progress value={weights.nutritionalInformationWeight * 100} />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Availability of nutritional information for vegan dishes
+                    </p>
+                  </div>
+
+                  {/* Allergen Management */}
+                  <div className="space-y-2">
+                    <Label htmlFor="allergenManagement">Allergen Management</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="allergenManagement"
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={weights.allergenManagementWeight}
+                        onChange={(e) => handleWeightChange('allergenManagementWeight', parseFloat(e.target.value) || 0)}
+                        className="w-20"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        ({Math.round(weights.allergenManagementWeight * 100)}%)
+                      </span>
+                      <div className="flex-1">
+                        <Progress value={weights.allergenManagementWeight * 100} />
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Proper handling and labeling of allergen information
+                    </p>
+                  </div>
+                </div>
+
+                {/* Summary and Actions */}
+                <div className="mt-6 pt-6 border-t">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="font-medium">Total Weight</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {Object.values(weights).reduce((sum, weight) => sum + weight, 0).toFixed(3)} / 1.000
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" onClick={resetWeights}>
+                        Reset to Default
+                      </Button>
+                      <Button 
+                        onClick={handleSaveWeights}
+                        disabled={updateWeightsMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        {updateWeightsMutation.isPending ? "Saving..." : "Save Configuration"}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Visual weight distribution */}
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm">Weight Distribution</h5>
+                    <div className="grid grid-cols-6 gap-1 h-6">
+                      <div 
+                        className="bg-blue-500 flex items-center justify-center text-xs text-white font-medium"
+                        style={{ width: `${weights.menuVarietyWeight * 100}%` }}
+                        title={`Menu Variety: ${Math.round(weights.menuVarietyWeight * 100)}%`}
+                      >
+                        MV
+                      </div>
+                      <div 
+                        className="bg-green-500 flex items-center justify-center text-xs text-white font-medium"
+                        style={{ width: `${weights.ingredientClarityWeight * 100}%` }}
+                        title={`Ingredient Clarity: ${Math.round(weights.ingredientClarityWeight * 100)}%`}
+                      >
+                        IC
+                      </div>
+                      <div 
+                        className="bg-yellow-500 flex items-center justify-center text-xs text-white font-medium"
+                        style={{ width: `${weights.staffKnowledgeWeight * 100}%` }}
+                        title={`Staff Knowledge: ${Math.round(weights.staffKnowledgeWeight * 100)}%`}
+                      >
+                        SK
+                      </div>
+                      <div 
+                        className="bg-red-500 flex items-center justify-center text-xs text-white font-medium"
+                        style={{ width: `${weights.crossContaminationWeight * 100}%` }}
+                        title={`Cross-Contamination: ${Math.round(weights.crossContaminationWeight * 100)}%`}
+                      >
+                        CC
+                      </div>
+                      <div 
+                        className="bg-purple-500 flex items-center justify-center text-xs text-white font-medium"
+                        style={{ width: `${weights.nutritionalInformationWeight * 100}%` }}
+                        title={`Nutritional Info: ${Math.round(weights.nutritionalInformationWeight * 100)}%`}
+                      >
+                        NI
+                      </div>
+                      <div 
+                        className="bg-orange-500 flex items-center justify-center text-xs text-white font-medium"
+                        style={{ width: `${weights.allergenManagementWeight * 100}%` }}
+                        title={`Allergen Management: ${Math.round(weights.allergenManagementWeight * 100)}%`}
+                      >
+                        AM
+                      </div>
                     </div>
                   </div>
                 </div>
