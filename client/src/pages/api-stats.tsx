@@ -217,7 +217,7 @@ export default function ApiStatsPage() {
           </Card>
         </div>
 
-        {!stats && !isLoading && (
+        {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* API Calls Stats */}
             <Card>
@@ -228,19 +228,19 @@ export default function ApiStatsPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Places Search:</span>
-                    <span className="font-semibold">{stats.apiCalls.placesSearch}</span>
+                    <span className="font-semibold">{stats.apiCalls?.placesSearch || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Place Details:</span>
-                    <span className="font-semibold">{stats.apiCalls.placeDetails}</span>
+                    <span className="font-semibold">{stats.apiCalls?.placeDetails || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Photos:</span>
-                    <span className="font-semibold">{stats.apiCalls.photos}</span>
+                    <span className="font-semibold">{stats.apiCalls?.photos || 0}</span>
                   </div>
                   <div className="flex justify-between border-t pt-3">
                     <span className="font-semibold text-gray-900">Total:</span>
-                    <span className="font-bold text-blue-600">{stats.apiCalls.total}</span>
+                    <span className="font-bold text-blue-600">{stats.apiCalls?.total || 0}</span>
                   </div>
                 </div>
               </CardContent>
@@ -255,19 +255,19 @@ export default function ApiStatsPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Cache Hits:</span>
-                    <span className="font-semibold text-green-600">{stats.cache.hits}</span>
+                    <span className="font-semibold text-green-600">{stats.cache?.hits || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Cache Misses:</span>
-                    <span className="font-semibold text-red-600">{stats.cache.misses}</span>
+                    <span className="font-semibold text-red-600">{stats.cache?.misses || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Hit Rate:</span>
-                    <span className="font-semibold">{stats.cache.hitRate?.toFixed(1) || '0.0'}%</span>
+                    <span className="font-semibold">{stats.cache?.hitRate?.toFixed(1) || '0.0'}%</span>
                   </div>
                   <div className="flex justify-between border-t pt-3">
                     <span className="font-semibold text-gray-900">Total Requests:</span>
-                    <span className="font-bold">{stats.cache.totalRequests}</span>
+                    <span className="font-bold">{stats.cache?.totalRequests || 0}</span>
                   </div>
                 </div>
               </CardContent>

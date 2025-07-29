@@ -34,12 +34,12 @@ export function RestaurantModal({ restaurant, isOpen, onClose }: RestaurantModal
   };
 
   const formatOpeningHours = () => {
-    if (!restaurant.openingHours || !restaurant.openingHours.weekday_text) {
+    if (!restaurant.openingHours || typeof restaurant.openingHours !== 'object') {
       return ['Hours not available'];
     }
-    const weekdayText = restaurant.openingHours.weekday_text;
-    if (Array.isArray(weekdayText)) {
-      return weekdayText.slice(0, 3); // Show first 3 days
+    const openingHours = restaurant.openingHours as any;
+    if (openingHours.weekday_text && Array.isArray(openingHours.weekday_text)) {
+      return openingHours.weekday_text.slice(0, 3); // Show first 3 days
     }
     return ['Hours not available'];
   };
@@ -118,7 +118,7 @@ export function RestaurantModal({ restaurant, isOpen, onClose }: RestaurantModal
                 <div className="flex items-center">
                   <span className="text-gray-500 mr-2">Price:</span>
                   <span className="font-medium">
-                    {'€'.repeat(parseInt(restaurant.priceLevel))}
+                    {'€'.repeat(parseInt(restaurant.priceLevel.toString()))}
                   </span>
                 </div>
               )}
@@ -131,7 +131,7 @@ export function RestaurantModal({ restaurant, isOpen, onClose }: RestaurantModal
                 <div>
                   <div className="font-medium text-sm">Opening Hours</div>
                   <div className="text-sm text-gray-600 space-y-1">
-                    {formatOpeningHours().map((hours, index) => (
+                    {formatOpeningHours().map((hours: string, index: number) => (
                       <div key={index}>{hours}</div>
                     ))}
                   </div>

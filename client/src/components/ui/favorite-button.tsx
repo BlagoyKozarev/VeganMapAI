@@ -24,15 +24,12 @@ export function FavoriteButton({ restaurantId, className = "", size = 'md' }: Fa
     enabled: isAuthenticated,
   });
 
-  const isFavorite = favoriteData?.isFavorite || false;
+  const isFavorite = favoriteData && typeof favoriteData === 'object' && 'isFavorite' in favoriteData ? (favoriteData as any).isFavorite : false;
 
   // Add favorite mutation
   const addFavoriteMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('/api/favorites', {
-        method: 'POST',
-        body: JSON.stringify({ restaurantId }),
-      });
+      await apiRequest('/api/favorites', 'POST', { restaurantId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
@@ -65,9 +62,7 @@ export function FavoriteButton({ restaurantId, className = "", size = 'md' }: Fa
   // Remove favorite mutation
   const removeFavoriteMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest(`/api/favorites/${restaurantId}`, {
-        method: 'DELETE',
-      });
+      await apiRequest(`/api/favorites/${restaurantId}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });

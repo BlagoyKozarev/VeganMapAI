@@ -86,8 +86,8 @@ export default function AiChat() {
 
   // Initialize chat history
   useEffect(() => {
-    if (chatHistory && Array.isArray(chatHistory.messages)) {
-      setMessages(chatHistory.messages);
+    if (chatHistory && typeof chatHistory === 'object' && 'messages' in chatHistory && Array.isArray((chatHistory as any).messages)) {
+      setMessages((chatHistory as any).messages);
     } else {
       // Add welcome message if no history
       setMessages([
