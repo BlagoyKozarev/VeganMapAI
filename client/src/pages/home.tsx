@@ -445,7 +445,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Enhanced Vegan Score Legend - Mobile Hidden */}
+      {/* Enhanced Vegan Score Legend - Desktop Only */}
       <div className="hidden sm:block fixed top-20 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 transition-all duration-300 hover:shadow-xl" 
            style={{ 
              zIndex: showDropdown ? 1 : 999,
