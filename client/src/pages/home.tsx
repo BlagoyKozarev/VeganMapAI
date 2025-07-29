@@ -39,6 +39,8 @@ export default function Home() {
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [minVeganScore, setMinVeganScore] = useState(0);
+  const [minGoogleScore, setMinGoogleScore] = useState(0);
   
   // Check URL parameters for custom location
   const urlParams = new URLSearchParams(window.location.search);
@@ -70,18 +72,37 @@ export default function Home() {
     }
   }, [restaurants]);
 
-  // Filter restaurants and generate suggestions based on search query
+  // Filter restaurants and generate suggestions based on search query and scores
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredRestaurants(restaurants);
-      setSearchSuggestions([]);
-      setShowSuggestions(false);
-    } else {
-      const filtered = restaurants.filter((restaurant: any) =>
+    let filtered = restaurants;
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter((restaurant: any) =>
         restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredRestaurants(filtered);
+    }
+    
+    // Apply vegan score filter
+    filtered = filtered.filter((restaurant: any) => {
+      const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
+      return veganScore >= minVeganScore;
+    });
+    
+    // Apply Google score filter
+    filtered = filtered.filter((restaurant: any) => {
+      const googleScore = restaurant.rating ? parseFloat(restaurant.rating) : 0;
+      return googleScore >= minGoogleScore;
+    });
+    
+    setFilteredRestaurants(filtered);
+    
+    // Generate search suggestions only when searching
+    if (!searchQuery.trim()) {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    } else {
       
       // Generate suggestions - top 5 matching restaurants
       const suggestions = restaurants
@@ -119,7 +140,7 @@ export default function Home() {
       setSearchSuggestions([...suggestions, ...cuisineSuggestions]);
       setShowSuggestions(searchQuery.length > 1);
     }
-  }, [restaurants, searchQuery]);
+  }, [restaurants, searchQuery, minVeganScore, minGoogleScore]);
 
   const handleSuggestionClick = (suggestion: any) => {
     if (suggestion.type === 'restaurant') {
@@ -411,6 +432,72 @@ export default function Home() {
 
 
 
+
+      {/* Enhanced Filter Controls - Bottom Right */}
+      <div className="fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl p-4 max-w-xs transition-all duration-300 hover:shadow-3xl" 
+           style={{ 
+             zIndex: showDropdown ? 1 : 999,  // Lower z-index when menu is open
+             opacity: showDropdown ? 0.7 : 1  // Semi-transparent when menu is open
+           }}>
+        <div className="flex items-center mb-3">
+          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+            <span className="text-blue-600 text-xs">🎚️</span>
+          </div>
+          <h3 className="text-sm font-opensans font-bold text-gray-800">Filter Controls</h3>
+        </div>
+        
+        <div className="space-y-4">
+          {/* Min Vegan Score Filter */}
+          <div>
+            <label className="text-xs font-medium text-gray-700 mb-2 block">
+              Min Vegan Score: {minVeganScore}
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="10"
+              step="0.5"
+              value={minVeganScore}
+              onChange={(e) => setMinVeganScore(parseFloat(e.target.value))}
+              className="w-full h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
+              style={{
+                background: `linear-gradient(to right, 
+                  #fecaca 0%, #fde68a 50%, #bbf7d0 100%)`
+              }}
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0</span>
+              <span>5</span>
+              <span>10</span>
+            </div>
+          </div>
+
+          {/* Min Google Score Filter */}
+          <div>
+            <label className="text-xs font-medium text-gray-700 mb-2 block">
+              Min Google Score: {minGoogleScore}
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="5"
+              step="0.1"
+              value={minGoogleScore}
+              onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
+              className="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
+              style={{
+                background: `linear-gradient(to right, 
+                  #fecaca 0%, #bbf7d0 100%)`
+              }}
+            />
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0</span>
+              <span>2.5</span>
+              <span>5</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Restaurant Dropdown */}
       {selectedRestaurant && showDropdown && (
