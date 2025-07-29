@@ -272,95 +272,37 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen relative bg-gray-50">
-      {/* Mobile Header - Always visible on mobile */}
-      <div className="sm:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-14 z-[1000]">
+    <>
+      {/* MOBILE HEADER - TEST */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
         <div className="flex items-center px-4 py-2 h-full">
           {/* Search Bar */}
-          <div className="flex-1 relative">
-            <div className="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5 focus-within:shadow-lg focus-within:border-blue-400">
+          <div className="flex-1 relative mr-2">
+            <div className="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5">
               <i className="fas fa-search text-gray-400 mr-2 text-sm"></i>
               <input
                 type="text"
-                placeholder="Search for vegan places..."
+                placeholder="Search vegan places..."
                 className="flex-1 outline-none text-gray-700 text-sm bg-transparent"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setShowSuggestions(searchQuery.length > 1)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
               />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setShowSuggestions(false);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 ml-1 p-1 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <i className="fas fa-times text-xs"></i>
-                </button>
-              )}
             </div>
-            
-            {/* Mobile Search Suggestions */}
-            {showSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl mt-1 max-h-64 overflow-y-auto z-[1002]">
-                <div className="p-2">
-                  {searchSuggestions.slice(0, 4).map((suggestion, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleSuggestionClick(suggestion)}
-                      className="flex items-center p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
-                    >
-                      <div className="w-8 h-8 bg-gradient-to-r from-green-100 to-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
-                        <i className={`fas ${suggestion.type === 'restaurant' ? 'fa-utensils' : 'fa-tag'} text-sm`}></i>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 text-sm truncate">{suggestion.name}</div>
-                        {suggestion.address && (
-                          <div className="text-xs text-gray-500 truncate">{suggestion.address}</div>
-                        )}
-                        {suggestion.veganScore && (
-                          <div className="text-xs text-green-600 font-medium mt-0.5 flex items-center">
-                            <i className="fas fa-leaf mr-1"></i>
-                            Vegan: {suggestion.veganScore}/10
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
           
-          {/* Right Icons */}
-          <div className="flex items-center ml-2 space-x-1">
-            <a href="/ai-chat">
-              <Button 
-                variant="ghost" 
-                className="w-10 h-10 p-0 hover:scale-105 transition-all duration-200"
-                title="AI Assistant"
-              >
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white text-lg font-bold">🎤</span>
-                </div>
-              </Button>
-            </a>
-            <a href="/profile">
-              <Button 
-                variant="ghost" 
-                className="w-10 h-10 hover:bg-gray-100 rounded-full transition-all duration-200 flex items-center justify-center p-0 hover:scale-105"
-                title="Profile"
-              >
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-lg">
-                  BK
-                </div>
-              </Button>
-            </a>
+          {/* Icons */}
+          <div className="flex items-center space-x-2">
+            <button className="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
+              <span className="text-white text-base">🎤</span>
+            </button>
+            <button className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md">
+              BK
+            </button>
           </div>
         </div>
-      </div>
+      </header>
+
+      <div className="h-screen relative bg-gray-50 pt-14 lg:pt-0">
 
 
       
@@ -756,6 +698,7 @@ export default function Home() {
         />
       )}
 
-    </div>
+      </div>
+    </>
   );
 }
