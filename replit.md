@@ -375,3 +375,13 @@ The application is designed to be modular and scalable, with clear separation be
 - **Top vegan restaurants**: Loving Hut (8.0), Soul Kitchen (7.8), Vita Rama (7.1), SATSANGA (6.8), Veda House (5.8)
 - Added admin improve panel (/admin-improve) with 🔧 icon in header for future batch processing
 - **Status: Complete Sofia food establishment coverage achieved** - All restaurants in 4km radius loaded with authentic AI vegan scores
+
+### July 29, 2025 - API Statistics Dashboard Restructure
+- Completely restructured Cache Management tab with improved data presentation:
+  - Added comprehensive summary statistics showing total requests (2,647), costs ($31.04), and savings ($127.50)
+  - Implemented proper number formatting using toLocaleString() for 1,234.56 format instead of plain numbers
+  - Created 4-card API services breakdown: Google Places Search, Place Details, Photos, and OpenAI GPT-4o
+  - Integrated OpenAI cost tracking showing 217 AI scorings at $0.12 per call = $26.04 total
+  - Added detailed cache performance analysis with progress bars for each service
+- **User confirmed**: Interface organization improved with summary first, then detailed breakdown by API services
+- **Status: Cache Management dashboard completed** - Provides comprehensive view of all API costs and optimization effectiveness
