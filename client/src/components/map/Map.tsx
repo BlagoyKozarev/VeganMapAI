@@ -67,6 +67,18 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     L.marker(center, { icon: userIcon }).addTo(map);
     mapInstanceRef.current = map;
 
+    // Listen for map moves to update parent (but don't track every small move)
+    let moveTimeout: NodeJS.Timeout;
+    map.on('moveend', () => {
+      clearTimeout(moveTimeout);
+      moveTimeout = setTimeout(() => {
+        const newCenter = map.getCenter();
+        if (onLocationChange) {
+          onLocationChange([newCenter.lat, newCenter.lng]);
+        }
+      }, 500); // Wait 500ms after move ends
+    });
+
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -74,6 +86,13 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
       }
     };
   }, []);
+
+  // Update map center when center prop changes
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView(center, undefined, { animate: true });
+    }
+  }, [center]);
 
   // Filter restaurants based on controls (remove radius restriction)
   useEffect(() => {
