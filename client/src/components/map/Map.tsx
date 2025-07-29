@@ -67,17 +67,8 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     L.marker(center, { icon: userIcon }).addTo(map);
     mapInstanceRef.current = map;
 
-    // Listen for map moves to update parent (but don't track every small move)
-    let moveTimeout: NodeJS.Timeout;
-    map.on('moveend', () => {
-      clearTimeout(moveTimeout);
-      moveTimeout = setTimeout(() => {
-        const newCenter = map.getCenter();
-        if (onLocationChange) {
-          onLocationChange([newCenter.lat, newCenter.lng]);
-        }
-      }, 500); // Wait 500ms after move ends
-    });
+    // Remove the moveend listener to prevent infinite loop
+    // We'll handle map center updates differently
 
     return () => {
       if (mapInstanceRef.current) {
@@ -87,12 +78,27 @@ export default function Map({ center, restaurants, onRestaurantClick, onLocation
     };
   }, []);
 
-  // Update map center when center prop changes
+  // Update map center only when "My Location" button is clicked
+  const [initialCenter, setInitialCenter] = useState<[number, number]>(center);
+  const [shouldResetToUserLocation, setShouldResetToUserLocation] = useState(false);
+  
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView(center, undefined, { animate: true });
+    // Only update center when it's a user location reset (from "My Location" button)
+    if (mapInstanceRef.current && shouldResetToUserLocation) {
+      const [newLat, newLng] = center;
+      const [prevLat, prevLng] = initialCenter;
+      
+      // Only update if coordinates changed significantly (more than 0.01 degrees)
+      const latDiff = Math.abs(newLat - prevLat);
+      const lngDiff = Math.abs(newLng - prevLng);
+      
+      if (latDiff > 0.01 || lngDiff > 0.01) {
+        mapInstanceRef.current.setView(center, 15, { animate: true });
+        setInitialCenter(center);
+      }
+      setShouldResetToUserLocation(false);
     }
-  }, [center]);
+  }, [center, shouldResetToUserLocation, initialCenter]);
 
   // Filter restaurants based on controls (remove radius restriction)
   useEffect(() => {
