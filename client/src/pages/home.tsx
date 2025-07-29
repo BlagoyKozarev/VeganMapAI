@@ -139,7 +139,9 @@ export default function Home() {
         rectWidth: rect.width,
         rectHeight: rect.height,
         finalX: rect.left + rect.width / 2,
-        finalY: rect.top
+        finalY: rect.top,
+        calculatedLeft: (rect.left + rect.width / 2) - 160,
+        calculatedTop: rect.top - 200
       });
       setDropdownPosition({
         x: rect.left + rect.width / 2,
