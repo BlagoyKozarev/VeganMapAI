@@ -40,9 +40,6 @@ export default function Home() {
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   
-  // State for current map center - независимо от user location
-  const [mapCenter, setMapCenter] = useState<{lat: number, lng: number} | null>(null);
-  
   // Check URL parameters for custom location
   const urlParams = new URLSearchParams(window.location.search);
   const customLat = urlParams.get('lat');
@@ -52,13 +49,6 @@ export default function Home() {
   const currentPosition = customLat && customLng ? 
     { lat: parseFloat(customLat), lng: parseFloat(customLng) } : 
     position;
-
-  // Initialize map center
-  useEffect(() => {
-    if (currentPosition && !mapCenter) {
-      setMapCenter(currentPosition);
-    }
-  }, [currentPosition, mapCenter]);
 
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
     queryKey: ['/api/restaurants/all-available'],
@@ -144,13 +134,6 @@ export default function Home() {
     // Get fresh location data
     getCurrentPosition();
   };
-
-  // Update map center when position changes (for "My Location" button)
-  useEffect(() => {
-    if (position) {
-      setMapCenter(position);
-    }
-  }, [position]);
 
   const handleRestaurantClick = (restaurant: any, event?: any) => {
     console.log('Restaurant clicked:', restaurant.name);
@@ -366,12 +349,11 @@ export default function Home() {
         style={{ zIndex: 1 }}
       >
         <Map
-          center={mapCenter ? [mapCenter.lat, mapCenter.lng] : [42.7, 23.16]}
+          center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
           restaurants={filteredRestaurants}
           onRestaurantClick={handleRestaurantClick}
-          onLocationChange={(newCenter) => {
-            // Update map center without page reload
-            setMapCenter({ lat: newCenter[0], lng: newCenter[1] });
+          onLocationChange={() => {
+            // Map center is managed internally by Leaflet
           }}
           loading={restaurantsLoading}
         />
