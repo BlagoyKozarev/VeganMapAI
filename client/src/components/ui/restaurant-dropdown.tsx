@@ -42,8 +42,9 @@ export function RestaurantDropdown({
         className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 p-4 min-w-80 max-w-sm z-[1000]"
         style={{ 
           left: `${position.x}px`, 
-          top: `${position.y}px`,
-          transform: 'translate(-50%, -100%)'
+          top: `${position.y - 10}px`,
+          transform: 'translate(-50%, -100%)',
+          maxWidth: '320px'
         }}
         onClick={(e) => e.stopPropagation()}
       >
