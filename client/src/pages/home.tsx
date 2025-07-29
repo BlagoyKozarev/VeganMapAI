@@ -135,7 +135,7 @@ export default function Home() {
         restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
       )
-      .slice(0, 5)
+      .slice(0, 15)
       .map((restaurant: any) => ({
         id: restaurant.id,
         name: restaurant.name,
@@ -156,7 +156,7 @@ export default function Home() {
             !['point_of_interest', 'establishment', 'food', 'restaurant'].includes(cuisine)
           )
       )
-    ).slice(0, 3).map((cuisine: any) => ({
+    ).slice(0, 5).map((cuisine: any) => ({
       id: cuisine as string,
       name: (cuisine as string).replace(/_/g, ' ').toLowerCase(),
       type: 'cuisine'

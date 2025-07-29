@@ -45,35 +45,70 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
             )}
           </div>
           
-          {/* Search Suggestions Dropdown for Mobile */}
+          {/* Google Maps Style Search Results for Mobile */}
           {showSuggestions && searchSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto z-50">
-              {searchSuggestions.slice(0, 4).map((suggestion, index) => (
+            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-xl mt-1 max-h-80 overflow-y-auto z-50">
+              {/* Restaurant Results */}
+              {searchSuggestions.filter(s => s.name).map((restaurant, index) => (
                 <div
-                  key={index}
-                  className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                  key={`restaurant-${index}`}
+                  className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 flex items-start space-x-3"
                   onClick={() => {
-                    onSearchChange(suggestion.name || suggestion);
+                    onSearchChange(restaurant.name);
                     onShowSuggestions(false);
                   }}
                 >
-                  {suggestion.name ? (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-green-600">🏪</span>
-                      <div>
-                        <div className="font-medium text-gray-900">{suggestion.name}</div>
-                        <div className="text-sm text-gray-500">{suggestion.address}</div>
-                        <div className="text-sm text-green-600">Vegan Score: {suggestion.veganScore}/10</div>
-                      </div>
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <span className="text-green-600 text-sm">🍽️</span>
                     </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-blue-600">🍽️</span>
-                      <span className="text-gray-700 capitalize">{suggestion}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 truncate">{restaurant.name}</div>
+                    <div className="text-sm text-gray-500 truncate">{restaurant.address}</div>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                        Vegan: {restaurant.veganScore}/10
+                      </span>
+                      {restaurant.rating && (
+                        <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+                          ★ {restaurant.rating}
+                        </span>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               ))}
+              
+              {/* Cuisine Type Results */}
+              {searchSuggestions.filter(s => !s.name).map((cuisine, index) => (
+                <div
+                  key={`cuisine-${index}`}
+                  className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 flex items-center space-x-3"
+                  onClick={() => {
+                    onSearchChange(cuisine);
+                    onShowSuggestions(false);
+                  }}
+                >
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 text-sm">🏷️</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-gray-700 capitalize font-medium">{cuisine}</div>
+                    <div className="text-sm text-gray-500">Cuisine type</div>
+                  </div>
+                </div>
+              ))}
+              
+              {/* No results message */}
+              {searchSuggestions.length === 0 && (
+                <div className="p-4 text-center text-gray-500">
+                  <div className="text-sm">No results found</div>
+                  <div className="text-xs mt-1">Try a different search term</div>
+                </div>
+              )}
             </div>
           )}
         </div>
