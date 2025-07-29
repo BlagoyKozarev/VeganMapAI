@@ -245,8 +245,8 @@ export default function AiChat() {
   const handleVoiceRecording = async () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       toast({
-        title: 'Voice not supported',
-        description: 'Your browser does not support voice recognition.',
+        title: 'Гласът не се поддържа',
+        description: 'Браузърът ви не поддържа гласово разпознаване.',
         variant: 'destructive',
       });
       return;
@@ -255,12 +255,34 @@ export default function AiChat() {
     if (conversationActive) {
       // End conversation if already active
       endConversation();
+      toast({
+        title: 'Разговорът приключи',
+        description: 'Гласовият разговор беше спрян.',
+      });
       return;
     }
 
-    // Start continuous conversation
-    setConversationActive(true);
-    setIsRecording(true);
+    try {
+      // Request microphone permission first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Start continuous conversation
+      setConversationActive(true);
+      setIsRecording(true);
+      
+      toast({
+        title: 'Гласов разговор започнат',
+        description: 'Говорете на български език. Разговорът ще приключи автоматично след период на бездействие.',
+      });
+    } catch (error) {
+      console.error('Microphone permission error:', error);
+      toast({
+        title: 'Няма достъп до микрофон',
+        description: 'Моля, разрешете достъп до микрофона в браузъра си.',
+        variant: 'destructive',
+      });
+      return;
+    }
     
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
@@ -291,6 +313,30 @@ export default function AiChat() {
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsRecording(false);
+      
+      let errorMessage = 'Грешка при гласовото разпознаване';
+      switch (event.error) {
+        case 'not-allowed':
+          errorMessage = 'Достъпът до микрофона е отказан. Моля, разрешете достъп в браузъра си.';
+          break;
+        case 'no-speech':
+          errorMessage = 'Не беше открита реч. Опитайте отново.';
+          break;
+        case 'audio-capture':
+          errorMessage = 'Проблем с микрофона. Проверете дали е свързан правилно.';
+          break;
+        case 'network':
+          errorMessage = 'Мрежова грешка. Проверете интернет връзката си.';
+          break;
+      }
+      
+      if (event.error !== 'no-speech') {
+        toast({
+          title: 'Грешка с гласа',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
     };
 
     recognition.onend = () => {
@@ -393,10 +439,13 @@ export default function AiChat() {
         {conversationActive && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
             <p className="text-sm text-blue-700 font-medium">
-              🎙️ Voice conversation active - {isListening ? 'Listening...' : isSpeaking ? 'Speaking...' : 'Ready'}
+              🎙️ Гласов разговор активен - {isListening ? 'Слушам...' : isSpeaking ? 'Говоря...' : 'Готов'}
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              Conversation will end after {conversationActive ? '7' : '5'} seconds of inactivity
+              Разговорът ще приключи след {conversationActive ? '7' : '5'} секунди бездействие
+            </p>
+            <p className="text-xs text-blue-500 mt-1">
+              💡 Кликнете микрофона отново за да спрете разговора
             </p>
           </div>
         )}
