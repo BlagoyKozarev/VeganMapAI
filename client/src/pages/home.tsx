@@ -273,8 +273,11 @@ export default function Home() {
 
   return (
     <>
-      {/* MOBILE HEADER - TEST */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
+      {/* MOBILE HEADER - FORCE DISPLAY */}
+      <header 
+        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50"
+        style={{ display: window.innerWidth < 1024 ? 'block' : 'none' }}
+      >
         <div className="flex items-center px-4 py-2 h-full">
           {/* Search Bar */}
           <div className="flex-1 relative mr-2">
@@ -302,7 +305,10 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="h-screen relative bg-gray-50 pt-14 lg:pt-0">
+      <div 
+        className="h-screen relative bg-gray-50"
+        style={{ paddingTop: window.innerWidth < 1024 ? '56px' : '0px' }}
+      >
 
 
       
@@ -449,7 +455,10 @@ export default function Home() {
           />
           
           {/* Vegan Score Legend - Mobile Only */}
-          <div className="sm:hidden absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+          <div 
+            className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+            style={{ display: window.innerWidth < 640 ? 'block' : 'none' }}
+          
                style={{ 
                  zIndex: showDropdown ? 1 : 999,
                  opacity: showDropdown ? 0.7 : 1
@@ -486,7 +495,10 @@ export default function Home() {
           </div>
 
           {/* Mobile Filter Controls - Fixed Window */}
-          <div className="sm:hidden absolute right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+          <div 
+            className="absolute right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+            style={{ display: window.innerWidth < 640 ? 'block' : 'none' }}
+          
                style={{ 
                  bottom: '9.5rem',
                  zIndex: showDropdown ? 1 : 998,
