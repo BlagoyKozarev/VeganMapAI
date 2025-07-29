@@ -10,14 +10,21 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 interface Restaurant {
   id: string;
   name: string;
+  placeId: string | null;
   address: string;
   latitude: string;
   longitude: string;
+  phoneNumber: string | null;
+  website: string | null;
+  priceLevel: number | null;
+  cuisineTypes: string[] | null;
+  rating: string | null;
   veganScore: string | null;
-  rating?: string | null;
-  priceLevel?: string;
-  cuisineTypes?: string[];
-  website?: string | null;
+  veganScoreBreakdown: any | null;
+  openingHours: any | null;
+  photos: any | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
 
 export default function Home() {
@@ -97,14 +104,15 @@ export default function Home() {
           restaurants
             .filter((r: any) => r.cuisineTypes)
             .flatMap((r: any) => r.cuisineTypes)
-            .filter((cuisine: string) => 
+            .filter((cuisine: any) => 
+              typeof cuisine === 'string' &&
               cuisine.toLowerCase().includes(searchQuery.toLowerCase()) &&
               !['point_of_interest', 'establishment', 'food', 'restaurant'].includes(cuisine)
             )
         )
-      ).slice(0, 3).map((cuisine: string) => ({
-        id: cuisine,
-        name: cuisine.replace(/_/g, ' ').toLowerCase(),
+      ).slice(0, 3).map((cuisine: any) => ({
+        id: cuisine as string,
+        name: (cuisine as string).replace(/_/g, ' ').toLowerCase(),
         type: 'cuisine'
       }));
       
@@ -161,12 +169,18 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-vegan-green/20 rounded-2xl mb-4">
-            <div className="w-8 h-8 bg-vegan-green rounded-full animate-pulse"></div>
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-100 to-green-200 rounded-3xl mb-6 shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full animate-pulse shadow-md"></div>
           </div>
-          <p className="text-neutral-gray font-opensans">Getting your location...</p>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">VeganMapAI</h2>
+          <p className="text-gray-600 font-opensans">Getting your location...</p>
+          <div className="mt-4 flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          </div>
         </div>
       </div>
     );
@@ -174,22 +188,25 @@ export default function Home() {
 
   if (!position && error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-2xl mb-4">
-            <i className="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
+        <div className="text-center max-w-md bg-white rounded-3xl shadow-2xl p-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-100 to-red-200 rounded-3xl mb-6">
+            <i className="fas fa-map-marker-alt text-red-500 text-3xl"></i>
           </div>
-          <h2 className="text-xl font-poppins font-semibold mb-2">Location Access Required</h2>
-          <p className="text-neutral-gray font-opensans mb-6">
-            VeganMapAI needs access to your location to show nearby vegan-friendly restaurants.
+          <h2 className="text-2xl font-bold text-gray-800 mb-3">Location Access Required</h2>
+          <p className="text-gray-600 font-opensans mb-8 leading-relaxed">
+            VeganMapAI needs access to your location to show nearby vegan-friendly restaurants and provide personalized recommendations.
           </p>
           <Button 
             onClick={handleCurrentLocation}
-            className="bg-vegan-green hover:bg-vegan-dark-green text-white"
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
           >
-            <i className="fas fa-location-arrow mr-2"></i>
-            Enable Location
+            <i className="fas fa-location-arrow mr-3"></i>
+            Enable Location Access
           </Button>
+          <p className="text-xs text-gray-400 mt-4">
+            Your location data is used only for restaurant recommendations and is not stored.
+          </p>
         </div>
       </div>
     );
@@ -197,28 +214,28 @@ export default function Home() {
 
   return (
     <div className="h-screen relative bg-gray-50">
-      {/* Google Maps Style Header */}
+      {/* Enhanced Google Maps Style Header */}
       <div 
-        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm h-16" 
-        style={{ zIndex: 1000, backgroundColor: 'white', position: 'fixed', display: 'block' }}
+        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-16" 
+        style={{ zIndex: 1000 }}
       >
-        <div className="flex items-center px-4 py-3 h-full">
-          {/* Menu Button */}
+        <div className="flex items-center px-2 sm:px-4 py-3 h-full max-w-7xl mx-auto">
+          {/* Menu Button - Hidden on mobile */}
           <Button 
             variant="ghost" 
-            className="p-2 mr-3 hover:bg-gray-100 rounded-full transition-colors"
+            className="hidden sm:flex p-2 mr-3 hover:bg-gray-100 rounded-full transition-all duration-200 hover:scale-105"
           >
             <i className="fas fa-bars text-gray-600 text-lg"></i>
           </Button>
           
-          {/* Search Bar - Google Maps Style */}
-          <div className="flex-1 relative">
-            <div className="bg-white border border-gray-300 rounded-lg shadow-sm flex items-center px-4 py-3 hover:shadow-md transition-shadow">
-              <i className="fas fa-search text-gray-400 mr-3"></i>
+          {/* Search Bar - Enhanced Google Maps Style */}
+          <div className="flex-1 relative max-w-2xl">
+            <div className="bg-white border border-gray-300 rounded-full shadow-sm flex items-center px-4 py-2.5 hover:shadow-lg transition-all duration-200 focus-within:shadow-lg focus-within:border-blue-400">
+              <i className="fas fa-search text-gray-400 mr-3 text-sm"></i>
               <input
                 type="text"
-                placeholder="Search for vegan places"
-                className="flex-1 outline-none text-gray-700 font-opensans"
+                placeholder="Search for vegan places..."
+                className="flex-1 outline-none text-gray-700 font-opensans text-sm bg-transparent"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowSuggestions(searchQuery.length > 1)}
@@ -230,81 +247,93 @@ export default function Home() {
                     setSearchQuery('');
                     setShowSuggestions(false);
                   }}
-                  className="text-gray-400 hover:text-gray-600 ml-2"
+                  className="text-gray-400 hover:text-gray-600 ml-2 p-1 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <i className="fas fa-times"></i>
+                  <i className="fas fa-times text-xs"></i>
                 </button>
               )}
             </div>
             
-            {/* Search Suggestions Dropdown */}
+            {/* Enhanced Search Suggestions Dropdown */}
             {showSuggestions && searchSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto" style={{ zIndex: 1002 }}>
-                {searchSuggestions.map((suggestion, index) => (
-                  <div
-                    key={`${suggestion.type}-${suggestion.id}`}
-                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    onClick={() => handleSuggestionClick(suggestion)}
-                  >
-                    <div className="flex items-center">
-                      <i className={`fas ${suggestion.type === 'restaurant' ? 'fa-utensils' : 'fa-tag'} text-gray-400 mr-3`}></i>
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{suggestion.name}</div>
-                        {suggestion.address && (
-                          <div className="text-sm text-gray-500">{suggestion.address}</div>
-                        )}
-                        {suggestion.veganScore && (
-                          <div className="text-sm text-green-600">Vegan Score: {suggestion.veganScore}/10</div>
-                        )}
-                        {suggestion.type === 'cuisine' && (
-                          <div className="text-sm text-blue-600">Cuisine type</div>
-                        )}
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-2xl mt-2 max-h-80 overflow-y-auto backdrop-blur-sm" style={{ zIndex: 1002 }}>
+                <div className="p-2">
+                  {searchSuggestions.map((suggestion, index) => (
+                    <div
+                      key={`${suggestion.type}-${suggestion.id}`}
+                      className="px-4 py-3 hover:bg-blue-50 cursor-pointer rounded-xl transition-all duration-150 hover:scale-[1.02] group"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      <div className="flex items-center">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
+                          suggestion.type === 'restaurant' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+                        } group-hover:scale-110 transition-transform`}>
+                          <i className={`fas ${suggestion.type === 'restaurant' ? 'fa-utensils' : 'fa-tag'} text-sm`}></i>
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-semibold text-gray-900 text-sm">{suggestion.name}</div>
+                          {suggestion.address && (
+                            <div className="text-xs text-gray-500 mt-0.5 truncate">{suggestion.address}</div>
+                          )}
+                          {suggestion.veganScore && (
+                            <div className="text-xs text-green-600 font-medium mt-1 flex items-center">
+                              <i className="fas fa-leaf mr-1"></i>
+                              Vegan Score: {suggestion.veganScore}/10
+                            </div>
+                          )}
+                          {suggestion.type === 'cuisine' && (
+                            <div className="text-xs text-blue-600 font-medium mt-1 flex items-center">
+                              <i className="fas fa-utensils mr-1"></i>
+                              Cuisine type
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
           
-          {/* Right Icons */}
-          <div className="flex items-center ml-3 space-x-2">
-            <a href="/admin">
+          {/* Enhanced Right Icons */}
+          <div className="flex items-center ml-2 sm:ml-3 space-x-1 sm:space-x-2">
+            <a href="/admin" className="hidden sm:block">
               <Button 
                 variant="ghost" 
-                className="w-10 h-10 p-0 bg-purple-500 hover:bg-purple-600 rounded-full"
+                className="w-9 h-9 sm:w-10 sm:h-10 p-0 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                 title="Admin Panel"
               >
-                <span className="text-white text-lg">⚙️</span>
+                <span className="text-white text-sm sm:text-lg">⚙️</span>
               </Button>
             </a>
-            <a href="/api-stats">
+            <a href="/api-stats" className="hidden sm:block">
               <Button 
                 variant="ghost" 
-                className="w-10 h-10 p-0 bg-orange-500 hover:bg-orange-600 rounded-full"
+                className="w-9 h-9 sm:w-10 sm:h-10 p-0 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                 title="API Stats"
               >
-                <span className="text-white text-lg">📊</span>
+                <span className="text-white text-sm sm:text-lg">📊</span>
               </Button>
             </a>
             <a href="/ai-chat">
               <Button 
                 variant="ghost" 
-                className="w-10 h-10 p-0"
+                className="w-9 h-9 sm:w-10 sm:h-10 p-0 hover:scale-105 transition-all duration-200"
                 title="AI Assistant"
               >
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg font-bold">🎤</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl">
+                  <span className="text-white text-sm sm:text-lg font-bold">🎤</span>
                 </div>
               </Button>
             </a>
             <a href="/profile">
               <Button 
                 variant="ghost" 
-                className="w-10 h-10 hover:bg-gray-100 rounded-full transition-colors flex items-center justify-center p-0"
+                className="w-9 h-9 sm:w-10 sm:h-10 hover:bg-gray-100 rounded-full transition-all duration-200 flex items-center justify-center p-0 hover:scale-105"
                 title="Profile"
               >
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-medium shadow-lg">
                   BK
                 </div>
               </Button>
@@ -330,44 +359,50 @@ export default function Home() {
         />
       </div>
 
-      {/* Vegan Score Legend - Top Right */}
-      <div className="fixed top-20 right-4 bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs" style={{ zIndex: 999 }}>
-        <h3 className="text-sm font-opensans font-semibold text-gray-700 mb-2">Vegan Score</h3>
-        <div className="space-y-1">
-          <div className="flex items-center text-xs">
-            <div className="w-3 h-3 bg-green-600 rounded-full mr-2"></div>
-            <span className="text-gray-600">8.5+ Excellent</span>
+      {/* Enhanced Vegan Score Legend - Responsive */}
+      <div className="fixed top-20 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-2xl p-4 max-w-xs transition-all duration-300 hover:shadow-3xl" style={{ zIndex: 999 }}>
+        <div className="flex items-center mb-3">
+          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+            <i className="fas fa-leaf text-green-600 text-xs"></i>
           </div>
-          <div className="flex items-center text-xs">
-            <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-            <span className="text-gray-600">7.5+ Very Good</span>
+          <h3 className="text-sm font-opensans font-bold text-gray-800">Vegan Score Guide</h3>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center text-xs group hover:bg-green-50 rounded-lg px-2 py-1 transition-colors">
+            <div className="w-3 h-3 bg-gradient-to-r from-green-600 to-green-700 rounded-full mr-3 shadow-sm"></div>
+            <span className="text-gray-700 font-medium">8.5+ Excellent</span>
           </div>
-          <div className="flex items-center text-xs">
-            <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-            <span className="text-gray-600">6.5+ Good</span>
+          <div className="flex items-center text-xs group hover:bg-green-50 rounded-lg px-2 py-1 transition-colors">
+            <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full mr-3 shadow-sm"></div>
+            <span className="text-gray-700 font-medium">7.5+ Very Good</span>
           </div>
-          <div className="flex items-center text-xs">
-            <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
-            <span className="text-gray-600">5.5+ Fair</span>
+          <div className="flex items-center text-xs group hover:bg-yellow-50 rounded-lg px-2 py-1 transition-colors">
+            <div className="w-3 h-3 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full mr-3 shadow-sm"></div>
+            <span className="text-gray-700 font-medium">6.5+ Good</span>
           </div>
-          <div className="flex items-center text-xs">
-            <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-            <span className="text-gray-600">4.0+ Poor</span>
+          <div className="flex items-center text-xs group hover:bg-orange-50 rounded-lg px-2 py-1 transition-colors">
+            <div className="w-3 h-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full mr-3 shadow-sm"></div>
+            <span className="text-gray-700 font-medium">5.5+ Fair</span>
           </div>
-          <div className="flex items-center text-xs">
-            <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
-            <span className="text-gray-600">&lt;4.0 Very Poor</span>
+          <div className="flex items-center text-xs group hover:bg-red-50 rounded-lg px-2 py-1 transition-colors">
+            <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-red-600 rounded-full mr-3 shadow-sm"></div>
+            <span className="text-gray-700 font-medium">4.0+ Poor</span>
+          </div>
+          <div className="flex items-center text-xs group hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors">
+            <div className="w-3 h-3 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full mr-3 shadow-sm"></div>
+            <span className="text-gray-700 font-medium">&lt;4.0 Very Poor</span>
           </div>
         </div>
         
-        {/* Location Button under Legend */}
-        <div className="mt-3">
+        {/* Enhanced Location Button */}
+        <div className="mt-4 pt-3 border-t border-gray-100">
           <Button
             onClick={handleCurrentLocation}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-4 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-[1.02] font-medium"
             disabled={loading}
           >
-            <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-location-arrow'} mr-2`}></i>
+            <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-crosshairs'} mr-2`}></i>
             {loading ? 'Getting Location...' : 'My Location'}
           </Button>
         </div>
