@@ -259,6 +259,11 @@ export default function Home() {
 
   return (
     <div className="h-screen relative bg-gray-50">
+      {/* Debug Mobile Info */}
+      <div className="sm:hidden fixed top-0 left-0 bg-red-500 text-white text-xs p-1 z-[2000]">
+        Mobile: {filteredRestaurants.length} restaurants
+      </div>
+      
       {/* Mobile Header */}
       <div className="sm:hidden">
         <MobileHeader

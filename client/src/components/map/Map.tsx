@@ -24,24 +24,28 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
 
-  // Initialize map once
+  // Initialize map once with better mobile support
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
+    console.log('Initializing map with center:', center);
+    
     const map = L.map(mapRef.current, {
       center: center,
       zoom: 15,
       zoomControl: true,
       attributionControl: false,
-      // Mobile optimizations
+      // Enhanced mobile optimizations
       touchZoom: true,
       doubleClickZoom: true,
-      scrollWheelZoom: true,
-      boxZoom: true,
-      keyboard: true,
+      scrollWheelZoom: 'center',
+      boxZoom: false, // Disable on mobile for better touch
+      keyboard: false, // Disable on mobile
       dragging: true,
       maxBounds: null,
-      maxBoundsViscosity: 0.0
+      maxBoundsViscosity: 0.0,
+      // Mobile-specific settings
+      renderer: L.canvas({ tolerance: 15 }) // Better touch tolerance
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -275,7 +279,12 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
   }, [restaurants, onRestaurantClick]);
 
   return (
-    <div ref={mapRef} className="w-full h-full relative z-0 touch-manipulation" style={{ minHeight: '400px' }}>
+    <div ref={mapRef} className="w-full h-full relative z-0 touch-manipulation" style={{ minHeight: '400px', maxHeight: '100vh' }}>
+      {/* Debug info for mobile */}
+      <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs p-1 z-[100] sm:hidden">
+        Map: {restaurants.length} pins
+      </div>
+      
       {loading && (
         <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
           <div className="text-center">
