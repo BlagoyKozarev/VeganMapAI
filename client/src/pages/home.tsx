@@ -287,6 +287,16 @@ export default function Home() {
           onSuggestionClick={handleSuggestionClick}
         />
       </div>
+
+      {/* Mobile Filter Button - Floating */}
+      <div className="sm:hidden fixed bottom-6 left-6 z-[999]">
+        <MobileFilterDrawer
+          minVeganScore={minVeganScore}
+          minGoogleScore={minGoogleScore}
+          onVeganScoreChange={setMinVeganScore}
+          onGoogleScoreChange={setMinGoogleScore}
+        />
+      </div>
       
       {/* Enhanced Google Maps Style Header - Desktop Only */}
       <div 
@@ -565,13 +575,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Mobile Filter Drawer */}
-      <MobileFilterDrawer
-        minVeganScore={minVeganScore}
-        minGoogleScore={minGoogleScore}
-        onVeganScoreChange={setMinVeganScore}
-        onGoogleScoreChange={setMinGoogleScore}
-      />
+
 
       {/* Restaurant Dropdown */}
       {selectedRestaurant && showDropdown && (
