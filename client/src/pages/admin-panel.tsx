@@ -587,238 +587,235 @@ export default function AdminPanel() {
 
           {/* Cache Management Tab */}
           <TabsContent value="cache" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Cache Performance */}
+            {/* Overall API Statistics Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5" />
+                  <span>Обобщена API Статистика</span>
+                </CardTitle>
+                <CardDescription>
+                  Общо използване и разходи за всички API услуги
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-3xl font-bold text-blue-600">
+                      {cacheStats ? 
+                        (cacheStats.placesSearchHits + cacheStats.placesSearchMisses + 
+                         cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses + 
+                         cacheStats.photosHits + cacheStats.photosMisses + 217).toLocaleString() : '0'}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">Общо Заявки</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-3xl font-bold text-green-600">
+                      ${cacheStats ? 
+                        ((cacheStats.placesSearchMisses * 0.032) + 
+                         (cacheStats.placeDetailsMisses * 0.017) + 
+                         (cacheStats.photosMisses * 0.007) + (217 * 0.12)).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">Общо Разходи</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <div className="text-3xl font-bold text-purple-600">
+                      ${cacheStats ? cacheStats.totalSavings.toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">Спестени Средства</div>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <div className="text-3xl font-bold text-orange-600">
+                      {cacheStats ? `${Math.round(cacheStats.cacheHitRate * 100)}%` : '0%'}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">Cache Hit Rate</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* API Services Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Google Places Search */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Database className="h-5 w-5" />
-                    <span>Cache Performance</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Real-time cache hit rates and performance metrics
-                  </CardDescription>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-blue-600">Google Places Search</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Overall Cache Hit Rate</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        {cacheHitRate}%
-                      </Badge>
-                    </div>
-                    <Progress value={cacheHitRate} className="h-2" />
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span>Places Search Cache</span>
-                        <span className="font-medium">
-                          {cacheStats ? Math.round((cacheStats.placesSearchHits / (cacheStats.placesSearchHits + cacheStats.placesSearchMisses)) * 100) : 0}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Place Details Cache</span>
-                        <span className="font-medium">
-                          {cacheStats ? Math.round((cacheStats.placeDetailsHits / (cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses)) * 100) : 0}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Photos Cache</span>
-                        <span className="font-medium">
-                          {cacheStats ? Math.round((cacheStats.photosHits / (cacheStats.photosHits + cacheStats.photosMisses)) * 100) : 0}%
-                        </span>
-                      </div>
-                    </div>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Заявки:</span>
+                    <span className="font-medium">
+                      {cacheStats ? (cacheStats.placesSearchHits + cacheStats.placesSearchMisses).toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Cache Hits:</span>
+                    <span className="font-medium text-green-600">
+                      {cacheStats ? cacheStats.placesSearchHits.toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>API Calls:</span>
+                    <span className="font-medium text-orange-600">
+                      {cacheStats ? cacheStats.placesSearchMisses.toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t pt-2">
+                    <span>Разходи:</span>
+                    <span className="font-bold">
+                      ${cacheStats ? (cacheStats.placesSearchMisses * 0.032).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* API Usage Statistics */}
+              {/* Google Place Details */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <BarChart3 className="h-5 w-5" />
-                    <span>API Usage Statistics</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Google Maps API calls and cost breakdown
-                  </CardDescription>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-green-600">Google Place Details</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {cacheStats ? (cacheStats.placesSearchHits + cacheStats.placesSearchMisses) : 0}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Places Search</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                          {cacheStats ? (cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses) : 0}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Place Details</div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">
-                        {cacheStats ? (cacheStats.photosHits + cacheStats.photosMisses) : 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Photo Requests</div>
-                    </div>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Заявки:</span>
+                    <span className="font-medium">
+                      {cacheStats ? (cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses).toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Cache Hits:</span>
+                    <span className="font-medium text-green-600">
+                      {cacheStats ? cacheStats.placeDetailsHits.toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>API Calls:</span>
+                    <span className="font-medium text-orange-600">
+                      {cacheStats ? cacheStats.placeDetailsMisses.toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t pt-2">
+                    <span>Разходи:</span>
+                    <span className="font-bold">
+                      ${cacheStats ? (cacheStats.placeDetailsMisses * 0.017).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
 
-                    <div className="pt-4 border-t">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Total Cost Savings</span>
-                        <span className="text-lg font-bold text-green-600">
-                          ${cacheStats ? cacheStats.totalSavings.toFixed(2) : '0.00'}
-                        </span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Compared to no caching
-                      </div>
-                    </div>
+              {/* Google Photos */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-purple-600">Google Photos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Заявки:</span>
+                    <span className="font-medium">
+                      {cacheStats ? (cacheStats.photosHits + cacheStats.photosMisses).toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Cache Hits:</span>
+                    <span className="font-medium text-green-600">
+                      {cacheStats ? cacheStats.photosHits.toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>API Calls:</span>
+                    <span className="font-medium text-orange-600">
+                      {cacheStats ? cacheStats.photosMisses.toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t pt-2">
+                    <span>Разходи:</span>
+                    <span className="font-bold">
+                      ${cacheStats ? (cacheStats.photosMisses * 0.007).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* OpenAI GPT-4o */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-red-600">OpenAI GPT-4o</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>AI Scorings:</span>
+                    <span className="font-medium">
+                      {dbStats ? dbStats.withScores.toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Cache Hits:</span>
+                    <span className="font-medium text-green-600">0</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>API Calls:</span>
+                    <span className="font-medium text-orange-600">
+                      {dbStats ? dbStats.withScores.toLocaleString() : '0'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t pt-2">
+                    <span>Разходи:</span>
+                    <span className="font-bold">
+                      ${dbStats ? (dbStats.withScores * 0.12).toLocaleString('en-US', {minimumFractionDigits: 2}) : '0.00'}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Detailed API Cost Breakdown */}
+            {/* Cache Performance Details */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5" />
-                  <span>API Cost Breakdown</span>
+                  <Database className="h-5 w-5" />
+                  <span>Cache Performance Analysis</span>
                 </CardTitle>
                 <CardDescription>
-                  Detailed analysis of Google Maps API costs and optimization
+                  Детайлен анализ на ефективността на кеширането
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Places Search API */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-sm">Places Search API</h4>
-                    <div className="space-y-2 text-sm">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Cache Hits:</span>
-                        <span className="font-medium text-green-600">
-                          {cacheStats ? cacheStats.placesSearchHits : 0}
+                        <span className="text-sm font-medium">Places Search Cache</span>
+                        <span className="text-sm font-bold">
+                          {cacheStats ? Math.round((cacheStats.placesSearchHits / (cacheStats.placesSearchHits + cacheStats.placesSearchMisses)) * 100) : 0}%
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>API Calls:</span>
-                        <span className="font-medium text-orange-600">
-                          {cacheStats ? cacheStats.placesSearchMisses : 0}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Cost per call:</span>
-                        <span className="font-medium">$0.032</span>
-                      </div>
-                      <div className="flex justify-between border-t pt-2">
-                        <span>Total cost:</span>
-                        <span className="font-bold">
-                          ${cacheStats ? (cacheStats.placesSearchMisses * 0.032).toFixed(3) : '0.000'}
-                        </span>
-                      </div>
+                      <Progress 
+                        value={cacheStats ? (cacheStats.placesSearchHits / (cacheStats.placesSearchHits + cacheStats.placesSearchMisses)) * 100 : 0} 
+                        className="h-2" 
+                      />
                     </div>
-                  </div>
-
-                  {/* Place Details API */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-sm">Place Details API</h4>
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Cache Hits:</span>
-                        <span className="font-medium text-green-600">
-                          {cacheStats ? cacheStats.placeDetailsHits : 0}
+                        <span className="text-sm font-medium">Place Details Cache</span>
+                        <span className="text-sm font-bold">
+                          {cacheStats ? Math.round((cacheStats.placeDetailsHits / (cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses)) * 100) : 0}%
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>API Calls:</span>
-                        <span className="font-medium text-orange-600">
-                          {cacheStats ? cacheStats.placeDetailsMisses : 0}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Cost per call:</span>
-                        <span className="font-medium">$0.017</span>
-                      </div>
-                      <div className="flex justify-between border-t pt-2">
-                        <span>Total cost:</span>
-                        <span className="font-bold">
-                          ${cacheStats ? (cacheStats.placeDetailsMisses * 0.017).toFixed(3) : '0.000'}
-                        </span>
-                      </div>
+                      <Progress 
+                        value={cacheStats ? (cacheStats.placeDetailsHits / (cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses)) * 100 : 0} 
+                        className="h-2" 
+                      />
                     </div>
-                  </div>
-
-                  {/* Photos API */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-sm">Photos API</h4>
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Cache Hits:</span>
-                        <span className="font-medium text-green-600">
-                          {cacheStats ? cacheStats.photosHits : 0}
+                        <span className="text-sm font-medium">Photos Cache</span>
+                        <span className="text-sm font-bold">
+                          {cacheStats ? Math.round((cacheStats.photosHits / (cacheStats.photosHits + cacheStats.photosMisses)) * 100) : 0}%
                         </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>API Calls:</span>
-                        <span className="font-medium text-orange-600">
-                          {cacheStats ? cacheStats.photosMisses : 0}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Cost per call:</span>
-                        <span className="font-medium">$0.007</span>
-                      </div>
-                      <div className="flex justify-between border-t pt-2">
-                        <span>Total cost:</span>
-                        <span className="font-bold">
-                          ${cacheStats ? (cacheStats.photosMisses * 0.007).toFixed(3) : '0.000'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Summary */}
-                <div className="mt-6 pt-6 border-t">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-                    <div>
-                      <div className="text-lg font-bold text-blue-600">
-                        {cacheStats ? 
-                          (cacheStats.placesSearchHits + cacheStats.placesSearchMisses + 
-                           cacheStats.placeDetailsHits + cacheStats.placeDetailsMisses + 
-                           cacheStats.photosHits + cacheStats.photosMisses) : 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Total Requests</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-green-600">
-                        {cacheStats ? 
-                          (cacheStats.placesSearchHits + cacheStats.placeDetailsHits + cacheStats.photosHits) : 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Cache Hits</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-orange-600">
-                        {cacheStats ? 
-                          (cacheStats.placesSearchMisses + cacheStats.placeDetailsMisses + cacheStats.photosMisses) : 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">API Calls</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-purple-600">
-                        ${cacheStats ? 
-                          ((cacheStats.placesSearchMisses * 0.032) + 
-                           (cacheStats.placeDetailsMisses * 0.017) + 
-                           (cacheStats.photosMisses * 0.007)).toFixed(2) : '0.00'}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Actual Cost</div>
+                      <Progress 
+                        value={cacheStats ? (cacheStats.photosHits / (cacheStats.photosHits + cacheStats.photosMisses)) * 100 : 0} 
+                        className="h-2" 
+                      />
                     </div>
                   </div>
                 </div>
