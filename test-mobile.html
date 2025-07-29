@@ -9,43 +9,67 @@
 </head>
 <body class="bg-gray-100">
     <!-- Mobile Header Test -->
-    <div class="sm:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
         <div class="flex items-center px-4 py-2 h-full">
             <!-- Search Bar -->
-            <div class="flex-1 relative">
+            <div class="flex-1 relative mr-2">
                 <div class="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5">
                     <i class="fas fa-search text-gray-400 mr-2 text-sm"></i>
                     <input
                         type="text"
-                        placeholder="Search for vegan places..."
+                        placeholder="Search vegan places..."
                         class="flex-1 outline-none text-gray-700 text-sm bg-transparent"
                     />
                 </div>
             </div>
             
-            <!-- Right Icons -->
-            <div class="flex items-center ml-2 space-x-1">
-                <button class="w-10 h-10 p-0">
-                    <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                        <span class="text-white text-lg">🎤</span>
-                    </div>
-                </button>
-                <button class="w-10 h-10">
-                    <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-lg">
+            <!-- Icons -->
+            <div class="flex items-center space-x-2">
+                <a href="/ai-chat">
+                    <button class="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
+                        <span class="text-white text-base">🎤</span>
+                    </button>
+                </a>
+                <a href="/profile">
+                    <button class="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md">
                         BK
-                    </div>
-                </button>
+                    </button>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content with mobile padding -->
+    <div style="padding-top: 56px;" class="p-4">
+        <h1 class="text-2xl font-bold mb-4">Mobile Header Test</h1>
+        <p class="text-gray-700 mb-4">На мобилни устройства трябва да видиш header с:</p>
+        <ul class="list-disc pl-6 text-gray-700">
+            <li>Search bar с плейсхолдър "Search vegan places..."</li>
+            <li>🎤 бутон за AI Assistant (зелен)</li>
+            <li>BK бутон за Profile (син)</li>
+        </ul>
+        
+        <!-- Mobile Filter Panel Test -->
+        <div class="fixed bottom-0 right-4 w-48 bg-white border border-gray-200 rounded-t-lg shadow-lg p-3 z-50 backdrop-blur-sm" style="bottom: 9.5rem;">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Filter Controls</h3>
+            <div class="mb-3">
+                <label class="text-xs text-gray-600 block mb-1">Min Vegan Score: 3.5</label>
+                <input type="range" min="0" max="10" value="3.5" class="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg">
+            </div>
+            <div>
+                <label class="text-xs text-gray-600 block mb-1">Min Google Score: 2.5</label>
+                <input type="range" min="0" max="5" value="2.5" class="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg">
             </div>
         </div>
     </div>
 
-    <!-- Test Content -->
-    <div class="pt-16 p-4">
-        <h1 class="text-xl font-bold">Mobile Header Test</h1>
-        <p>This should show a header on mobile devices only.</p>
-        <div class="mt-4 h-96 bg-green-100 rounded-lg flex items-center justify-center">
-            <span>Map would go here</span>
-        </div>
-    </div>
+    <script>
+        // Mobile detection
+        if (window.innerWidth >= 1024) {
+            document.querySelector('header').style.display = 'none';
+            document.querySelector('.fixed.bottom-0').style.display = 'none';
+            document.body.innerHTML += '<div class="text-center p-8"><h2 class="text-xl">Това е тест за мобилни устройства</h2><p>Отвори в по-малък прозорец или на телефон</p></div>';
+        }
+    </script>
 </body>
 </html>

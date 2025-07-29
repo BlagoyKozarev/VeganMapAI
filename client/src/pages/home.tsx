@@ -42,6 +42,7 @@ export default function Home() {
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [minVeganScore, setMinVeganScore] = useState(0);
   const [minGoogleScore, setMinGoogleScore] = useState(0);
   
@@ -222,6 +223,17 @@ export default function Home() {
     setSelectedRestaurant(null);
   };
 
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
 
 
 
@@ -273,41 +285,41 @@ export default function Home() {
 
   return (
     <>
-      {/* MOBILE HEADER - FORCE DISPLAY */}
-      <header 
-        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50"
-        style={{ display: window.innerWidth < 1024 ? 'block' : 'none' }}
-      >
-        <div className="flex items-center px-4 py-2 h-full">
-          {/* Search Bar */}
-          <div className="flex-1 relative mr-2">
-            <div className="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5">
-              <i className="fas fa-search text-gray-400 mr-2 text-sm"></i>
-              <input
-                type="text"
-                placeholder="Search vegan places..."
-                className="flex-1 outline-none text-gray-700 text-sm bg-transparent"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+      {/* MOBILE HEADER */}
+      {isMobile && (
+        <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
+          <div className="flex items-center px-4 py-2 h-full">
+            <div className="flex-1 relative mr-2">
+              <div className="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5">
+                <i className="fas fa-search text-gray-400 mr-2 text-sm"></i>
+                <input
+                  type="text"
+                  placeholder="Search vegan places..."
+                  className="flex-1 outline-none text-gray-700 text-sm bg-transparent"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <a href="/ai-chat">
+                <button className="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
+                  <span className="text-white text-base">🎤</span>
+                </button>
+              </a>
+              <a href="/profile">
+                <button className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md">
+                  BK
+                </button>
+              </a>
             </div>
           </div>
-          
-          {/* Icons */}
-          <div className="flex items-center space-x-2">
-            <button className="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
-              <span className="text-white text-base">🎤</span>
-            </button>
-            <button className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md">
-              BK
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <div 
         className="h-screen relative bg-gray-50"
-        style={{ paddingTop: window.innerWidth < 1024 ? '56px' : '0px' }}
+        style={{ paddingTop: isMobile ? '56px' : '0px' }}
       >
 
 
@@ -431,142 +443,120 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Map Container - Fixed positioning with new header */}
-      <div 
-        className="absolute inset-0 pt-14 sm:pt-16" 
-        style={{ 
-          zIndex: 1, 
-          minHeight: '100vh',
-          height: '100vh',
-          width: '100vw',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Full Map View */}
-        <div className="w-full h-full relative">
-          <Map
-            center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
-            restaurants={filteredRestaurants}
-            onRestaurantClick={handleRestaurantClick}
-            onLocationChange={() => {
-              // Map center is managed internally by Leaflet
-            }}
-            loading={restaurantsLoading}
-          />
-          
-          {/* Vegan Score Legend - Mobile Only */}
-          <div 
-            className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
-            style={{ display: window.innerWidth < 640 ? 'block' : 'none' }}
-          
-               style={{ 
-                 zIndex: showDropdown ? 1 : 999,
-                 opacity: showDropdown ? 0.7 : 1
-               }}>
-            <div className="flex items-center mb-2">
-              <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                <span className="text-green-600 text-xs">🌱</span>
-              </div>
-              <h3 className="text-xs font-bold text-gray-800">Vegan Guide</h3>
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
-                <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
-                <span className="text-gray-700">8.5+ Excellent</span>
-              </div>
-              <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
-                <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                <span className="text-gray-700">7.5+ Very Good</span>
-              </div>
-              <div className="flex items-center text-xs hover:bg-yellow-50 rounded px-1 py-0.5 transition-colors">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                <span className="text-gray-700">6.5+ Good</span>
-              </div>
-              <div className="flex items-center text-xs hover:bg-orange-50 rounded px-1 py-0.5 transition-colors">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-                <span className="text-gray-700">5.5+ Fair</span>
-              </div>
-              <div className="flex items-center text-xs hover:bg-red-50 rounded px-1 py-0.5 transition-colors">
-                <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                <span className="text-gray-700">&lt;5.5 Poor</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Filter Controls - Fixed Window */}
-          <div 
-            className="absolute right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
-            style={{ display: window.innerWidth < 640 ? 'block' : 'none' }}
-          
-               style={{ 
-                 bottom: '9.5rem',
-                 zIndex: showDropdown ? 1 : 998,
-                 opacity: showDropdown ? 0.7 : 1
-               }}>
-            <div className="flex items-center mb-2">
-              <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                <span className="text-blue-600 text-xs">🎚️</span>
-              </div>
-              <h3 className="text-xs font-bold text-gray-800">Filters</h3>
-            </div>
-            
-            <div className="space-y-3">
-              {/* Min Vegan Score Filter */}
-              <div>
-                <label className="text-xs font-medium text-gray-700 mb-1 block">
-                  Min Vegan: {minVeganScore}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                  value={minVeganScore}
-                  onChange={(e) => setMinVeganScore(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0</span>
-                  <span>10</span>
-                </div>
-              </div>
-
-              {/* Min Google Score Filter */}
-              <div>
-                <label className="text-xs font-medium text-gray-700 mb-1 block">
-                  Min Google: {minGoogleScore}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  step="0.1"
-                  value={minGoogleScore}
-                  onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0</span>
-                  <span>5</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Simple Map Container */}
+      <div className="w-full h-full relative">
+        <Map
+          center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
+          restaurants={filteredRestaurants}
+          onRestaurantClick={handleRestaurantClick}
+          onLocationChange={() => {
+            // Map center is managed internally by Leaflet
+          }}
+          loading={restaurantsLoading}
+        />
         
-        {/* Desktop Map */}
-        <div className="hidden sm:block w-full h-full">
-          <Map
-            center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
-            restaurants={filteredRestaurants}
-            onRestaurantClick={handleRestaurantClick}
-            onLocationChange={() => {
-              // Map center is managed internally by Leaflet
-            }}
-            loading={restaurantsLoading}
-          />
-        </div>
+        {/* Mobile Panels */}
+        {isMobile && (
+          <>
+            {/* Vegan Score Legend - Mobile */}
+            <div 
+              className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+              style={{ 
+                zIndex: showDropdown ? 1 : 999,
+                opacity: showDropdown ? 0.7 : 1
+              }}
+            >
+              <div className="flex items-center mb-2">
+                <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                  <span className="text-green-600 text-xs">🌱</span>
+                </div>
+                <h3 className="text-xs font-bold text-gray-800">Vegan Guide</h3>
+              </div>
+              
+              <div className="space-y-1">
+                <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
+                  <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
+                  <span className="text-gray-700">8.5+ Excellent</span>
+                </div>
+                <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                  <span className="text-gray-700">7.5+ Very Good</span>
+                </div>
+                <div className="flex items-center text-xs hover:bg-yellow-50 rounded px-1 py-0.5 transition-colors">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                  <span className="text-gray-700">6.5+ Good</span>
+                </div>
+                <div className="flex items-center text-xs hover:bg-orange-50 rounded px-1 py-0.5 transition-colors">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                  <span className="text-gray-700">5.5+ Fair</span>
+                </div>
+                <div className="flex items-center text-xs hover:bg-red-50 rounded px-1 py-0.5 transition-colors">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                  <span className="text-gray-700">&lt;5.5 Poor</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Filter Controls */}
+            <div 
+              className="absolute right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+              style={{ 
+                bottom: '9.5rem',
+                zIndex: showDropdown ? 1 : 998,
+                opacity: showDropdown ? 0.7 : 1
+              }}
+            >
+              <div className="flex items-center mb-2">
+                <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                  <span className="text-blue-600 text-xs">🎚️</span>
+                </div>
+                <h3 className="text-xs font-bold text-gray-800">Filters</h3>
+              </div>
+              
+              <div className="space-y-3">
+                {/* Min Vegan Score Filter */}
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">
+                    Min Vegan: {minVeganScore}
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    value={minVeganScore}
+                    onChange={(e) => setMinVeganScore(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0</span>
+                    <span>10</span>
+                  </div>
+                </div>
+
+                {/* Min Google Score Filter */}
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">
+                    Min Google: {minGoogleScore}
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={minGoogleScore}
+                    onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0</span>
+                    <span>5</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Enhanced Vegan Score Legend - Desktop Only */}
@@ -687,9 +677,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
-
-
+      )}
 
       {/* Restaurant Dropdown */}
       {selectedRestaurant && showDropdown && (
@@ -709,7 +697,7 @@ export default function Home() {
           onClose={handleCloseModal}
         />
       )}
-
+      </div> 
       </div>
     </>
   );
