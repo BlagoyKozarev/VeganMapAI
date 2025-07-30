@@ -551,108 +551,117 @@ export default function AiChat() {
         </div>
       </div>
 
-      {/* Fixed bottom section with voice button and text input */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Voice Recording Button */}
-          <div className="flex flex-col items-center justify-center mb-6">
-            <button
-              onClick={handleVoiceRecording}
-              disabled={chatMutation.isPending || isSpeaking}
-              className={`
-                p-6 rounded-full border-2 transition-all duration-200 text-2xl mb-2
-                ${conversationActive
-                  ? 'bg-red-500 border-red-500 text-white hover:bg-red-600'
-                  : isRecording
-                    ? 'bg-red-500 border-red-500 text-white animate-pulse'
-                    : isSpeaking
-                      ? 'bg-orange-500 border-orange-500 text-white'
-                      : 'bg-green-500 border-green-500 text-white hover:bg-green-600'
-                }
-                disabled:opacity-50 disabled:cursor-not-allowed
-                touch-manipulation active:scale-95
-              `}
-              style={{ 
-                WebkitTapHighlightColor: 'transparent',
-                WebkitUserSelect: 'none',
-                userSelect: 'none'
-              }}
-            >
-              🎤
-            </button>
-            
-            {/* Help text for mobile users */}
-            <p className="text-xs text-gray-500 text-center max-w-xs">
-              {conversationActive 
-                ? 'Говорете сега на български'
-                : isMobile
-                  ? 'Натиснете за гласов разговор (или използвайте текстовото поле)'
-                  : 'Натиснете за гласов разговор'
-              }
-            </p>
-          </div>
-
-          {/* Status Messages */}
-          <div className="text-center mb-4">
-            {isListening && (
-              <p className="text-sm text-blue-600 animate-pulse">🎙️ Слушам...</p>
-            )}
-            {isSpeaking && (
-              <p className="text-sm text-orange-600 animate-pulse">🗣️ Говоря...</p>
-            )}
-            {conversationActive && !isListening && !isSpeaking && (
-              <p className="text-sm text-green-600">✅ Готов за разговор</p>
-            )}
-            {!conversationActive && (
-              <p className="text-sm text-gray-500">Кликнете микрофона за гласов разговор</p>
+      {/* Google Maps style bottom input panel */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+        <div className="max-w-4xl mx-auto p-4">
+          {/* Status and clear button row */}
+          <div className="flex justify-between items-center mb-3">
+            <div className="text-sm text-gray-600">
+              {isListening && <span className="text-red-500">🔴 Слушам...</span>}
+              {isSpeaking && <span className="text-orange-500">🟠 Говоря...</span>}
+              {!isListening && !isSpeaking && !conversationActive && (
+                <span className="text-green-500">🟢 Готов за въпроси</span>
+              )}
+            </div>
+            {messages.length > 0 && (
+              <Button 
+                onClick={clearChat} 
+                variant="outline" 
+                size="sm"
+                className="text-gray-600 hover:text-red-600"
+              >
+                Изчисти
+              </Button>
             )}
           </div>
 
-          {/* Enhanced Text Input Form for Mobile */}
-          <form onSubmit={handleSubmit} className="flex gap-3">
+          {/* Google Maps style search input with integrated controls */}
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
             <div className="flex-1 relative">
-              <Textarea
+              <input
+                type="text"
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder={isMobile 
-                  ? "Напишете въпроса си тук..." 
-                  : "Напишете съобщение..."
-                }
+                placeholder="Задайте въпрос за вегански ресторанти..."
                 className={`
-                  flex-1 resize-none min-h-[44px] max-h-[120px] pr-12
+                  w-full px-4 py-3 pr-20 rounded-full border-2 border-gray-300 focus:border-vegan-green focus:outline-none
                   ${isMobile ? 'text-base' : 'text-sm'}
                 `}
+                style={{
+                  fontSize: isMobile ? '16px' : '14px',
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     handleSubmit(e);
                   }
                 }}
-                style={{
-                  fontSize: isMobile ? '16px' : '14px', // Prevent zoom on mobile
-                }}
               />
+              
+              {/* Microphone button inside input - Google Maps style */}
+              <button
+                type="button"
+                onClick={handleVoiceRecording}
+                disabled={chatMutation.isPending || isSpeaking}
+                className={`
+                  absolute right-12 top-1/2 transform -translate-y-1/2
+                  w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 text-sm
+                  ${conversationActive
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : isRecording
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : isSpeaking
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  touch-manipulation active:scale-95
+                `}
+                style={{ 
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                🎤
+              </button>
+
+              {/* Clear text button for mobile */}
               {isMobile && currentMessage.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setCurrentMessage('')}
-                  className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 flex items-center justify-center text-xs"
                 >
                   ✕
                 </button>
               )}
             </div>
+            
+            {/* Send button - Google Maps style */}
             <Button 
               type="submit" 
               disabled={!currentMessage.trim() || chatMutation.isPending}
               className={`
-                bg-vegan-green hover:bg-vegan-green/90 text-white px-6
-                ${isMobile ? 'text-base min-w-[80px]' : 'text-sm px-6'}
+                bg-vegan-green hover:bg-vegan-green/90 text-white rounded-full shadow-md
+                ${isMobile ? 'w-12 h-12 p-0 flex items-center justify-center' : 'px-6 py-3'}
               `}
             >
-              {chatMutation.isPending ? '...' : 'Изпрати'}
+              {chatMutation.isPending ? (
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+              ) : isMobile ? (
+                '➤'
+              ) : (
+                'Изпрати'
+              )}
             </Button>
           </form>
+          
+          {/* Help text - minimal and clean */}
+          <p className="text-xs text-gray-500 mt-2 text-center">
+            {isMobile 
+              ? 'Въведете текст или натиснете 🎤 (може да не работи на мобилни)'
+              : 'Задайте въпрос или използвайте микрофона за гласов разговор'
+            }
+          </p>
         </div>
       </div>
     </div>
