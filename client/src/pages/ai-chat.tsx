@@ -175,7 +175,9 @@ export default function AiChat() {
       });
       
       if (!response.ok) {
-        throw new Error(`TTS API error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('TTS API error:', response.status, errorText);
+        throw new Error(`TTS API error: ${response.status} - ${errorText}`);
       }
       
       // Get audio blob from response
