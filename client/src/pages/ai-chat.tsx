@@ -67,6 +67,7 @@ export default function AiChat() {
       // Auto-speak if conversation is active
       if (conversationActive) {
         console.log('Voice conversation active, speaking response:', aiMessage);
+        console.log('Attempting to start speech synthesis...');
         await speakText(aiMessage);
       }
       
@@ -384,6 +385,8 @@ export default function AiChat() {
           formData.append('audio', audioBlob, 'recording.webm');
           formData.append('language', 'bg');
           
+          console.log('Sending audio to Whisper API, blob size:', audioBlob.size, 'bytes');
+          
           const response = await fetch('/api/speech-to-text', {
             method: 'POST',
             credentials: 'include',
@@ -441,13 +444,16 @@ export default function AiChat() {
         stream.getTracks().forEach(track => track.stop());
       };
       
-      // Record for 5 seconds max
+      // Record for 8 seconds max for better Bulgarian accuracy
       mediaRecorder.start();
+      console.log('Starting Whisper recording for 8 seconds for better Bulgarian accuracy');
+      
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') {
           mediaRecorder.stop();
+          console.log('Stopping Whisper recording after 8 seconds');
         }
-      }, 5000);
+      }, 8000); // Increased to 8 seconds for better accuracy
       
       // Store reference for manual stop
       (window as any).currentMediaRecorder = mediaRecorder;
@@ -573,6 +579,36 @@ export default function AiChat() {
     });
   };
 
+  // Test function for speech synthesis debugging
+  const testSpeechSynthesis = async () => {
+    console.log('=== SPEECH SYNTHESIS TEST ===');
+    console.log('1. speechSynthesis supported:', 'speechSynthesis' in window);
+    
+    if ('speechSynthesis' in window) {
+      console.log('2. Current speaking status:', window.speechSynthesis.speaking);
+      console.log('3. Current pending status:', window.speechSynthesis.pending);
+      console.log('4. Current paused status:', window.speechSynthesis.paused);
+      
+      const voices = window.speechSynthesis.getVoices();
+      console.log('5. Available voices count:', voices.length);
+      console.log('6. Available voices:', voices.map(v => `${v.name} (${v.lang})`));
+      
+      // Test simple utterance
+      const testUtterance = new SpeechSynthesisUtterance('Тестов текст');
+      testUtterance.onstart = () => console.log('TEST: Speech started');
+      testUtterance.onend = () => console.log('TEST: Speech ended');
+      testUtterance.onerror = (e) => console.log('TEST: Speech error:', e);
+      
+      console.log('7. Testing simple speech...');
+      window.speechSynthesis.speak(testUtterance);
+      
+      setTimeout(() => {
+        console.log('8. After 1s - speaking:', window.speechSynthesis.speaking);
+      }, 1000);
+    }
+    console.log('=== END TEST ===');
+  };
+
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
@@ -602,6 +638,13 @@ export default function AiChat() {
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              <button 
+                onClick={testSpeechSynthesis}
+                className="text-blue-500 hover:text-blue-700 font-medium text-sm"
+                title="Test speech synthesis"
+              >
+                🔊 Test
+              </button>
               <button 
                 onClick={clearChat}
                 className="text-gray-500 hover:text-gray-700 font-medium text-sm"
