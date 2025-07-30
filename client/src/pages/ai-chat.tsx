@@ -618,67 +618,7 @@ export default function AiChat() {
     });
   };
 
-  // Test function for speech synthesis debugging
-  const testSpeechSynthesis = async () => {
-    console.log('=== SPEECH SYNTHESIS TEST ===');
-    console.log('1. speechSynthesis supported:', 'speechSynthesis' in window);
-    
-    if ('speechSynthesis' in window) {
-      // Cancel any pending speech
-      window.speechSynthesis.cancel();
-      
-      console.log('2. Current speaking status:', window.speechSynthesis.speaking);
-      console.log('3. Current pending status:', window.speechSynthesis.pending);
-      console.log('4. Current paused status:', window.speechSynthesis.paused);
-      
-      const voices = window.speechSynthesis.getVoices();
-      console.log('5. Available voices count:', voices.length);
-      console.log('6. Available voices:', voices.map(v => `${v.name} (${v.lang})`));
-      
-      // Test simple utterance with Bulgarian text
-      const testUtterance = new SpeechSynthesisUtterance('Здравей, това е тест на речевия синтез');
-      testUtterance.lang = 'bg-BG';
-      testUtterance.rate = 0.8;
-      testUtterance.pitch = 1.0;
-      testUtterance.volume = 1.0;
-      
-      // Find and use Bulgarian voice if available
-      const bgVoice = voices.find(voice => voice.lang.startsWith('bg'));
-      if (bgVoice) {
-        testUtterance.voice = bgVoice;
-        console.log('7. Using Bulgarian voice:', bgVoice.name);
-      } else {
-        console.log('7. No Bulgarian voice found, using default');
-      }
-      
-      testUtterance.onstart = () => {
-        console.log('TEST: Speech started successfully');
-        setIsSpeaking(true);
-      };
-      testUtterance.onend = () => {
-        console.log('TEST: Speech ended successfully');
-        setIsSpeaking(false);
-      };
-      testUtterance.onerror = (e) => {
-        console.log('TEST: Speech error:', e.error, e);
-        setIsSpeaking(false);
-      };
-      
-      console.log('8. Starting speech test...');
-      try {
-        window.speechSynthesis.speak(testUtterance);
-        console.log('9. Speech synthesis speak() called');
-        
-        setTimeout(() => {
-          console.log('10. After 1s - speaking:', window.speechSynthesis.speaking);
-          console.log('11. After 1s - pending:', window.speechSynthesis.pending);
-        }, 1000);
-      } catch (error) {
-        console.error('TEST: Error calling speak():', error);
-      }
-    }
-    console.log('=== END TEST ===');
-  };
+
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
@@ -709,13 +649,6 @@ export default function AiChat() {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button 
-                onClick={testSpeechSynthesis}
-                className="text-blue-500 hover:text-blue-700 font-medium text-sm"
-                title="Test speech synthesis"
-              >
-                🔊 Test
-              </button>
               <button 
                 onClick={clearChat}
                 className="text-gray-500 hover:text-gray-700 font-medium text-sm"
@@ -874,7 +807,7 @@ export default function AiChat() {
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 placeholder="Задайте въпрос за вегански ресторанти..."
                 className={`
-                  w-full px-4 py-3 pr-20 rounded-full border-2 border-gray-300 focus:border-vegan-green focus:outline-none
+                  w-full px-4 py-3 pr-12 rounded-full border-2 border-gray-300 focus:border-vegan-green focus:outline-none
                   ${isMobile ? 'text-base' : 'text-sm'}
                 `}
                 style={{
@@ -888,13 +821,13 @@ export default function AiChat() {
                 }}
               />
               
-              {/* Microphone button inside input - Google Maps style */}
+              {/* Microphone button at the end of input - Google Maps style */}
               <button
                 type="button"
                 onClick={handleVoiceRecording}
                 disabled={chatMutation.isPending || isSpeaking}
                 className={`
-                  absolute right-12 top-1/2 transform -translate-y-1/2
+                  absolute right-2 top-1/2 transform -translate-y-1/2
                   w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 text-sm
                   ${conversationActive
                     ? 'bg-red-500 text-white hover:bg-red-600'
@@ -913,17 +846,6 @@ export default function AiChat() {
               >
                 🎤
               </button>
-
-              {/* Clear text button for mobile */}
-              {isMobile && currentMessage.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setCurrentMessage('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 flex items-center justify-center text-xs"
-                >
-                  ✕
-                </button>
-              )}
             </div>
             
             {/* Send button - Google Maps style */}
