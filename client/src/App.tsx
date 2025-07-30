@@ -9,7 +9,7 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import ProfileSetup from "@/pages/profile-setup";
 import Search from "@/pages/search";
-import AiChat from "@/pages/ai-chat";
+
 import RestaurantDetail from "@/pages/restaurant-detail";
 import Profile from "@/pages/profile";
 import AdminScoring from "@/pages/admin-scoring";
@@ -47,7 +47,7 @@ function Router() {
           <Route path="/profile-setup" component={ProfileSetup} />
           <Route path="/home" component={Home} />
           <Route path="/search" component={Search} />
-          <Route path="/ai-chat" component={AiChat} />
+
           <Route path="/restaurant/:id" component={RestaurantDetail} />
           <Route path="/profile" component={Profile} />
           <Route path="/favorites" component={Favorites} />
