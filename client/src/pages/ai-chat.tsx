@@ -169,27 +169,52 @@ export default function AiChat() {
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      console.error('Speech recognition error:', event.error, event);
       setIsListening(false);
       
       let errorMessage = 'Грешка при гласовото разпознаване';
+      let shouldShowToast = true;
+      
       switch (event.error) {
         case 'not-allowed':
-          errorMessage = 'Достъпът до микрофона е отказан. Моля, разрешете достъп в браузъра си.';
+          errorMessage = isMobile 
+            ? 'Достъпът до микрофона е отказан. Разрешете достъп в настройките на браузъра и опитайте отново.'
+            : 'Достъпът до микрофона е отказан. Кликнете на иконата за заключване в адресната лента и разрешете микрофон.';
           endConversation();
           break;
         case 'no-speech':
-          errorMessage = 'Не беше открита реч. Опитайте отново.';
+          errorMessage = 'Не беше открита реч. Говорете по-ясно и по-силно.';
+          shouldShowToast = false; // Don't show toast for no-speech, just retry
+          if (conversationActive) {
+            // Auto-retry after short delay
+            setTimeout(() => {
+              if (conversationActive) startListening();
+            }, 1000);
+          }
           break;
         case 'audio-capture':
-          errorMessage = 'Проблем с микрофона. Проверете дали е свързан правилно.';
+          errorMessage = isMobile
+            ? 'Проблем с микрофона. Проверете дали друго приложение не използва микрофона.'
+            : 'Проблем с микрофона. Проверете дали е свързан правилно.';
+          endConversation();
           break;
         case 'network':
           errorMessage = 'Мрежова грешка. Проверете интернет връзката си.';
+          endConversation();
           break;
+        case 'service-not-allowed':
+          errorMessage = 'Гласовото разпознаване не е разрешено за този сайт.';
+          endConversation();
+          break;
+        case 'bad-grammar':
+          errorMessage = 'Проблем с езиковите настройки. Опитайте отново.';
+          break;
+        default:
+          errorMessage = `Грешка в гласовото разпознаване: ${event.error}. Опитайте отново.`;
+          endConversation();
       }
       
-      if (event.error !== 'no-speech') {
+      if (shouldShowToast) {
         toast({
           title: 'Грешка с гласа',
           description: errorMessage,
@@ -242,33 +267,30 @@ export default function AiChat() {
   };
 
   const handleVoiceRecording = async () => {
-    // Detailed browser support check for mobile
+    // Simplified mobile approach - skip permission check, go directly to speech recognition
     const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
     
-    console.log('Detailed browser support check:', {
+    console.log('Speech recognition attempt:', {
       hasSpeechRecognition,
       isMobile,
       isIOS,
       isAndroid,
       userAgent: navigator.userAgent,
-      isSecureContext: window.isSecureContext,
-      location: window.location.href,
-      mediaDevicesSupported: navigator.mediaDevices ? true : false
+      isSecureContext: window.isSecureContext
     });
 
-    // Enhanced mobile browser checks
     if (!hasSpeechRecognition) {
       let browserMessage = 'Браузърът не поддържа гласово разпознаване.';
       
       if (isIOS) {
-        browserMessage = 'Използвайте Safari на iOS за най-добра поддръжка на гласовото разпознаване.';
+        browserMessage = 'Използвайте Safari на iOS за гласово разпознаване.';
       } else if (isAndroid) {
-        browserMessage = 'Използвайте Chrome на Android устройство за гласово разпознаване.';
+        browserMessage = 'Използвайте Chrome на Android за гласово разпознаване.';
       } else if (isMobile) {
-        browserMessage = 'Опитайте с Chrome на Android или Safari на iOS устройство.';
+        browserMessage = 'Опитайте с Chrome на Android или Safari на iOS.';
       }
       
       toast({
@@ -277,28 +299,6 @@ export default function AiChat() {
         variant: 'destructive',
       });
       return;
-    }
-
-    // Enhanced HTTPS and permission checks for mobile
-    if (isMobile) {
-      if (!window.isSecureContext) {
-        toast({
-          title: 'Изисква се сигурна връзка',
-          description: 'Гласовото разпознаване работи само през HTTPS връзка. Отворете в браузър с https://',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Additional mobile-specific checks
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast({
-          title: 'Медийният достъп не се поддържа',
-          description: 'Вашият мобилен браузър не поддържа достъп до микрофон.',
-          variant: 'destructive',
-        });
-        return;
-      }
     }
 
     if (conversationActive) {
@@ -311,116 +311,31 @@ export default function AiChat() {
       return;
     }
 
-    // Mobile-specific permission handling
+    // Direct speech recognition approach - let the browser handle permissions
     try {
-      console.log('Requesting microphone permission for mobile device...');
-      
-      // Try to get media stream permission first
-      let stream;
-      try {
-        // Enhanced mobile microphone request with fallbacks
-        const audioConstraints = isMobile ? {
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-            sampleRate: 16000, // Lower sample rate for mobile
-            channelCount: 1
-          }
-        } : {
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          }
-        };
-        
-        stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
-        console.log('Microphone access granted');
-        
-        // Stop the stream immediately - we just needed permission
-        stream.getTracks().forEach(track => track.stop());
-      } catch (mediaError) {
-        console.error('Media permission error:', mediaError);
-        
-        let errorMessage = 'Моля, разрешете достъп до микрофона.';
-        console.error('MediaError details:', {
-          name: mediaError.name,
-          message: mediaError.message,
-          stack: mediaError.stack,
-          isMobile,
-          isIOS,
-          isAndroid
-        });
-        
-        if (mediaError instanceof Error) {
-          switch (mediaError.name) {
-            case 'NotAllowedError':
-              errorMessage = isMobile 
-                ? 'Достъпът до микрофона е отказан. В настройките на браузъра разрешете достъп до микрофон за този сайт.'
-                : 'Достъпът до микрофона е отказан. Кликнете иконата за заключване до URL-а и разрешете микрофон.';
-              break;
-            case 'NotFoundError':
-              errorMessage = isMobile
-                ? 'Микрофон не е намерен. Проверете дали устройството има микрофон.'
-                : 'Микрофон не е намерен на устройството.';
-              break;
-            case 'NotSupportedError':
-              errorMessage = isIOS
-                ? 'Използвайте Safari браузър на iOS за гласово разпознаване.'
-                : isAndroid
-                  ? 'Използвайте Chrome браузър на Android за гласово разпознаване.'
-                  : 'Браузърът не поддържа достъп до микрофон.';
-              break;
-            case 'AbortError':
-              errorMessage = 'Заявката за микрофон беше прекратена от потребителя.';
-              break;
-            case 'NotReadableError':
-              errorMessage = isMobile
-                ? 'Микрофонът се използва от друго приложение. Затворете други приложения които използват микрофона.'
-                : 'Микрофонът не може да бъде достъпен. Възможно е да се използва от друго приложение.';
-              break;
-            case 'OverconstrainedError':
-              errorMessage = 'Настройките на микрофона не са поддържани. Опитайте с друг браузър.';
-              break;
-            default:
-              errorMessage = isMobile 
-                ? `Проблем с микрофона (${mediaError.name}). Опитайте да рефрешнете страницата или използвайте друг браузър.`
-                : `Грешка при достъп до микрофона: ${mediaError.name}`;
-          }
-        }
-        
-        toast({
-          title: 'Няма достъп до микрофон',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      // If we get here, microphone permission was granted
       setConversationActive(true);
       setIsRecording(true);
       
       toast({
         title: 'Гласов разговор започнат',
         description: isMobile 
-          ? 'Говорете сега на български език. Натиснете микрофона за да спрете.'
+          ? 'Говорете сега на български език. Браузърът може да поиска разрешение за микрофон.'
           : 'Говорете на български език. Кликнете микрофона отново за да спрете.',
       });
       
-      // Start speech recognition immediately after getting permission
+      // Start speech recognition directly - browser will handle permission requests
       setTimeout(() => {
         startListening();
-      }, 500);
+      }, 300);
+      
     } catch (error) {
       console.error('Unexpected error:', error);
+      endConversation();
       toast({
         title: 'Грешка',
-        description: 'Неочаквана грешка при стартиране на гласовия разговор.',
+        description: 'Проблем при стартиране на гласовия разговор. Опитайте отново.',
         variant: 'destructive',
       });
-      return;
     }
   };
 
