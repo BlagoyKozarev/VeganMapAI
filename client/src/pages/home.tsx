@@ -481,14 +481,9 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mobile Filter Controls */}
+            {/* Mobile Filter Controls - Fixed Position */}
             <div 
-              className="absolute right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
-              style={{ 
-                bottom: '9.5rem',
-                zIndex: showDropdown ? 1 : 998,
-                opacity: showDropdown ? 0.7 : 1
-              }}
+              className="fixed right-4 bottom-20 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[997]"
             >
               <div className="flex items-center mb-2">
                 <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center mr-2">
@@ -501,7 +496,7 @@ export default function Home() {
                 {/* Min Vegan Score Filter */}
                 <div>
                   <label className="text-xs font-medium text-gray-700 mb-1 block">
-                    Min Vegan: {minVeganScore}
+                    Vegan: {minVeganScore}
                   </label>
                   <input
                     type="range"
@@ -510,7 +505,8 @@ export default function Home() {
                     step="0.5"
                     value={minVeganScore}
                     onChange={(e) => setMinVeganScore(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
+                    className="w-full h-3 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer"
+                    style={{ touchAction: 'manipulation' }}
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>0</span>
@@ -521,7 +517,7 @@ export default function Home() {
                 {/* Min Google Score Filter */}
                 <div>
                   <label className="text-xs font-medium text-gray-700 mb-1 block">
-                    Min Google: {minGoogleScore}
+                    Google: {minGoogleScore}
                   </label>
                   <input
                     type="range"
@@ -530,7 +526,8 @@ export default function Home() {
                     step="0.1"
                     value={minGoogleScore}
                     onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
+                    className="w-full h-3 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer"
+                    style={{ touchAction: 'manipulation' }}
                   />
                   <div className="flex justify-between text-xs text-gray-500 mt-1">
                     <span>0</span>
