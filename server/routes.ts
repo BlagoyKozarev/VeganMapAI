@@ -498,12 +498,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // OpenAI Text-to-Speech endpoint
-  app.post('/api/text-to-speech', isAuthenticated, async (req: any, res) => {
+  app.post('/api/text-to-speech', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
       const { text, voice = 'nova', model = 'tts-1' } = req.body;
       
-      console.log(`Processing text-to-speech for user ${userId}, text length: ${text?.length} chars`);
+      console.log(`Processing text-to-speech, text length: ${text?.length} chars`);
       
       if (!text) {
         return res.status(400).json({ message: "Text is required" });
@@ -532,7 +531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get audio buffer and send it
       const audioBuffer = await ttsResponse.arrayBuffer();
-      console.log(`TTS audio generated successfully for user ${userId}, size: ${audioBuffer.byteLength} bytes`);
+      console.log(`TTS audio generated successfully, size: ${audioBuffer.byteLength} bytes`);
       
       res.set({
         'Content-Type': 'audio/mpeg',
