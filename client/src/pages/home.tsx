@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { VoiceflowChat } from '@/components/voiceflow/VoiceflowChat';
 import Map from '@/components/map/Map';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
 import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
-import { MobileHeader } from '@/components/mobile/MobileHeader';
+import { MobileHeader } from '@/components/mobile/MobileHeaderFixed';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Restaurant {
@@ -38,6 +39,7 @@ export default function Home() {
 
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isVoiceflowOpen, setIsVoiceflowOpen] = useState(false);
   // Removed position state since we're using bottom footer
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
@@ -296,6 +298,7 @@ export default function Home() {
         showSuggestions={showSuggestions}
         onShowSuggestions={setShowSuggestions}
         searchSuggestions={searchSuggestions}
+        onOpenChat={() => setIsVoiceflowOpen(true)}
       />
 
       <div 
@@ -398,19 +401,18 @@ export default function Home() {
                 <span className="text-white text-sm sm:text-lg">⚙️</span>
               </Button>
             </a>
-            <a href="/ai-chat">
-              <Button 
-                variant="ghost" 
-                className="w-9 h-9 sm:w-10 sm:h-10 p-0 hover:scale-105 transition-all duration-200"
-                title="AI Assistant"
-              >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </Button>
-            </a>
+            <Button 
+              variant="ghost" 
+              className="w-9 h-9 sm:w-10 sm:h-10 p-0 hover:scale-105 transition-all duration-200"
+              title="AI Assistant"
+              onClick={() => setIsVoiceflowOpen(true)}
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M7 4a3 3 0 616 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 715 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </Button>
             <a href="/profile">
               <Button 
                 variant="ghost" 
@@ -679,6 +681,12 @@ export default function Home() {
         />
       )}
       </div>
+      
+      {/* AI Chat Modal */}
+      <VoiceflowChat 
+        isOpen={isVoiceflowOpen} 
+        onClose={() => setIsVoiceflowOpen(false)} 
+      />
     </>
   );
 }

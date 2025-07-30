@@ -83,27 +83,59 @@ export function VoiceflowChat({ isOpen, onClose }: VoiceflowChatProps) {
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
+    
+    // Add timeout handling
+    let timeoutId: NodeJS.Timeout;
+    
+    const startTimeout = () => {
+      timeoutId = setTimeout(() => {
+        recognition.stop();
+        setIsListening(false);
+        toast({
+          title: 'Времето за говорене изтече',
+          description: 'Опитайте отново или използвайте текстовото поле.',
+          variant: 'destructive'
+        });
+      }, 10000); // 10 seconds timeout
+    };
 
     recognition.onstart = () => {
       setIsListening(true);
+      startTimeout();
     };
 
     recognition.onresult = (event: any) => {
+      clearTimeout(timeoutId);
       const transcript = event.results[0][0].transcript;
       setInputText(transcript);
       sendMessage(transcript);
     };
 
     recognition.onerror = (event: any) => {
+      clearTimeout(timeoutId);
       setIsListening(false);
+      
+      let errorMessage = 'Опитайте отново или използвайте текстовото поле.';
+      
+      if (event.error === 'not-allowed') {
+        errorMessage = 'Достъпът до микрофона е отказан. Моля, разрешете достъп в браузъра си.';
+      } else if (event.error === 'no-speech') {
+        errorMessage = 'Не беше разпознат звук. Опитайте отново и говорете по-ясно.';
+      } else if (event.error === 'audio-capture') {
+        errorMessage = 'Проблем с микрофона. Проверете дали е свързан правилно.';
+      } else if (event.error === 'network') {
+        errorMessage = 'Мрежова грешка. Проверете интернет връзката си.';
+      }
+      
       toast({
         title: 'Грешка при гласово разпознаване',
-        description: 'Опитайте отново или използвайте текстовото поле.',
+        description: errorMessage,
         variant: 'destructive'
       });
     };
 
     recognition.onend = () => {
+      clearTimeout(timeoutId);
       setIsListening(false);
     };
 
