@@ -23,7 +23,6 @@ export default function AiChat() {
   
   const queryClient = useQueryClient();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -48,8 +47,8 @@ export default function AiChat() {
   });
 
   useEffect(() => {
-    if (chatHistory?.messages) {
-      setMessages(chatHistory.messages.map((msg: any) => ({
+    if (chatHistory && Array.isArray(chatHistory)) {
+      setMessages(chatHistory.map((msg: any) => ({
         ...msg,
         timestamp: new Date(msg.timestamp)
       })));
@@ -259,13 +258,9 @@ export default function AiChat() {
     setConversationActive(false);
     setIsListening(false);
     setIsRecording(false);
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    window.speechSynthesis.cancel();
     setIsSpeaking(false);
   };
 
