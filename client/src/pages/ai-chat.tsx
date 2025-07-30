@@ -72,16 +72,38 @@ export default function AiChat() {
     },
   });
 
-  const clearChat = async () => {
-    try {
+  const clearChatMutation = useMutation({
+    mutationFn: async () => {
       const response = await fetch('/api/chat/clear', { method: 'POST' });
       if (!response.ok) throw new Error('Failed to clear chat');
+      return response.json();
+    },
+    onSuccess: () => {
+      // Clear local state immediately
       setMessages([]);
       endConversation();
+      
+      toast({
+        title: 'Диалозите са изтрити',
+        description: 'Всички съобщения са премахнати от базата данни.',
+      });
+      
+      // Force refetch of chat history to ensure clean state
+      queryClient.removeQueries({ queryKey: ['/api/chat/history'] });
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
-    } catch (error) {
-      console.error('Failed to clear chat:', error);
-    }
+    },
+    onError: (error) => {
+      console.error('Error clearing chat:', error);
+      toast({
+        title: 'Грешка',
+        description: 'Неуспешно изтриване на диалозите.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const clearChat = () => {
+    clearChatMutation.mutate();
   };
 
   const handleQuickQuestion = async (question: string) => {
@@ -538,11 +560,12 @@ export default function AiChat() {
             {messages.length > 0 && (
               <Button 
                 onClick={clearChat} 
+                disabled={clearChatMutation.isPending}
                 variant="outline" 
                 size="sm"
-                className="text-gray-600 hover:text-red-600"
+                className="text-gray-600 hover:text-red-600 disabled:opacity-50"
               >
-                Изчисти
+                {clearChatMutation.isPending ? '...' : 'Изчисти'}
               </Button>
             )}
           </div>
