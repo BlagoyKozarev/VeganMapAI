@@ -475,6 +475,7 @@ export default function AiChat() {
         return;
       }
 
+      console.log('Starting speech synthesis for:', text);
       window.speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(text);
@@ -492,9 +493,9 @@ export default function AiChat() {
         if (conversationActive) {
           setTimeout(() => {
             if (conversationActive) {
-              startListening();
+              startWhisperRecording();
             }
-          }, 1000); // Wait 1 second after AI finishes speaking
+          }, 1500); // Wait 1.5 seconds after AI finishes speaking
         }
       };
 
@@ -502,6 +503,15 @@ export default function AiChat() {
         console.error('Speech synthesis error:', event.error);
         setIsSpeaking(false);
         resolve();
+        
+        // Continue listening even if speech synthesis fails
+        if (conversationActive) {
+          setTimeout(() => {
+            if (conversationActive) {
+              startWhisperRecording();
+            }
+          }, 1000);
+        }
       };
 
       window.speechSynthesis.speak(utterance);
