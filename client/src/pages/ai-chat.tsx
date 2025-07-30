@@ -304,28 +304,6 @@ export default function AiChat() {
   };
 
   const handleVoiceRecording = async () => {
-    const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-    
-    // Mobile devices - show helpful message about text input
-    if (isMobile) {
-      toast({
-        title: 'Използвайте текстовото поле',
-        description: 'Гласовото разпознаване не работи надеждно на мобилни устройства. Напишете въпроса си в полето.',
-        variant: 'default',
-      });
-      return;
-    }
-
-    // Desktop - try speech recognition
-    if (!hasSpeechRecognition) {
-      toast({
-        title: 'Гласът не се поддържа',
-        description: 'Браузърът не поддържа гласово разпознаване. Използвайте текстовото поле.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     if (conversationActive) {
       // End conversation if already active
       endConversation();
@@ -336,28 +314,156 @@ export default function AiChat() {
       return;
     }
 
-    // Desktop speech recognition
+    // Start Whisper-based voice recognition (works on mobile!)
     try {
       setConversationActive(true);
       setIsRecording(true);
       
       toast({
         title: 'Гласов разговор започнат',
-        description: 'Говорете на български език. Кликнете микрофона отново за да спрете.',
+        description: isMobile 
+          ? 'Говорете на български език. Използваме Whisper AI за точно разпознаване.'
+          : 'Говорете на български език. Кликнете микрофона отново за да спрете.',
       });
       
       setTimeout(() => {
-        startListening();
+        startWhisperRecording();
       }, 300);
       
     } catch (error) {
-      console.error('Speech recognition error:', error);
+      console.error('Voice recording error:', error);
       endConversation();
       toast({
         title: 'Грешка',
-        description: 'Проблем при стартиране на гласовия разговор. Използвайте текстовото поле.',
+        description: 'Проблем при стартиране на гласовия разговор.',
         variant: 'destructive',
       });
+    }
+  };
+
+  // Whisper API voice recognition (works on mobile!)
+  const startWhisperRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true
+        } 
+      });
+      
+      setIsListening(true);
+      setIsRecording(true);
+      
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+          ? 'audio/webm;codecs=opus' 
+          : 'audio/webm'
+      });
+      
+      const audioChunks: Blob[] = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        setIsRecording(false);
+        setIsListening(false);
+        
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // Send to Whisper API
+        try {
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'recording.webm');
+          formData.append('language', 'bg');
+          
+          const response = await fetch('/api/speech-to-text', {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Whisper API error: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          
+          if (result.text && result.text.trim()) {
+            console.log('Whisper transcription:', result.text);
+            
+            const userMessage: ChatMessage = {
+              role: 'user',
+              content: result.text.trim(),
+              timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, userMessage]);
+            
+            await chatMutation.mutateAsync(result.text.trim());
+          } else {
+            toast({
+              title: 'Не беше засечена реч',
+              description: 'Опитайте отново да говорите по-ясно.',
+              variant: 'default',
+            });
+          }
+          
+          // Continue listening if conversation is active
+          if (conversationActive && !isSpeaking) {
+            setTimeout(() => {
+              if (conversationActive && !isSpeaking) {
+                startWhisperRecording();
+              }
+            }, 1500);
+          }
+          
+        } catch (error) {
+          console.error('Whisper API error:', error);
+          toast({
+            title: 'Грешка при разпознаване',
+            description: 'Проблем със speech-to-text услугата. Опитайте отново.',
+            variant: 'destructive',
+          });
+          
+          if (conversationActive) {
+            endConversation();
+          }
+        }
+        
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      // Record for 5 seconds max
+      mediaRecorder.start();
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      }, 5000);
+      
+      // Store reference for manual stop
+      (window as any).currentMediaRecorder = mediaRecorder;
+      
+    } catch (error) {
+      console.error('Microphone access error:', error);
+      setIsRecording(false);
+      setIsListening(false);
+      
+      toast({
+        title: 'Грешка с микрофона',
+        description: 'Не можах да получа достъп до микрофона. Проверете разрешенията.',
+        variant: 'destructive',
+      });
+      
+      if (conversationActive) {
+        endConversation();
+      }
     }
   };
 
@@ -611,17 +717,15 @@ export default function AiChat() {
                 className={`
                   absolute right-12 top-1/2 transform -translate-y-1/2
                   w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 text-sm
-                  ${isMobile 
-                    ? 'bg-gray-200 text-gray-400 cursor-default' // Disabled style for mobile
-                    : conversationActive
-                      ? 'bg-red-500 text-white hover:bg-red-600'
-                      : isRecording
-                        ? 'bg-red-500 text-white animate-pulse'
-                        : isSpeaking
-                          ? 'bg-orange-500 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ${conversationActive
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : isRecording
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : isSpeaking
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-blue-500 text-white hover:bg-blue-600'
                   }
-                  ${!isMobile && 'touch-manipulation active:scale-95'}
+                  touch-manipulation active:scale-95
                   disabled:opacity-50 disabled:cursor-not-allowed
                 `}
                 style={{ 
@@ -665,7 +769,7 @@ export default function AiChat() {
           {/* Help text - minimal and clean */}
           <p className="text-xs text-gray-500 mt-2 text-center">
             {isMobile 
-              ? 'Напишете въпроса си в полето за текст'
+              ? 'Задайте въпрос с текст или използвайте микрофона (Whisper AI)'
               : 'Задайте въпрос или използвайте микрофона за гласов разговор'
             }
           </p>
