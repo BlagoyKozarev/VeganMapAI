@@ -530,22 +530,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error(`TTS API error: ${ttsResponse.status}`);
       }
 
-      // Stream the audio response directly
+      // Get audio buffer and send it
+      const audioBuffer = await ttsResponse.arrayBuffer();
+      console.log(`TTS audio generated successfully for user ${userId}, size: ${audioBuffer.byteLength} bytes`);
+      
       res.set({
         'Content-Type': 'audio/mpeg',
         'Content-Disposition': 'inline; filename="speech.mp3"'
       });
       
-      console.log(`TTS audio generated successfully for user ${userId}, streaming to client`);
-      
-      // Pipe the response stream directly to client
-      ttsResponse.body?.pipe(res);
+      res.send(Buffer.from(audioBuffer));
       
     } catch (error) {
       console.error("Error in text-to-speech:", error);
       res.status(500).json({ 
         message: "Failed to generate speech",
-        error: error.message 
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
