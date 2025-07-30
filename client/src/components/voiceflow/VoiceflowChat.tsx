@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mic, Send, X } from 'lucide-react';
+import { Mic, MicOff, Send, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface VoiceflowChatProps {
@@ -13,6 +13,7 @@ export function VoiceflowChat({ isOpen, onClose }: VoiceflowChatProps) {
   const [messages, setMessages] = useState<Array<{role: string, content: string}>>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
 
   // Initialize welcome message
@@ -63,6 +64,50 @@ export function VoiceflowChat({ isOpen, onClose }: VoiceflowChatProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage(inputText);
+  };
+
+  const startListening = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast({
+        title: 'Гласово разпознаване не се поддържа',
+        description: 'Вашият браузър не поддържа гласово разпознаване. Използвайте текстовото поле.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+  
+    recognition.lang = 'bg-BG';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputText(transcript);
+      sendMessage(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      toast({
+        title: 'Грешка при гласово разпознаване',
+        description: 'Опитайте отново или използвайте текстовото поле.',
+        variant: 'destructive'
+      });
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
   };
 
   if (!isOpen) return null;
@@ -120,6 +165,15 @@ export function VoiceflowChat({ isOpen, onClose }: VoiceflowChatProps) {
               className="flex-1"
             />
             <Button
+              type="button"
+              onClick={startListening}
+              disabled={isLoading || isListening}
+              className={`${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'}`}
+              title={isListening ? 'Слушам...' : 'Натиснете за гласово въвеждане'}
+            >
+              {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+            </Button>
+            <Button
               type="submit"
               disabled={!inputText.trim() || isLoading}
               className="bg-green-500 hover:bg-green-600"
@@ -128,7 +182,7 @@ export function VoiceflowChat({ isOpen, onClose }: VoiceflowChatProps) {
             </Button>
           </form>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-            Използвам същия AI асистент като в картата
+            {isListening ? 'Говорете сега...' : 'Използвайте микрофона или текстовото поле'}
           </p>
         </div>
       </div>
