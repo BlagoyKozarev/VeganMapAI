@@ -36,6 +36,14 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
 - Geo-hash caching reduces operational costs by 90%
 **User Request (July 29 Evening):** Remember everything - continue from this exact point tomorrow. All features working: mobile search (15 results), voice assistant (Bulgarian + error handling), complete mobile interface optimization.
 
+**Voice Assistant Mobile Compatibility (July 30, 2025):**
+- Comprehensive mobile browser detection and compatibility fixes implemented
+- Enhanced error handling with browser-specific guidance (Chrome for Android, Safari for iOS)
+- Simplified permission approach - browser handles permissions directly
+- Auto-retry logic for "no-speech" errors, specific messages for "service-not-allowed"
+- Mobile help text and visual guidance added to microphone interface
+- System correctly identifies browser compatibility and guides users to appropriate browsers
+
 ## System Architecture
 
 ### Frontend Architecture
