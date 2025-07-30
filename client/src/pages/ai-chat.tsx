@@ -74,13 +74,14 @@ export default function AiChat() {
       };
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Auto-speak if conversation is active
+      // Auto-speak if conversation is active  
       if (conversationActive) {
         console.log('🔊 Voice conversation active, speaking response:', aiMessage.substring(0, 50) + '...');
         console.log('🔍 conversationActive:', conversationActive, 'isSpeaking:', isSpeaking);
         
         try {
           console.log('📞 Calling speakText() function...');
+          setIsSpeaking(true);
           await speakText(aiMessage);
           console.log('✅ Speech synthesis completed successfully');
           
