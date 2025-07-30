@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { registerApiStatsRoutes } from "./routes/api-stats";
 import { Client } from '@googlemaps/google-maps-services-js';
-import multer from 'multer';
+
 import { 
   mapAgent, 
   searchAgent, 
@@ -13,7 +13,7 @@ import {
   profileAgent, 
   analyticsAgent 
 } from "./agents";
-import { chatWithAI } from "./services/aiChat";
+
 import { insertUserProfileSchema, insertUserFavoriteSchema, insertUserVisitSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -21,19 +21,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
 
+  // Register API stats routes
+  registerApiStatsRoutes(app);
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
-      const profile = await storage.getUserProfile(userId);
-      
-      res.json({ 
-        ...user, 
-        profile,
-        hasProfile: !!profile,
-        isProfileComplete: profile?.isProfileComplete || false
-      });
+      res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -41,27 +37,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Profile routes
-  app.post('/api/profile', isAuthenticated, async (req: any, res) => {
+  app.get('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const profileData = insertUserProfileSchema.parse(req.body);
+      const profile = await storage.getUserProfile(userId);
       
-      // Add userId to the profile data for creation
-      const fullProfileData = { ...profileData, userId };
-      const profile = await profileAgent.createUserProfile(userId, fullProfileData);
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found" });
+      }
+      
       res.json(profile);
     } catch (error) {
-      console.error("Error creating profile:", error);
-      res.status(400).json({ message: "Failed to create profile" });
+      console.error("Error getting profile:", error);
+      res.status(500).json({ message: "Failed to get profile" });
     }
   });
 
-  app.put('/api/profile', isAuthenticated, async (req: any, res) => {
+  app.post('/api/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const updates = insertUserProfileSchema.partial().parse(req.body);
+      const profileData = insertUserProfileSchema.parse({
+        ...req.body,
+        userId
+      });
+
+      const profile = await storage.upsertUserProfile(profileData);
       
-      const profile = await profileAgent.updateUserProfile(userId, updates);
+      // Track profile update
+      await profileAgent.trackUserBehavior(userId, 'update_profile', {
+        dietaryStyle: profileData.dietaryStyle,
+        hasAllergies: profileData.allergies && profileData.allergies.length > 0
+      });
+
       res.json(profile);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -69,108 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Favorites routes
-  app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const favorites = await storage.getUserFavorites(userId);
-      res.json(favorites);
-    } catch (error) {
-      console.error("Error fetching favorites:", error);
-      res.status(500).json({ message: "Failed to fetch favorites" });
-    }
-  });
-
-  app.post('/api/favorites', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { restaurantId } = insertUserFavoriteSchema.parse(req.body);
-      
-      const favorite = await storage.addUserFavorite({ userId, restaurantId });
-      
-      // Track analytics
-      await analyticsAgent.trackUserAction(userId, 'favorite', { restaurantId });
-      
-      res.json(favorite);
-    } catch (error) {
-      console.error("Error adding favorite:", error);
-      res.status(400).json({ message: "Failed to add favorite" });
-    }
-  });
-
-  app.delete('/api/favorites/:restaurantId', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { restaurantId } = req.params;
-      
-      await storage.removeUserFavorite(userId, restaurantId);
-      
-      // Track analytics
-      await analyticsAgent.trackUserAction(userId, 'unfavorite', { restaurantId });
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error removing favorite:", error);
-      res.status(400).json({ message: "Failed to remove favorite" });
-    }
-  });
-
-  app.get('/api/favorites/check/:restaurantId', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { restaurantId } = req.params;
-      
-      const isFavorite = await storage.isUserFavorite(userId, restaurantId);
-      res.json({ isFavorite });
-    } catch (error) {
-      console.error("Error checking favorite:", error);
-      res.status(500).json({ message: "Failed to check favorite" });
-    }
-  });
-
-  app.get('/api/profile/stats', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const stats = await profileAgent.getUserStats(userId);
-      res.json(stats);
-    } catch (error) {
-      console.error("Error getting user stats:", error);
-      res.status(500).json({ message: "Failed to get user stats" });
-    }
-  });
-
-  // Map routes - add restaurants from Google Places
-  app.post('/api/restaurants/populate', isAuthenticated, async (req: any, res) => {
-    try {
-      const { lat, lng, radius } = req.body;
-      
-      if (!lat || !lng) {
-        return res.status(400).json({ message: "Latitude and longitude required" });
-      }
-
-      await mapAgent.fetchAndStoreRestaurants(
-        parseFloat(lat), 
-        parseFloat(lng), 
-        radius ? parseFloat(radius) : 8000
-      );
-
-      const restaurants = await mapAgent.getRestaurantsInRadius(
-        parseFloat(lat), 
-        parseFloat(lng), 
-        2
-      );
-
-      res.json({ 
-        message: "Restaurants populated successfully", 
-        count: restaurants.length,
-        restaurants 
-      });
-    } catch (error) {
-      console.error("Error populating restaurants:", error);
-      res.status(500).json({ message: "Failed to populate restaurants" });
-    }
-  });
-
+  // Restaurant routes
   app.get('/api/restaurants/nearby', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -274,10 +180,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const filters = {
         minVeganScore: minScore ? parseFloat(minScore as string) : undefined,
-        maxDistance: maxDistance ? parseInt(maxDistance as string) : userProfile?.maxDistance,
-        priceRange: priceRange ? (priceRange as string).split(',') : undefined,
+        maxDistance: maxDistance ? parseFloat(maxDistance as string) : undefined,
+        priceRange: priceRange as string,
         cuisineTypes: cuisineTypes ? (cuisineTypes as string).split(',') : undefined,
-        allergies: userProfile?.allergies || undefined
+        limit: limit ? parseInt(limit as string) : undefined
       };
 
       const userLocation = lat && lng ? {
@@ -289,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         query as string || '',
         userLocation,
         filters,
-        limit ? parseInt(limit as string) : 20
+        userProfile
       );
 
       // Track search action
@@ -324,228 +230,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting search suggestions:", error);
       res.status(500).json({ message: "Failed to get suggestions" });
-    }
-  });
-
-  // AI Chat routes
-  app.post('/api/chat', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { message } = req.body;
-
-      if (!message) {
-        return res.status(400).json({ message: "Message is required" });
-      }
-
-      // Get user context
-      const [userProfile, chatSession, nearbyRestaurants] = await Promise.all([
-        storage.getUserProfile(userId),
-        storage.getChatSession(userId),
-        // Get some nearby restaurants for context using Sofia coordinates
-        storage.getRestaurantsInRadius(42.6999, 23.1604, 5) // Sofia, Bulgaria coordinates
-      ]);
-
-      const chatHistory = (chatSession?.messages as any[]) || [];
-      
-      const response = await chatWithAI(message, {
-        userProfile,
-        nearbyRestaurants: nearbyRestaurants.slice(0, 5),
-        chatHistory: chatHistory.slice(-10) // Last 10 messages
-      });
-
-      // Update chat session
-      const updatedMessages = [
-        ...chatHistory,
-        { role: 'user', content: message, timestamp: new Date() },
-        { role: 'assistant', content: response.message, timestamp: new Date() }
-      ];
-
-      await storage.upsertChatSession({
-        userId,
-        messages: updatedMessages
-      });
-
-      // Track chat interaction
-      await profileAgent.trackUserBehavior(userId, 'ai_chat', {
-        messageLength: message.length,
-        responseLength: response.message.length,
-        suggestionsProvided: response.suggestions?.length || 0
-      });
-
-      res.json(response);
-    } catch (error) {
-      console.error("Error processing chat message:", error);
-      res.status(500).json({ message: "Failed to process chat message" });
-    }
-  });
-
-  app.get('/api/chat/history', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const chatSession = await storage.getChatSession(userId);
-      
-      res.json({
-        messages: chatSession?.messages || []
-      });
-    } catch (error) {
-      console.error("Error getting chat history:", error);
-      res.status(500).json({ message: "Failed to get chat history" });
-    }
-  });
-
-  app.post('/api/chat/clear', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      
-      // Clear chat session by creating empty message array
-      await storage.upsertChatSession({
-        userId,
-        messages: []
-      });
-      
-      // Track user action
-      await profileAgent.trackUserBehavior(userId, 'clear_chat_history', {
-        clearedAt: new Date().toISOString()
-      });
-
-      res.json({ 
-        success: true, 
-        message: "Chat history cleared successfully" 
-      });
-    } catch (error) {
-      console.error("Error clearing chat history:", error);
-      res.status(500).json({ message: "Failed to clear chat history" });
-    }
-  });
-
-  // Configure multer for audio file uploads
-  const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-    fileFilter: (req, file, cb) => {
-      // Allow audio files
-      if (file.mimetype.startsWith('audio/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only audio files are allowed'));
-      }
-    }
-  });
-
-  // Whisper API speech-to-text endpoint
-  app.post('/api/speech-to-text', isAuthenticated, upload.single('audio'), async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      
-      if (!req.file) {
-        return res.status(400).json({ message: "Audio file is required" });
-      }
-      
-      const audioFile = req.file;
-      const language = req.body.language || 'bg';
-      
-      console.log(`Processing speech-to-text for user ${userId}, file size: ${audioFile.size} bytes`);
-      
-      // Create FormData for OpenAI Whisper API
-      const formData = new FormData();
-      
-      // Convert buffer to blob for FormData
-      const audioBlob = new Blob([audioFile.buffer], { type: audioFile.mimetype });
-      formData.append('file', audioBlob, audioFile.originalname || 'recording.webm');
-      formData.append('model', 'whisper-1');
-      formData.append('language', language);
-      formData.append('response_format', 'json');
-      
-      // Call OpenAI Whisper API
-      const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: formData,
-      });
-      
-      if (!whisperResponse.ok) {
-        const errorData = await whisperResponse.text();
-        console.error('Whisper API error:', whisperResponse.status, errorData);
-        throw new Error(`Whisper API failed: ${whisperResponse.status}`);
-      }
-      
-      const transcription = await whisperResponse.json();
-      
-      // Track speech-to-text usage
-      await profileAgent.trackUserBehavior(userId, 'speech_to_text', {
-        audioLength: audioFile.size,
-        language,
-        transcriptionLength: transcription.text?.length || 0
-      });
-      
-      console.log(`Whisper transcription for user ${userId}:`, transcription.text);
-      
-      res.json({
-        text: transcription.text,
-        language: transcription.language,
-        duration: transcription.duration
-      });
-      
-    } catch (error) {
-      console.error("Error in speech-to-text:", error);
-      res.status(500).json({ 
-        message: "Failed to transcribe audio",
-        error: error.message 
-      });
-    }
-  });
-
-  // OpenAI Text-to-Speech endpoint
-  app.post('/api/text-to-speech', async (req: any, res) => {
-    try {
-      const { text, voice = 'nova', model = 'tts-1' } = req.body;
-      
-      console.log(`Processing text-to-speech, text length: ${text?.length} chars`);
-      
-      if (!text) {
-        return res.status(400).json({ message: "Text is required" });
-      }
-
-      // Call OpenAI TTS API
-      const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: model,
-          input: text,
-          voice: voice,
-          response_format: 'mp3'
-        }),
-      });
-
-      if (!ttsResponse.ok) {
-        const errorText = await ttsResponse.text();
-        console.error('OpenAI TTS API error:', ttsResponse.status, errorText);
-        throw new Error(`TTS API error: ${ttsResponse.status}`);
-      }
-
-      // Get audio buffer and send it
-      const audioBuffer = await ttsResponse.arrayBuffer();
-      console.log(`TTS audio generated successfully, size: ${audioBuffer.byteLength} bytes`);
-      
-      res.set({
-        'Content-Type': 'audio/mpeg',
-        'Content-Disposition': 'inline; filename="speech.mp3"'
-      });
-      
-      res.send(Buffer.from(audioBuffer));
-      
-    } catch (error) {
-      console.error("Error in text-to-speech:", error);
-      res.status(500).json({ 
-        message: "Failed to generate speech",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
     }
   });
 
@@ -662,15 +346,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           menuVariety: scoreResult.breakdown.menuVariety,
           ingredientClarity: scoreResult.breakdown.ingredientClarity,
           staffKnowledge: scoreResult.breakdown.staffKnowledge,
-          crossContaminationPrevention: scoreResult.breakdown.crossContamination,
-          nutritionalInformation: scoreResult.breakdown.nutritionalInfo,
+          crossContamination: scoreResult.breakdown.crossContamination,
+          nutritionalInfo: scoreResult.breakdown.nutritionalInfo,
           allergenManagement: scoreResult.breakdown.allergenManagement,
-          overallScore: scoreResult.overallScore
+          overallScore: scoreResult.score
         });
 
-        // Update restaurant's vegan score
+        // Update restaurant with new score
         await storage.updateRestaurant(id, {
-          veganScore: scoreResult.overallScore.toString()
+          veganScore: scoreResult.score.toString()
         });
       }
 
@@ -681,431 +365,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/restaurants/:id/score', isAuthenticated, async (req: any, res) => {
+  // Admin routes for scoring management
+  app.get('/api/admin/restaurants', isAuthenticated, async (req: any, res) => {
     try {
-      const { id } = req.params;
-      const breakdown = await storage.getVeganScoreBreakdown(id);
+      const { page = 1, limit = 50, scoreStatus } = req.query;
+      const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
       
-      if (!breakdown) {
-        return res.status(404).json({ message: "Score breakdown not found" });
-      }
-
-      res.json({
-        breakdown,
-        explanation: `Vegan score based on 6 key dimensions: menu variety, ingredient clarity, staff knowledge, cross-contamination prevention, nutritional information, and allergen management.`
-      });
-    } catch (error) {
-      console.error("Error getting score breakdown:", error);
-      res.status(500).json({ message: "Failed to get score breakdown" });
-    }
-  });
-
-  // Batch score calculation endpoint (temporarily without auth for development)
-  app.post('/api/restaurants/calculate-all-scores', async (req: any, res) => {
-    try {
-      const { lat, lng } = req.body;
-      
-      if (!lat || !lng) {
-        return res.status(400).json({ message: "Location required" });
-      }
-
-      // Get all restaurants in area
-      const restaurants = await mapAgent.getRestaurantsInRadius(
-        parseFloat(lat), 
-        parseFloat(lng), 
-        5 // 5km radius for batch processing
-      );
-
-      // Calculate scores for restaurants that don't have them or have low scores
-      const restaurantsToScore = restaurants.filter(r => 
-        !r.veganScore || 
-        r.veganScore === "0.00" || 
-        parseFloat(r.veganScore) < 1.0
-      );
-      
-      if (restaurantsToScore.length === 0) {
-        return res.json({ message: "All restaurants already have scores", count: 0 });
-      }
-
-      console.log(`Starting to calculate vegan scores for ${restaurantsToScore.length} restaurants...`);
-
-      // Process restaurants one by one to avoid rate limits
-      let processed = 0;
-      const limit = Math.min(restaurantsToScore.length, 3); // Process max 3 at a time
-      
-      for (let i = 0; i < limit; i++) {
-        const restaurant = restaurantsToScore[i];
-        try {
-          console.log(`Calculating score for: ${restaurant.name}`);
-          
-          const scoreResult = await scoreAgent.calculateVeganScore(
-            restaurant.placeId || `sofia_rest_${restaurant.id}`,
-            restaurant.name,
-            restaurant.cuisineTypes || []
-          );
-
-          if (scoreResult) {
-            console.log(`Score calculated for ${restaurant.name}: ${scoreResult.overallScore}`);
-            
-            // Store score breakdown
-            await storage.upsertVeganScoreBreakdown({
-              restaurantId: restaurant.id,
-              menuVariety: scoreResult.breakdown.menuVariety,
-              ingredientClarity: scoreResult.breakdown.ingredientClarity,
-              staffKnowledge: scoreResult.breakdown.staffKnowledge,
-              crossContaminationPrevention: scoreResult.breakdown.crossContamination,
-              nutritionalInformation: scoreResult.breakdown.nutritionalInfo,
-              allergenManagement: scoreResult.breakdown.allergenManagement,
-              overallScore: scoreResult.overallScore
-            });
-
-            // Update restaurant's vegan score
-            await storage.updateRestaurant(restaurant.id, {
-              veganScore: scoreResult.overallScore.toString()
-            });
-
-            processed++;
-          }
-          
-          // Add delay between requests to respect rate limits
-          if (i < limit - 1) {
-            await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay
-          }
-        } catch (error) {
-          console.error(`Error scoring ${restaurant.name}:`, error);
-        }
-      }
-
-      res.json({ 
-        message: `Successfully calculated scores for ${processed} restaurants`,
-        processed,
-        total: restaurantsToScore.length,
-        remaining: restaurantsToScore.length - processed
-      });
-    } catch (error) {
-      console.error("Error in batch score calculation:", error);
-      res.status(500).json({ message: "Failed to calculate batch scores" });
-    }
-  });
-
-  // Recommendations routes
-  app.get('/api/recommendations', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { lat, lng, limit } = req.query;
-
-      if (!lat || !lng) {
-        return res.status(400).json({ message: "Location required for recommendations" });
-      }
-
-      const userLocation = {
-        lat: parseFloat(lat as string),
-        lng: parseFloat(lng as string)
-      };
-
-      const recommendations = await profileAgent.generatePersonalizedRecommendations(
-        userId,
-        userLocation,
-        limit ? parseInt(limit as string) : 10
-      );
-
-      // Get restaurant details for recommendations
-      const restaurantDetails = await Promise.all(
-        recommendations.map(id => storage.getRestaurant(id))
-      );
-
-      const validRestaurants = restaurantDetails.filter(r => r !== undefined);
-
-      // Track recommendations
-      await profileAgent.trackUserBehavior(userId, 'view_recommendations', {
-        recommendationsCount: validRestaurants.length,
-        location: userLocation
-      }, userLocation);
-
-      res.json(validRestaurants);
-    } catch (error) {
-      console.error("Error getting recommendations:", error);
-      res.status(500).json({ message: "Failed to get recommendations" });
-    }
-  });
-
-  // Analytics routes (protected - could add admin check)
-  app.get('/api/analytics/trends', isAuthenticated, async (req: any, res) => {
-    try {
-      const { limit } = req.query;
-      const trends = await analyticsAgent.getPopularTrends(
-        limit ? parseInt(limit as string) : 10
-      );
-      res.json(trends);
-    } catch (error) {
-      console.error("Error getting trends:", error);
-      res.status(500).json({ message: "Failed to get trends" });
-    }
-  });
-
-  // Admin route for improved scoring
-  app.post('/api/admin/improve-scoring', isAuthenticated, async (req: any, res) => {
-    try {
-      const { batchSize = 10, onlyLowScores = true } = req.body;
-      
-      // Get restaurants that need improved scoring
       let restaurants;
-      if (onlyLowScores) {
-        // Get restaurants with low scores (< 2.0) or no scores
-        const allRestaurants = await storage.getAllRestaurants();
-        restaurants = allRestaurants.filter(r => 
-          !r.veganScore || parseFloat(r.veganScore) < 2.0
-        ).slice(0, batchSize);
+      if (scoreStatus === 'unscored') {
+        restaurants = await storage.getUnscoredRestaurants(parseInt(limit as string), offset);
       } else {
-        const allRestaurants = await storage.getAllRestaurants();
-        restaurants = allRestaurants.slice(0, batchSize);
+        restaurants = await storage.getAllRestaurants(parseInt(limit as string), offset);
+      }
+      
+      const totalCount = await storage.getRestaurantCount();
+      const scoredCount = await storage.getScoredRestaurantCount();
+      
+      res.json({
+        restaurants,
+        pagination: {
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+          total: totalCount,
+          scored: scoredCount,
+          unscored: totalCount - scoredCount
+        }
+      });
+    } catch (error) {
+      console.error("Error getting admin restaurants:", error);
+      res.status(500).json({ message: "Failed to get restaurants" });
+    }
+  });
+
+  // Batch scoring endpoint
+  app.post('/api/admin/batch-score', isAuthenticated, async (req: any, res) => {
+    try {
+      const { restaurantIds, batchSize = 5 } = req.body;
+      
+      if (!restaurantIds || !Array.isArray(restaurantIds)) {
+        return res.status(400).json({ message: "Restaurant IDs array is required" });
       }
 
-      console.log(`Starting improved scoring for ${restaurants.length} restaurants`);
-      let processed = 0;
-      let improved = 0;
       const results = [];
-      
-      for (const restaurant of restaurants) {
-        try {
-          const oldScore = parseFloat(restaurant.veganScore || '0');
-          
-          // Calculate new score with improved algorithm
-          const scoreResult = await scoreAgent.calculateVeganScore(
-            restaurant.placeId,
-            restaurant.name,
-            restaurant.cuisineTypes
-          );
-          
-          // Update restaurant with new score
-          await storage.updateRestaurant(restaurant.id, {
-            veganScore: scoreResult.overallScore.toString()
-          });
-          
-          processed++;
-          if (scoreResult.overallScore > oldScore) {
-            improved++;
+      const errors = [];
+
+      // Process in smaller batches to avoid overwhelming the API
+      for (let i = 0; i < restaurantIds.length; i += batchSize) {
+        const batch = restaurantIds.slice(i, i + batchSize);
+        
+        const batchPromises = batch.map(async (id: string) => {
+          try {
+            const restaurant = await storage.getRestaurant(id);
+            if (!restaurant) {
+              throw new Error(`Restaurant ${id} not found`);
+            }
+
+            const scoreResult = await scoreAgent.calculateVeganScore(
+              restaurant.placeId || `sofia_rest_${restaurant.id}`,
+              restaurant.name,
+              restaurant.cuisineTypes || []
+            );
+
+            if (scoreResult) {
+              await storage.upsertVeganScoreBreakdown({
+                restaurantId: id,
+                menuVariety: scoreResult.breakdown.menuVariety,
+                ingredientClarity: scoreResult.breakdown.ingredientClarity,
+                staffKnowledge: scoreResult.breakdown.staffKnowledge,
+                crossContamination: scoreResult.breakdown.crossContamination,
+                nutritionalInfo: scoreResult.breakdown.nutritionalInfo,
+                allergenManagement: scoreResult.breakdown.allergenManagement,
+                overallScore: scoreResult.score
+              });
+
+              await storage.updateRestaurant(id, {
+                veganScore: scoreResult.score.toString()
+              });
+            }
+
+            return { id, success: true, score: scoreResult?.score };
+          } catch (error) {
+            console.error(`Error scoring restaurant ${id}:`, error);
+            return { id, success: false, error: error.message };
           }
-          
-          results.push({
-            name: restaurant.name,
-            oldScore,
-            newScore: scoreResult.overallScore,
-            reasoning: scoreResult.reasoning
-          });
-          
-          console.log(`Processed ${restaurant.name}: ${oldScore} → ${scoreResult.overallScore}`);
-          
-          // Add delay to respect API limits
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-        } catch (error) {
-          console.error(`Error processing ${restaurant.name}:`, error);
-          processed++;
-          results.push({
-            name: restaurant.name,
-            error: error.message
-          });
+        });
+
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults.filter(r => r.success));
+        errors.push(...batchResults.filter(r => !r.success));
+
+        // Add delay between batches to respect API limits
+        if (i + batchSize < restaurantIds.length) {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
         }
       }
-      
+
       res.json({
         success: true,
-        processed,
-        improved,
+        processed: results.length,
+        errors: errors.length,
         results,
-        message: `Processed ${processed} restaurants, improved ${improved} scores`
+        errors
       });
-      
-    } catch (error) {
-      console.error("Error in improved scoring:", error);
-      res.status(500).json({ message: "Failed to improve scoring" });
-    }
-  });
 
-  // Register API stats routes for cost monitoring
-  registerApiStatsRoutes(app);
-
-  // Admin API endpoints
-  app.get("/api/admin/database-stats", isAuthenticated, async (req: any, res) => {
-    try {
-      const allRestaurants = await storage.getAllRestaurants();
-      const withScores = allRestaurants.filter(r => parseFloat(r.veganScore || '0') > 0);
-      const pendingScores = allRestaurants.filter(r => parseFloat(r.veganScore || '0') === 0);
-      
-      const avgVeganScore = withScores.length > 0 ? 
-        withScores.reduce((sum, r) => sum + parseFloat(r.veganScore || '0'), 0) / withScores.length : 0;
-      
-      const highVeganFriendly = withScores.filter(r => parseFloat(r.veganScore || '0') >= 7.0).length;
-      const mediumVeganFriendly = withScores.filter(r => parseFloat(r.veganScore || '0') >= 4.0 && parseFloat(r.veganScore || '0') < 7.0).length;
-      const lowVeganFriendly = withScores.filter(r => parseFloat(r.veganScore || '0') > 0 && parseFloat(r.veganScore || '0') < 4.0).length;
-      
-      // Recently added (last 24 hours)
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const recentlyAdded = allRestaurants.filter(r => new Date(r.createdAt) > yesterday).length;
-      
-      res.json({
-        totalRestaurants: allRestaurants.length,
-        withScores: withScores.length,
-        pendingScores: pendingScores.length,
-        avgVeganScore,
-        highVeganFriendly,
-        mediumVeganFriendly,
-        lowVeganFriendly,
-        recentlyAdded
-      });
     } catch (error) {
-      console.error("Error fetching database stats:", error);
-      res.status(500).json({ message: "Failed to fetch database stats" });
-    }
-  });
-
-  app.get("/api/admin/cache-stats", isAuthenticated, async (req: any, res) => {
-    try {
-      // Return placeholder cache stats for now
-      const cacheStats = {
-        placesSearchHits: 1250,
-        placesSearchMisses: 180,
-        placeDetailsHits: 890,
-        placeDetailsMisses: 110,
-        photosHits: 650,
-        photosMisses: 85,
-        totalSavings: 127.50,
-        cacheHitRate: 0.87
-      };
-      res.json(cacheStats);
-    } catch (error) {
-      console.error("Error fetching cache stats:", error);
-      res.status(500).json({ message: "Failed to fetch cache stats" });
-    }
-  });
-
-  app.get("/api/admin/scoring-status", isAuthenticated, async (req: any, res) => {
-    try {
-      const allRestaurants = await storage.getAllRestaurants();
-      const pendingScores = allRestaurants.filter(r => parseFloat(r.veganScore || '0') === 0);
-      const withScores = allRestaurants.filter(r => parseFloat(r.veganScore || '0') > 0);
-      
-      if (pendingScores.length > 0) {
-        res.json({
-          id: 'current-scoring-job',
-          status: 'running',
-          totalRestaurants: allRestaurants.length,
-          completedRestaurants: withScores.length,
-          estimatedCompletion: new Date(Date.now() + (pendingScores.length * 2000)).toISOString(),
-          startedAt: new Date().toISOString()
-        });
-      } else {
-        res.json({
-          id: 'completed-scoring-job',
-          status: 'completed',
-          totalRestaurants: allRestaurants.length,
-          completedRestaurants: withScores.length,
-          estimatedCompletion: new Date().toISOString(),
-          startedAt: new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching scoring status:", error);
-      res.status(500).json({ message: "Failed to fetch scoring status" });
-    }
-  });
-
-  app.get("/api/admin/restaurants", isAuthenticated, async (req: any, res) => {
-    try {
-      const filter = req.query.filter || 'all';
-      const allRestaurants = await storage.getAllRestaurants();
-      
-      let filteredRestaurants = allRestaurants;
-      
-      switch (filter) {
-        case 'pending':
-          filteredRestaurants = allRestaurants.filter(r => parseFloat(r.veganScore || '0') === 0);
-          break;
-        case 'low':
-          filteredRestaurants = allRestaurants.filter(r => {
-            const score = parseFloat(r.veganScore || '0');
-            return score > 0 && score <= 2.0;
-          });
-          break;
-        case 'medium':
-          filteredRestaurants = allRestaurants.filter(r => {
-            const score = parseFloat(r.veganScore || '0');
-            return score > 2.0 && score <= 5.0;
-          });
-          break;
-        case 'high':
-          filteredRestaurants = allRestaurants.filter(r => parseFloat(r.veganScore || '0') > 5.0);
-          break;
-        default:
-          filteredRestaurants = allRestaurants;
-      }
-      
-      res.json(filteredRestaurants.slice(0, 50));
-    } catch (error) {
-      console.error("Error fetching restaurants:", error);
-      res.status(500).json({ message: "Failed to fetch restaurants" });
-    }
-  });
-
-  // Scoring weights management endpoints
-  app.get("/api/admin/scoring-weights", isAuthenticated, async (req: any, res) => {
-    try {
-      // Return default weights for now
-      const defaultWeights = {
-        id: 'default',
-        name: 'Default Configuration',
-        menuVarietyWeight: 0.25,
-        ingredientClarityWeight: 0.20,
-        staffKnowledgeWeight: 0.15,
-        crossContaminationWeight: 0.20,
-        nutritionalInformationWeight: 0.10,
-        allergenManagementWeight: 0.10,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      res.json(defaultWeights);
-    } catch (error) {
-      console.error("Error fetching scoring weights:", error);
-      res.status(500).json({ message: "Failed to fetch scoring weights" });
-    }
-  });
-
-  app.post("/api/admin/scoring-weights", isAuthenticated, async (req: any, res) => {
-    try {
-      const weights = req.body;
-      
-      // Validate that weights sum to 1.0
-      const total = Object.values(weights).reduce((sum: number, weight: any) => {
-        return typeof weight === 'number' ? sum + weight : sum;
-      }, 0);
-      
-      if (Math.abs(total - 1.0) > 0.001) {
-        return res.status(400).json({ 
-          message: `Total weights must equal 1.0 (currently ${total.toFixed(3)})` 
-        });
-      }
-      
-      // For now, just return success - in the future this would save to database
-      console.log('Updated scoring weights:', weights);
-      
-      res.json({ 
-        message: "Scoring weights updated successfully",
-        weights: {
-          ...weights,
-          id: 'updated-config',
-          name: 'Updated Configuration',
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      });
-    } catch (error) {
-      console.error("Error updating scoring weights:", error);
-      res.status(500).json({ message: "Failed to update scoring weights" });
+      console.error("Error in batch scoring:", error);
+      res.status(500).json({ message: "Failed to process batch scoring" });
     }
   });
 

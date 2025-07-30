@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { VoiceflowChat } from '@/components/voiceflow/VoiceflowChat';
+
 import Map from '@/components/map/Map';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
 import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
-import { MobileHeader } from '@/components/mobile/MobileHeaderFixed';
+import { MobileHeader } from '@/components/mobile/MobileHeaderClean';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
 interface Restaurant {
@@ -39,7 +39,7 @@ export default function Home() {
 
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [isVoiceflowOpen, setIsVoiceflowOpen] = useState(false);
+
   // Removed position state since we're using bottom footer
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
@@ -298,7 +298,6 @@ export default function Home() {
         showSuggestions={showSuggestions}
         onShowSuggestions={setShowSuggestions}
         searchSuggestions={searchSuggestions}
-        onOpenChat={() => setIsVoiceflowOpen(true)}
       />
 
       <div 
@@ -405,7 +404,7 @@ export default function Home() {
               variant="ghost" 
               className="w-9 h-9 sm:w-10 sm:h-10 p-0 hover:scale-105 transition-all duration-200"
               title="AI Assistant"
-              onClick={() => setIsVoiceflowOpen(true)}
+              onClick={() => alert('AI чат скоро ще бъде достъпен с Voiceflow интеграция')}
             >
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -682,11 +681,7 @@ export default function Home() {
       )}
       </div>
       
-      {/* AI Chat Modal */}
-      <VoiceflowChat 
-        isOpen={isVoiceflowOpen} 
-        onClose={() => setIsVoiceflowOpen(false)} 
-      />
+
     </>
   );
 }
