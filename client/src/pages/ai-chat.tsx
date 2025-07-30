@@ -1,146 +1,109 @@
 import { useState, useRef, useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import TabNavigation from '@/components/layout/TabNavigation';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
 }
 
-interface ChatResponse {
-  message: string;
-  suggestions?: string[];
-  restaurantRecommendations?: {
-    id: string;
-    name: string;
-    reason: string;
-  }[];
-}
-import { useToast } from '@/hooks/use-toast';
-
 export default function AiChat() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: 'assistant',
-      content: 'Hello! I\'m your vegan dining assistant. I can help you find great vegan-friendly restaurants, explain our scoring system, and provide personalized recommendations. What would you like to know?',
-      timestamp: new Date()
-    }
-  ]);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [conversationActive, setConversationActive] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
   const recognitionRef = useRef<any>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
   // Load chat history
   const { data: chatHistory } = useQuery({
     queryKey: ['/api/chat/history'],
-    staleTime: 1000 * 60, // 1 minute
+    retry: false,
   });
 
-  // Chat mutation
+  useEffect(() => {
+    if (chatHistory?.messages) {
+      setMessages(chatHistory.messages.map((msg: any) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      })));
+    }
+  }, [chatHistory]);
+
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest('POST', '/api/chat', { message });
-      return response.json() as Promise<ChatResponse>;
+      return await apiRequest('/api/chat', {
+        method: 'POST',
+        body: { message },
+      });
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: response.message,
+        content: response.response,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Speak the response
-      speakText(response.message);
-      
-      // Start listening for next question after AI responds
+      // Auto-speak if conversation is active
       if (conversationActive) {
-        setTimeout(() => {
-          if (conversationActive && !isSpeaking) {
-            startListening();
-          }
-        }, 1000); // Wait 1 second after AI starts speaking
+        await speakText(response.response);
       }
-    },
-    onError: (error) => {
-      toast({
-        title: 'Chat Error',
-        description: 'Failed to send message. Please try again.',
-        variant: 'destructive',
-      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
   });
 
-  // Initialize chat history
-  useEffect(() => {
-    if (chatHistory && typeof chatHistory === 'object' && 'messages' in chatHistory && Array.isArray((chatHistory as any).messages)) {
-      setMessages((chatHistory as any).messages);
-    } else {
-      // Add welcome message if no history
-      setMessages([
-        {
-          role: 'assistant',
-          content: "Hello! I'm your VeganAI assistant. I can help you find amazing vegan places, explain our scoring system, and answer any questions about plant-based dining. How can I help you today?",
-          timestamp: new Date(),
-        }
-      ]);
+  const clearChat = async () => {
+    try {
+      await apiRequest('/api/chat/clear', { method: 'POST' });
+      setMessages([]);
+      endConversation();
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
+    } catch (error) {
+      console.error('Failed to clear chat:', error);
     }
-  }, [chatHistory]);
+  };
 
-  // Auto-scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  const handleQuickQuestion = async (question: string) => {
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: question,
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+    await chatMutation.mutateAsync(question);
+  };
 
-  const handleSendMessage = async () => {
-    if (!currentMessage.trim()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentMessage.trim() || chatMutation.isPending) return;
 
     const userMessage: ChatMessage = {
       role: 'user',
       content: currentMessage.trim(),
       timestamp: new Date(),
     };
-
     setMessages(prev => [...prev, userMessage]);
-    setCurrentMessage('');
-
-    await chatMutation.mutateAsync(currentMessage.trim());
-  };
-
-  const handleQuickQuestion = (question: string) => {
-    setCurrentMessage(question);
-    handleSendMessage();
-  };
-
-  const clearChat = () => {
-    setMessages([
-      {
-        role: 'assistant',
-        content: 'Hello! I\'m your vegan dining assistant. I can help you find great vegan-friendly restaurants, explain our scoring system, and provide personalized recommendations. What would you like to know?',
-        timestamp: new Date()
-      }
-    ]);
+    const messageToSend = currentMessage.trim();
     setCurrentMessage('');
     
-    // End any active conversation
-    if (conversationActive) {
-      endConversation();
-    }
+    await chatMutation.mutateAsync(messageToSend);
   };
 
+  // Voice conversation functions
   const startListening = () => {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
@@ -212,28 +175,17 @@ export default function AiChat() {
           endConversation();
           break;
         case 'no-speech':
-          // Restart listening after no speech detected - don't show error
-          if (conversationActive) {
-            setTimeout(() => {
-              if (conversationActive) {
-                startListening();
-              }
-            }, 1000);
-          }
-          return;
+          errorMessage = 'Не беше открита реч. Опитайте отново.';
+          break;
         case 'audio-capture':
           errorMessage = 'Проблем с микрофона. Проверете дали е свързан правилно.';
-          endConversation();
           break;
         case 'network':
           errorMessage = 'Мрежова грешка. Проверете интернет връзката си.';
           break;
-        case 'aborted':
-          // Normal stop, don't show error
-          return;
       }
       
-      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+      if (event.error !== 'no-speech') {
         toast({
           title: 'Грешка с гласа',
           description: errorMessage,
@@ -244,14 +196,6 @@ export default function AiChat() {
 
     recognition.onend = () => {
       setIsListening(false);
-      if (conversationActive && !chatMutation.isPending) {
-        // Restart listening immediately after speech recognition ends
-        setTimeout(() => {
-          if (conversationActive) {
-            startListening();
-          }
-        }, 500);
-      }
     };
 
     try {
@@ -415,109 +359,45 @@ export default function AiChat() {
     }
   };
 
-    recognition.onresult = async (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setCurrentMessage(transcript);
-      setIsRecording(false);
-      
-      if (transcript.trim()) {
-        const userMessage: ChatMessage = {
-          role: 'user',
-          content: transcript.trim(),
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, userMessage]);
-        setCurrentMessage('');
-        
-        await chatMutation.mutateAsync(transcript.trim());
+  const speakText = async (text: string) => {
+    return new Promise<void>((resolve) => {
+      if (!('speechSynthesis' in window)) {
+        console.log('Speech synthesis not supported');
+        resolve();
+        return;
       }
-    };
 
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      setIsRecording(false);
+      window.speechSynthesis.cancel();
       
-      let errorMessage = 'Грешка при гласовото разпознаване';
-      switch (event.error) {
-        case 'not-allowed':
-          errorMessage = 'Достъпът до микрофона е отказан. Моля, разрешете достъп в браузъра си.';
-          break;
-        case 'no-speech':
-          errorMessage = 'Не беше открита реч. Опитайте отново.';
-          break;
-        case 'audio-capture':
-          errorMessage = 'Проблем с микрофона. Проверете дали е свързан правилно.';
-          break;
-        case 'network':
-          errorMessage = 'Мрежова грешка. Проверете интернет връзката си.';
-          break;
-      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'bg-BG';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
       
-      if (event.error !== 'no-speech') {
-        toast({
-          title: 'Грешка с гласа',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      }
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
-    try {
-      recognition.start();
-    } catch (error) {
-      console.error('Failed to start voice recording:', error);
-      setIsRecording(false);
-      setConversationActive(false);
-      toast({
-        title: 'Грешка при стартиране',
-        description: 'Не можа да се стартира гласовото записване.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const speakText = (text: string) => {
-    if (!('speechSynthesis' in window)) {
-      console.warn('Speech synthesis not supported');
-      return;
-    }
-
-    // Stop any current speech
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'bg-BG'; // Bulgarian
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
-    utterance.volume = 0.8;
-
-    utterance.onstart = () => {
       setIsSpeaking(true);
-    };
 
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      
-      // Start listening for next question after AI finishes speaking
-      if (conversationActive) {
-        setTimeout(() => {
-          if (conversationActive) {
-            startListening();
-          }
-        }, 1000); // Wait 1 second after AI finishes speaking
-      }
-    };
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        resolve();
+        
+        // Start listening for next question after AI finishes speaking
+        if (conversationActive) {
+          setTimeout(() => {
+            if (conversationActive) {
+              startListening();
+            }
+          }, 1000); // Wait 1 second after AI finishes speaking
+        }
+      };
 
-    utterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event.error);
-      setIsSpeaking(false);
-    };
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event.error);
+        setIsSpeaking(false);
+        resolve();
+      };
 
-    window.speechSynthesis.speak(utterance);
+      window.speechSynthesis.speak(utterance);
+    });
   };
 
   const stopSpeaking = () => {
@@ -657,89 +537,93 @@ export default function AiChat() {
           ))}
           
           {chatMutation.isPending && (
-            <div className="chat-message flex items-start">
-              <div className="w-8 h-8 bg-vegan-green rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+            <div className="flex items-start">
+              <div className="w-8 h-8 rounded-full bg-vegan-green flex items-center justify-center mr-3 flex-shrink-0 animate-pulse">
                 <i className="fas fa-robot text-white text-sm"></i>
               </div>
-              <div className="bg-vegan-light-green rounded-2xl rounded-tl-md p-4 max-w-xs">
+              <div className="bg-vegan-light-green rounded-2xl rounded-tl-md p-4 max-w-xs md:max-w-sm">
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                 </div>
               </div>
             </div>
           )}
-          
-          <div ref={messagesEndRef} />
         </div>
-        
-        {/* Quick Action Buttons */}
-        {messages.length <= 1 && (
-          <div className="flex flex-wrap gap-2 justify-center py-4 mt-6">
-            {quickQuestions.map((question) => (
-              <Button
-                key={question}
-                variant="outline"
-                onClick={() => handleQuickQuestion(question)}
-                className="bg-white border border-vegan-green text-vegan-green px-4 py-2 rounded-full text-sm font-opensans font-medium hover:bg-vegan-light-green transition-colors"
-              >
-                {question}
-              </Button>
-            ))}
-          </div>
-        )}
       </div>
-      
-      {/* Chat Input */}
-      <div className="border-t border-gray-200 p-4 bg-white">
+
+      {/* Fixed bottom section with voice button and text input */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center space-x-3">
-            <div className="flex-1 relative">
-              <Input
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder="Ask me anything about vegan dining..."
-                className="w-full p-4 pr-12 border border-gray-200 rounded-2xl outline-none focus:border-vegan-green transition-colors font-opensans"
-                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                disabled={chatMutation.isPending}
-              />
-              {/* Send Button in Input */}
-              <Button
-                variant="ghost"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 px-3 py-1 text-gray-500 hover:text-vegan-green transition-colors font-medium text-sm"
-                onClick={handleSendMessage}
-                disabled={!currentMessage.trim() || chatMutation.isPending}
-                title="Send Message"
-              >
-                Send
-              </Button>
-            </div>
-            {/* Microphone Button Outside */}
-            <Button
-              variant="ghost"
-              className="w-10 h-10 p-0"
-              title={conversationActive ? "End Voice Conversation" : "Start Voice Conversation"}
+          {/* Voice Recording Button */}
+          <div className="flex items-center justify-center mb-6">
+            <button
               onClick={handleVoiceRecording}
-              disabled={chatMutation.isPending}
+              disabled={chatMutation.isPending || isSpeaking}
+              className={`
+                p-6 rounded-full border-2 transition-all duration-200 text-2xl
+                ${conversationActive
+                  ? 'bg-red-500 border-red-500 text-white hover:bg-red-600'
+                  : isRecording
+                    ? 'bg-red-500 border-red-500 text-white animate-pulse'
+                    : isSpeaking
+                      ? 'bg-orange-500 border-orange-500 text-white'
+                      : 'bg-green-500 border-green-500 text-white hover:bg-green-600'
+                }
+                disabled:opacity-50 disabled:cursor-not-allowed
+                touch-manipulation active:scale-95
+              `}
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
+              }}
             >
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                conversationActive 
-                  ? (isRecording || isListening) 
-                    ? 'bg-red-500 animate-pulse' 
-                    : 'bg-orange-500'
-                  : 'bg-green-500'
-              }`}>
-                <span className="text-white text-lg font-bold">
-                  {conversationActive ? (isListening ? '👂' : '🎤') : '🎤'}
-                </span>
-              </div>
-            </Button>
+              🎤
+            </button>
           </div>
+
+          {/* Status Messages */}
+          <div className="text-center mb-4">
+            {isListening && (
+              <p className="text-sm text-blue-600 animate-pulse">🎙️ Слушам...</p>
+            )}
+            {isSpeaking && (
+              <p className="text-sm text-orange-600 animate-pulse">🗣️ Говоря...</p>
+            )}
+            {conversationActive && !isListening && !isSpeaking && (
+              <p className="text-sm text-green-600">✅ Готов за разговор</p>
+            )}
+            {!conversationActive && (
+              <p className="text-sm text-gray-500">Кликнете микрофона за гласов разговор</p>
+            )}
+          </div>
+
+          {/* Text Input Form */}
+          <form onSubmit={handleSubmit} className="flex gap-3">
+            <Textarea
+              value={currentMessage}
+              onChange={(e) => setCurrentMessage(e.target.value)}
+              placeholder="Напишете съобщение..."
+              className="flex-1 resize-none min-h-[44px] max-h-[120px]"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+            />
+            <Button 
+              type="submit" 
+              disabled={!currentMessage.trim() || chatMutation.isPending}
+              className="bg-vegan-green hover:bg-vegan-green/90 text-white px-6"
+            >
+              Send
+            </Button>
+          </form>
         </div>
       </div>
-      
-      <TabNavigation currentTab="agent" />
     </div>
   );
 }
