@@ -508,8 +508,9 @@ export default function AiChat() {
         return;
       }
 
-      console.log('Starting speech synthesis for:', text);
-      console.log('Speech synthesis supported:', 'speechSynthesis' in window);
+      console.log('🎯 Starting speech synthesis for:', text.substring(0, 50) + '...');
+      console.log('🔍 Speech synthesis supported:', 'speechSynthesis' in window);
+      console.log('🔍 Current synthesis state - speaking:', window.speechSynthesis.speaking, 'pending:', window.speechSynthesis.pending);
       
       // Force load voices on first use
       let availableVoices = window.speechSynthesis.getVoices();
@@ -559,13 +560,14 @@ export default function AiChat() {
       
       // Add onstart handler for debugging
       utterance.onstart = () => {
-        console.log('Speech synthesis started successfully');
+        console.log('✅ Speech synthesis started successfully');
         setIsSpeaking(true);
       };
       
       setIsSpeaking(true);
 
       utterance.onend = () => {
+        console.log('🏁 Speech synthesis ended successfully');
         setIsSpeaking(false);
         resolve();
         
@@ -573,6 +575,7 @@ export default function AiChat() {
         if (conversationActive) {
           setTimeout(() => {
             if (conversationActive) {
+              console.log('🎤 Continuing conversation after speech ended');
               startWhisperRecording();
             }
           }, 2000); // Wait 2 seconds after AI finishes speaking - user preference
@@ -580,7 +583,7 @@ export default function AiChat() {
       };
 
       utterance.onerror = (event) => {
-        console.error('Speech synthesis error:', event.error);
+        console.error('❌ Speech synthesis error:', event.error, event);
         setIsSpeaking(false);
         resolve();
         
@@ -588,6 +591,7 @@ export default function AiChat() {
         if (conversationActive) {
           setTimeout(() => {
             if (conversationActive) {
+              console.log('🎤 Continuing conversation after speech error');
               startWhisperRecording();
             }
           }, 2000); // Consistent 2-second delay for all scenarios
@@ -608,15 +612,29 @@ export default function AiChat() {
         });
         
         window.speechSynthesis.speak(utterance);
-        console.log('Speech synthesis speak() called successfully');
+        console.log('📢 Speech synthesis speak() called successfully');
         
-        // Force start if not speaking after brief delay
+        // Check if speech started after delay
         setTimeout(() => {
-          if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-            console.log('Speech not started, trying resume...');
+          const speaking = window.speechSynthesis.speaking;
+          const pending = window.speechSynthesis.pending;
+          console.log('🔍 After 300ms - speaking:', speaking, 'pending:', pending);
+          
+          if (!speaking && !pending) {
+            console.log('⚠️ Speech not started, trying resume...');
             window.speechSynthesis.resume();
+            
+            // Check again after resume
+            setTimeout(() => {
+              console.log('🔍 After resume - speaking:', window.speechSynthesis.speaking, 'pending:', window.speechSynthesis.pending);
+              if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+                console.log('💥 Speech completely failed to start');
+                setIsSpeaking(false);
+                resolve();
+              }
+            }, 100);
           }
-        }, 200);
+        }, 300);
         
       } catch (error) {
         console.error('Error calling speechSynthesis.speak():', error);
