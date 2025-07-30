@@ -577,8 +577,26 @@ export default function AiChat() {
       
       // Important: Start speaking immediately after user interaction
       try {
+        console.log('About to call speechSynthesis.speak() with text:', text.substring(0, 50) + '...');
+        console.log('Utterance settings:', {
+          lang: utterance.lang,
+          rate: utterance.rate,
+          pitch: utterance.pitch,
+          volume: utterance.volume,
+          voice: utterance.voice ? utterance.voice.name : 'default'
+        });
+        
         window.speechSynthesis.speak(utterance);
         console.log('Speech synthesis speak() called successfully');
+        
+        // Force start if not speaking after brief delay
+        setTimeout(() => {
+          if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+            console.log('Speech not started, trying resume...');
+            window.speechSynthesis.resume();
+          }
+        }, 200);
+        
       } catch (error) {
         console.error('Error calling speechSynthesis.speak():', error);
         resolve();
@@ -606,6 +624,9 @@ export default function AiChat() {
     console.log('1. speechSynthesis supported:', 'speechSynthesis' in window);
     
     if ('speechSynthesis' in window) {
+      // Cancel any pending speech
+      window.speechSynthesis.cancel();
+      
       console.log('2. Current speaking status:', window.speechSynthesis.speaking);
       console.log('3. Current pending status:', window.speechSynthesis.pending);
       console.log('4. Current paused status:', window.speechSynthesis.paused);
@@ -614,18 +635,47 @@ export default function AiChat() {
       console.log('5. Available voices count:', voices.length);
       console.log('6. Available voices:', voices.map(v => `${v.name} (${v.lang})`));
       
-      // Test simple utterance
-      const testUtterance = new SpeechSynthesisUtterance('Тестов текст');
-      testUtterance.onstart = () => console.log('TEST: Speech started');
-      testUtterance.onend = () => console.log('TEST: Speech ended');
-      testUtterance.onerror = (e) => console.log('TEST: Speech error:', e);
+      // Test simple utterance with Bulgarian text
+      const testUtterance = new SpeechSynthesisUtterance('Здравей, това е тест на речевия синтез');
+      testUtterance.lang = 'bg-BG';
+      testUtterance.rate = 0.8;
+      testUtterance.pitch = 1.0;
+      testUtterance.volume = 1.0;
       
-      console.log('7. Testing simple speech...');
-      window.speechSynthesis.speak(testUtterance);
+      // Find and use Bulgarian voice if available
+      const bgVoice = voices.find(voice => voice.lang.startsWith('bg'));
+      if (bgVoice) {
+        testUtterance.voice = bgVoice;
+        console.log('7. Using Bulgarian voice:', bgVoice.name);
+      } else {
+        console.log('7. No Bulgarian voice found, using default');
+      }
       
-      setTimeout(() => {
-        console.log('8. After 1s - speaking:', window.speechSynthesis.speaking);
-      }, 1000);
+      testUtterance.onstart = () => {
+        console.log('TEST: Speech started successfully');
+        setIsSpeaking(true);
+      };
+      testUtterance.onend = () => {
+        console.log('TEST: Speech ended successfully');
+        setIsSpeaking(false);
+      };
+      testUtterance.onerror = (e) => {
+        console.log('TEST: Speech error:', e.error, e);
+        setIsSpeaking(false);
+      };
+      
+      console.log('8. Starting speech test...');
+      try {
+        window.speechSynthesis.speak(testUtterance);
+        console.log('9. Speech synthesis speak() called');
+        
+        setTimeout(() => {
+          console.log('10. After 1s - speaking:', window.speechSynthesis.speaking);
+          console.log('11. After 1s - pending:', window.speechSynthesis.pending);
+        }, 1000);
+      } catch (error) {
+        console.error('TEST: Error calling speak():', error);
+      }
     }
     console.log('=== END TEST ===');
   };
