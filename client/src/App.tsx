@@ -17,6 +17,7 @@ import AdminImprove from "@/pages/admin-improve";
 import AdminPanel from "@/pages/admin-panel";
 import ApiStats from "@/pages/api-stats";
 import Favorites from "@/pages/favorites";
+import AiChat from "@/pages/ai-chat";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -55,6 +56,7 @@ function Router() {
           <Route path="/admin-improve" component={AdminImprove} />
           <Route path="/admin" component={AdminPanel} />
           <Route path="/api-stats" component={ApiStats} />
+          <Route path="/ai-chat" component={AiChat} />
         </>
       )}
       <Route component={NotFound} />
