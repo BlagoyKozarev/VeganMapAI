@@ -624,16 +624,16 @@ export default function AiChat() {
                 type="button"
                 onClick={handleVoiceRecording}
                 disabled={chatMutation.isPending}
-                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-all ${
+                className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10 ${
                   conversationActive
                     ? 'bg-red-500 hover:bg-red-600 text-white'
                     : isListening
                     ? 'bg-blue-500 text-white animate-pulse'
                     : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
                 }`}
-                title={conversationActive ? 'Stop conversation' : 'Start voice conversation'}
+                title={conversationActive ? 'Спри разговора' : 'Започни гласов разговор'}
               >
-                <i className={`fas ${conversationActive ? 'fa-stop' : 'fa-microphone'} text-sm`}></i>
+                <i className={`fas ${conversationActive ? 'fa-stop' : 'fa-microphone'} text-xs`}></i>
               </button>
             </div>
             <Button 
