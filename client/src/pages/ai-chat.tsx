@@ -34,8 +34,8 @@ export default function AiChat() {
   });
 
   useEffect(() => {
-    if (chatHistory?.messages) {
-      setMessages(chatHistory.messages.map((msg: any) => ({
+    if (chatHistory && typeof chatHistory === 'object' && 'messages' in chatHistory && Array.isArray((chatHistory as any).messages)) {
+      setMessages((chatHistory as any).messages.map((msg: any) => ({
         ...msg,
         timestamp: new Date(msg.timestamp)
       })));
@@ -44,12 +44,15 @@ export default function AiChat() {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      return await apiRequest('/api/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
-        body: { message },
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
       });
+      if (!response.ok) throw new Error('Failed to send message');
+      return await response.json();
     },
-    onSuccess: async (response) => {
+    onSuccess: async (response: any) => {
       const assistantMessage: ChatMessage = {
         role: 'assistant',
         content: response.response,
@@ -68,7 +71,8 @@ export default function AiChat() {
 
   const clearChat = async () => {
     try {
-      await apiRequest('/api/chat/clear', { method: 'POST' });
+      const response = await fetch('/api/chat/clear', { method: 'POST' });
+      if (!response.ok) throw new Error('Failed to clear chat');
       setMessages([]);
       endConversation();
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
@@ -238,36 +242,63 @@ export default function AiChat() {
   };
 
   const handleVoiceRecording = async () => {
-    // More detailed browser support check for mobile
+    // Detailed browser support check for mobile
     const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
     
-    console.log('Browser support check:', {
+    console.log('Detailed browser support check:', {
       hasSpeechRecognition,
       isMobile,
+      isIOS,
+      isAndroid,
       userAgent: navigator.userAgent,
-      isSecureContext: window.isSecureContext
+      isSecureContext: window.isSecureContext,
+      location: window.location.href,
+      mediaDevicesSupported: navigator.mediaDevices ? true : false
     });
 
+    // Enhanced mobile browser checks
     if (!hasSpeechRecognition) {
+      let browserMessage = 'Браузърът не поддържа гласово разпознаване.';
+      
+      if (isIOS) {
+        browserMessage = 'Използвайте Safari на iOS за най-добра поддръжка на гласовото разпознаване.';
+      } else if (isAndroid) {
+        browserMessage = 'Използвайте Chrome на Android устройство за гласово разпознаване.';
+      } else if (isMobile) {
+        browserMessage = 'Опитайте с Chrome на Android или Safari на iOS устройство.';
+      }
+      
       toast({
         title: 'Гласът не се поддържа',
-        description: isMobile 
-          ? 'Опитайте с Chrome на Android или Safari на iOS устройство.'
-          : 'Браузърът ви не поддържа гласово разпознаване.',
+        description: browserMessage,
         variant: 'destructive',
       });
       return;
     }
 
-    // Check for HTTPS requirement on mobile
-    if (isMobile && !window.isSecureContext) {
-      toast({
-        title: 'Изисква се сигурна връзка',
-        description: 'Гласовото разпознаване работи само през HTTPS връзка.',
-        variant: 'destructive',
-      });
-      return;
+    // Enhanced HTTPS and permission checks for mobile
+    if (isMobile) {
+      if (!window.isSecureContext) {
+        toast({
+          title: 'Изисква се сигурна връзка',
+          description: 'Гласовото разпознаване работи само през HTTPS връзка. Отворете в браузър с https://',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Additional mobile-specific checks
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast({
+          title: 'Медийният достъп не се поддържа',
+          description: 'Вашият мобилен браузър не поддържа достъп до микрофон.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     if (conversationActive) {
@@ -287,13 +318,24 @@ export default function AiChat() {
       // Try to get media stream permission first
       let stream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
+        // Enhanced mobile microphone request with fallbacks
+        const audioConstraints = isMobile ? {
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 16000, // Lower sample rate for mobile
+            channelCount: 1
+          }
+        } : {
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true
-          } 
-        });
+          }
+        };
+        
+        stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
         console.log('Microphone access granted');
         
         // Stop the stream immediately - we just needed permission
