@@ -56,16 +56,18 @@ export default function AiChat() {
       return await response.json();
     },
     onSuccess: async (response: any) => {
+      const aiMessage = response.message || response.response;
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: response.response,
+        content: aiMessage,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, assistantMessage]);
       
       // Auto-speak if conversation is active
       if (conversationActive) {
-        await speakText(response.response);
+        console.log('Voice conversation active, speaking response:', aiMessage);
+        await speakText(aiMessage);
       }
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
@@ -476,6 +478,9 @@ export default function AiChat() {
       }
 
       console.log('Starting speech synthesis for:', text);
+      console.log('Speech synthesis supported:', 'speechSynthesis' in window);
+      console.log('Available voices:', window.speechSynthesis.getVoices().length);
+      
       window.speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(text);
