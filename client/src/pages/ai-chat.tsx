@@ -145,7 +145,7 @@ export default function AiChat() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       toast({
         title: 'Гласово разпознаване не се поддържа',
-        description: 'Вашият браузър не поддържа гласово разпознаване.',
+        description: 'Вашият браузър не поддържа гласово разпознаване. Опитайте с Chrome или Safari.',
         variant: 'destructive',
       });
       return;
@@ -166,6 +166,13 @@ export default function AiChat() {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
     recognition.continuous = false;
+    
+    // Mobile-specific settings
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      // On mobile, use shorter timeouts
+      recognition.grammars = null;
+    }
 
     recognition.onresult = async (event: any) => {
       const transcript = event.results[0][0].transcript;
@@ -304,8 +311,40 @@ export default function AiChat() {
     }
 
     try {
-      // Request microphone permission first
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Check if we're on mobile and request permission differently
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // On mobile, try to request permission more explicitly
+        console.log('Mobile device detected, requesting microphone permission...');
+        
+        // Check if permissions API is available
+        if ('permissions' in navigator) {
+          const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          console.log('Microphone permission state:', permission.state);
+          
+          if (permission.state === 'denied') {
+            toast({
+              title: 'Достъп отказан',
+              description: 'Микрофонът е блокиран. Отидете в настройките на браузъра и разрешете достъп.',
+              variant: 'destructive',
+            });
+            return;
+          }
+        }
+      }
+      
+      // Request microphone permission
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
+      
+      // Stop the stream immediately - we just needed permission
+      stream.getTracks().forEach(track => track.stop());
       
       // Start continuous conversation
       setConversationActive(true);
@@ -317,9 +356,21 @@ export default function AiChat() {
       });
     } catch (error) {
       console.error('Microphone permission error:', error);
+      
+      let errorMessage = 'Моля, разрешете достъп до микрофона в браузъра си.';
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          errorMessage = 'Достъпът до микрофона е отказан. Проверете настройките на браузъра.';
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = 'Микрофон не е намерен. Проверете дали устройството има микрофон.';
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage = 'Браузърът не поддържа достъп до микрофон.';
+        }
+      }
+      
       toast({
         title: 'Няма достъп до микрофон',
-        description: 'Моля, разрешете достъп до микрофона в браузъра си.',
+        description: errorMessage,
         variant: 'destructive',
       });
       return;
@@ -332,6 +383,13 @@ export default function AiChat() {
     recognition.lang = 'bg-BG';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
+    recognition.continuous = false;
+    
+    // Mobile-specific settings for better performance
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      console.log('Mobile device detected for voice recording');
+    }
 
     recognition.onresult = async (event: any) => {
       const transcript = event.results[0][0].transcript;
