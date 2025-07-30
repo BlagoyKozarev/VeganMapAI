@@ -66,9 +66,30 @@ export default function AiChat() {
       
       // Auto-speak if conversation is active
       if (conversationActive) {
-        console.log('Voice conversation active, speaking response:', aiMessage);
-        console.log('Attempting to start speech synthesis...');
-        await speakText(aiMessage);
+        console.log('🔊 Voice conversation active, speaking response:', aiMessage.substring(0, 50) + '...');
+        console.log('🎯 Attempting to start speech synthesis...');
+        try {
+          await speakText(aiMessage);
+          console.log('✅ Speech synthesis completed successfully');
+          
+          // Continue listening after AI responds - 2 second delay per user preference
+          setTimeout(() => {
+            if (conversationActive && !isSpeaking) {
+              console.log('🎤 Restarting voice recording after 2 seconds');
+              startWhisperRecording();
+            }
+          }, 2000);
+        } catch (error) {
+          console.error('❌ Speech synthesis failed:', error);
+          
+          // Still continue conversation even if TTS fails
+          setTimeout(() => {
+            if (conversationActive && !isSpeaking) {
+              console.log('🎤 Restarting voice recording after TTS error');
+              startWhisperRecording();
+            }
+          }, 2000);
+        }
       }
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
