@@ -204,7 +204,7 @@ export default function AiChat() {
           break;
         case 'service-not-allowed':
           errorMessage = isMobile 
-            ? 'Гласовото разпознаване не работи в този браузър. Опитайте с Chrome на Android или Safari на iOS.'
+            ? 'Гласовото разпознаване не се поддържа на мобилни устройства в момента. Използвайте текстовото поле за съобщения.'
             : 'Гласовото разпознаване не е разрешено за този сайт.';
           endConversation();
           break;
@@ -330,19 +330,17 @@ export default function AiChat() {
         startListening();
       }, 300);
       
-      // Show additional help for mobile users
+      // Show mobile fallback message after delay
       if (isMobile) {
         setTimeout(() => {
-          toast({
-            title: 'Мобилен съвет',
-            description: isIOS 
-              ? 'Ако не работи, опитайте в Safari браузър.'
-              : isAndroid 
-                ? 'Ако не работи, опитайте в Chrome браузър.'
-                : 'Ако не работи, опитайте в Chrome или Safari.',
-            variant: 'default',
-          });
-        }, 3000);
+          if (!conversationActive) { // Only show if speech recognition failed
+            toast({
+              title: 'Алтернатива за мобилни',
+              description: 'Ако гласът не работи, използвайте текстовото поле в долната част на екрана.',
+              variant: 'default',
+            });
+          }
+        }, 5000);
       }
       
     } catch (error) {
@@ -584,7 +582,9 @@ export default function AiChat() {
             <p className="text-xs text-gray-500 text-center max-w-xs">
               {conversationActive 
                 ? 'Говорете сега на български'
-                : 'Натиснете за гласов разговор'
+                : isMobile
+                  ? 'Натиснете за гласов разговор (или използвайте текстовото поле)'
+                  : 'Натиснете за гласов разговор'
               }
             </p>
           </div>
@@ -605,26 +605,49 @@ export default function AiChat() {
             )}
           </div>
 
-          {/* Text Input Form */}
+          {/* Enhanced Text Input Form for Mobile */}
           <form onSubmit={handleSubmit} className="flex gap-3">
-            <Textarea
-              value={currentMessage}
-              onChange={(e) => setCurrentMessage(e.target.value)}
-              placeholder="Напишете съобщение..."
-              className="flex-1 resize-none min-h-[44px] max-h-[120px]"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
+            <div className="flex-1 relative">
+              <Textarea
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                placeholder={isMobile 
+                  ? "Напишете въпроса си тук..." 
+                  : "Напишете съобщение..."
                 }
-              }}
-            />
+                className={`
+                  flex-1 resize-none min-h-[44px] max-h-[120px] pr-12
+                  ${isMobile ? 'text-base' : 'text-sm'}
+                `}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+                style={{
+                  fontSize: isMobile ? '16px' : '14px', // Prevent zoom on mobile
+                }}
+              />
+              {isMobile && currentMessage.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentMessage('')}
+                  className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
             <Button 
               type="submit" 
               disabled={!currentMessage.trim() || chatMutation.isPending}
-              className="bg-vegan-green hover:bg-vegan-green/90 text-white px-6"
+              className={`
+                bg-vegan-green hover:bg-vegan-green/90 text-white px-6
+                ${isMobile ? 'text-base min-w-[80px]' : 'text-sm px-6'}
+              `}
             >
-              Send
+              {chatMutation.isPending ? '...' : 'Изпрати'}
             </Button>
           </form>
         </div>
