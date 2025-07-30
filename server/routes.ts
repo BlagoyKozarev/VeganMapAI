@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { registerApiStatsRoutes } from "./routes/api-stats";
 import { Client } from '@googlemaps/google-maps-services-js';
+import multer from 'multer';
 import { 
   mapAgent, 
   searchAgent, 
@@ -414,6 +415,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error clearing chat history:", error);
       res.status(500).json({ message: "Failed to clear chat history" });
+    }
+  });
+
+  // Configure multer for audio file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    fileFilter: (req, file, cb) => {
+      // Allow audio files
+      if (file.mimetype.startsWith('audio/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only audio files are allowed'));
+      }
+    }
+  });
+
+  // Whisper API speech-to-text endpoint
+  app.post('/api/speech-to-text', isAuthenticated, upload.single('audio'), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "Audio file is required" });
+      }
+      
+      const audioFile = req.file;
+      const language = req.body.language || 'bg';
+      
+      console.log(`Processing speech-to-text for user ${userId}, file size: ${audioFile.size} bytes`);
+      
+      // Create FormData for OpenAI Whisper API
+      const formData = new FormData();
+      
+      // Convert buffer to blob for FormData
+      const audioBlob = new Blob([audioFile.buffer], { type: audioFile.mimetype });
+      formData.append('file', audioBlob, audioFile.originalname || 'recording.webm');
+      formData.append('model', 'whisper-1');
+      formData.append('language', language);
+      formData.append('response_format', 'json');
+      
+      // Call OpenAI Whisper API
+      const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: formData,
+      });
+      
+      if (!whisperResponse.ok) {
+        const errorData = await whisperResponse.text();
+        console.error('Whisper API error:', whisperResponse.status, errorData);
+        throw new Error(`Whisper API failed: ${whisperResponse.status}`);
+      }
+      
+      const transcription = await whisperResponse.json();
+      
+      // Track speech-to-text usage
+      await profileAgent.trackUserBehavior(userId, 'speech_to_text', {
+        audioLength: audioFile.size,
+        language,
+        transcriptionLength: transcription.text?.length || 0
+      });
+      
+      console.log(`Whisper transcription for user ${userId}:`, transcription.text);
+      
+      res.json({
+        text: transcription.text,
+        language: transcription.language,
+        duration: transcription.duration
+      });
+      
+    } catch (error) {
+      console.error("Error in speech-to-text:", error);
+      res.status(500).json({ 
+        message: "Failed to transcribe audio",
+        error: error.message 
+      });
     }
   });
 
