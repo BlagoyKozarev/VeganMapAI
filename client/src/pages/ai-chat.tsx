@@ -1,10 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/hooks/use-toast';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -14,21 +13,33 @@ interface ChatMessage {
 
 export default function AiChat() {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [currentMessage, setCurrentMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState('');
+  const [conversationActive, setConversationActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [conversationActive, setConversationActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
-  const recognitionRef = useRef<any>(null);
+  const queryClient = useQueryClient();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Mobile detection
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const quickQuestions = [
+    "Какви са най-добрите веган ресторанти в София?",
+    "Кажи ми за ресторанти с високи веган оценки",
+    "Къде мога да намеря веган пица в центъра?",
+    "Препоръчай ми място за веган закуска"
+  ];
 
   // Load chat history
   const { data: chatHistory } = useQuery({
@@ -37,8 +48,8 @@ export default function AiChat() {
   });
 
   useEffect(() => {
-    if (chatHistory && typeof chatHistory === 'object' && 'messages' in chatHistory && Array.isArray((chatHistory as any).messages)) {
-      setMessages((chatHistory as any).messages.map((msg: any) => ({
+    if (chatHistory?.messages) {
+      setMessages(chatHistory.messages.map((msg: any) => ({
         ...msg,
         timestamp: new Date(msg.timestamp)
       })));
@@ -67,7 +78,6 @@ export default function AiChat() {
       // Auto-speak if conversation is active
       if (conversationActive) {
         console.log('🔊 Voice conversation active, speaking response:', aiMessage.substring(0, 50) + '...');
-        console.log('🎯 Attempting to start speech synthesis...');
         console.log('🔍 conversationActive:', conversationActive, 'isSpeaking:', isSpeaking);
         
         try {
@@ -129,11 +139,10 @@ export default function AiChat() {
       });
       
       // Force refetch of chat history to ensure clean state
-      queryClient.removeQueries({ queryKey: ['/api/chat/history'] });
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
     onError: (error) => {
-      console.error('Error clearing chat:', error);
+      console.error('Failed to clear chat:', error);
       toast({
         title: 'Грешка',
         description: 'Неуспешно изтриване на диалозите.',
@@ -146,177 +155,104 @@ export default function AiChat() {
     clearChatMutation.mutate();
   };
 
-  const handleQuickQuestion = async (question: string) => {
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: question,
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, userMessage]);
-    await chatMutation.mutateAsync(question);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentMessage.trim() || chatMutation.isPending) return;
-
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: currentMessage.trim(),
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, userMessage]);
-    const messageToSend = currentMessage.trim();
-    setCurrentMessage('');
+  // OpenAI TTS API for reliable speech synthesis
+  const speakText = async (text: string): Promise<void> => {
+    console.log('🎯 Starting OpenAI TTS for:', text.substring(0, 50) + '...');
     
-    await chatMutation.mutateAsync(messageToSend);
-  };
-
-  // Voice conversation functions
-  const startListening = () => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      toast({
-        title: 'Гласово разпознаване не се поддържа',
-        description: isMobile 
-          ? 'Използвайте Chrome на Android или Safari на iOS.'
-          : 'Вашият браузър не поддържа гласово разпознаване. Опитайте с Chrome или Safari.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-
-    setIsListening(true);
-    resetConversationTimeout();
-    
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognitionRef.current = recognition;
-    
-    recognition.lang = 'bg-BG';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.continuous = false;
-    
-    // Mobile-specific settings
-    if (isMobile) {
-      // On mobile, use shorter timeouts
-      recognition.grammars = null;
-    }
-
-    recognition.onresult = async (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setCurrentMessage(transcript);
-      setIsListening(false);
-      
-      if (transcript.trim()) {
-        // If conversation is active, send immediately
-        // If not active, wait 5 seconds for user to complete thought
-        const delay = conversationActive ? 0 : 5000;
-        
-        setTimeout(async () => {
-          const userMessage: ChatMessage = {
-            role: 'user',
-            content: transcript.trim(),
-            timestamp: new Date(),
-          };
-          setMessages(prev => [...prev, userMessage]);
-          setCurrentMessage('');
-          
-          await chatMutation.mutateAsync(transcript.trim());
-        }, delay);
-      }
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error, event);
-      setIsListening(false);
-      
-      let errorMessage = 'Грешка при гласовото разпознаване';
-      let shouldShowToast = true;
-      
-      switch (event.error) {
-        case 'not-allowed':
-          errorMessage = isMobile 
-            ? 'Достъпът до микрофона е отказан. Разрешете достъп в настройките на браузъра и опитайте отново.'
-            : 'Достъпът до микрофона е отказан. Кликнете на иконата за заключване в адресната лента и разрешете микрофон.';
-          endConversation();
-          break;
-        case 'no-speech':
-          errorMessage = 'Не беше открита реч. Говорете по-ясно и по-силно.';
-          shouldShowToast = false; // Don't show toast for no-speech, just retry
-          if (conversationActive) {
-            // Auto-retry after short delay
-            setTimeout(() => {
-              if (conversationActive) startListening();
-            }, 1000);
-          }
-          break;
-        case 'audio-capture':
-          errorMessage = isMobile
-            ? 'Проблем с микрофона. Проверете дали друго приложение не използва микрофона.'
-            : 'Проблем с микрофона. Проверете дали е свързан правилно.';
-          endConversation();
-          break;
-        case 'network':
-          errorMessage = 'Мрежова грешка. Проверете интернет връзката си.';
-          endConversation();
-          break;
-        case 'service-not-allowed':
-          errorMessage = isMobile 
-            ? 'Гласовото разпознаване не се поддържа на мобилни устройства в момента. Използвайте текстовото поле за съобщения.'
-            : 'Гласовото разпознаване не е разрешено за този сайт.';
-          endConversation();
-          break;
-        case 'bad-grammar':
-          errorMessage = 'Проблем с езиковите настройки. Опитайте отново.';
-          break;
-        default:
-          errorMessage = `Грешка в гласовото разпознаване: ${event.error}. Опитайте отново.`;
-          endConversation();
-      }
-      
-      if (shouldShowToast) {
-        toast({
-          title: 'Грешка с гласа',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      }
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
     try {
-      recognition.start();
-    } catch (error) {
-      console.error('Failed to start speech recognition:', error);
-      setIsListening(false);
-      toast({
-        title: 'Грешка при стартиране',
-        description: 'Не можа да се стартира гласовото разпознаване.',
-        variant: 'destructive',
+      setIsSpeaking(true);
+      
+      const response = await fetch('/api/text-to-speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          text: text,
+          voice: 'nova', // OpenAI TTS voice - good for Bulgarian
+          model: 'tts-1'
+        })
       });
+      
+      if (!response.ok) {
+        throw new Error(`TTS API error: ${response.status}`);
+      }
+      
+      // Get audio blob from response
+      const audioBlob = await response.blob();
+      console.log('📢 Received TTS audio blob, size:', audioBlob.size, 'bytes');
+      
+      // Create audio URL and play
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      return new Promise<void>((resolve) => {
+        audio.onloadeddata = () => {
+          console.log('✅ TTS audio loaded, duration:', audio.duration, 'seconds');
+        };
+        
+        audio.onplay = () => {
+          console.log('▶️ TTS audio playback started');
+        };
+        
+        audio.onended = () => {
+          console.log('🏁 TTS audio playback ended');
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          resolve();
+          
+          // Continue conversation after speech ends
+          if (conversationActive) {
+            setTimeout(() => {
+              if (conversationActive && !isSpeaking) {
+                console.log('🎤 Continuing conversation after TTS ended');
+                startWhisperRecording();
+              }
+            }, 2000);
+          }
+        };
+        
+        audio.onerror = (error) => {
+          console.error('❌ TTS audio playback error:', error);
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          resolve();
+          
+          // Continue conversation even if TTS fails
+          if (conversationActive) {
+            setTimeout(() => {
+              if (conversationActive && !isSpeaking) {
+                console.log('🎤 Continuing conversation after TTS error');
+                startWhisperRecording();
+              }
+            }, 2000);
+          }
+        };
+        
+        // Start playback
+        audio.play().catch(error => {
+          console.error('❌ Failed to start TTS audio playback:', error);
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          resolve();
+        });
+      });
+      
+    } catch (error) {
+      console.error('❌ OpenAI TTS error:', error);
+      setIsSpeaking(false);
+      
+      // Continue conversation even if TTS completely fails
+      if (conversationActive) {
+        setTimeout(() => {
+          if (conversationActive && !isSpeaking) {
+            console.log('🎤 Continuing conversation after TTS API error');
+            startWhisperRecording();
+          }
+        }, 2000);
+      }
     }
-  };
-
-  const resetConversationTimeout = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    // End conversation after 5 seconds of inactivity if no conversation is active, 7 seconds if active
-    const timeoutDelay = conversationActive ? 7000 : 5000;
-    timeoutRef.current = setTimeout(() => {
-      endConversation();
-    }, timeoutDelay);
   };
 
   const endConversation = () => {
@@ -379,8 +315,7 @@ export default function AiChat() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
-          sampleRate: 48000, // Higher quality for better Bulgarian recognition
-          channelCount: 1,
+          sampleRate: 48000, // High quality for better accuracy
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true // Better volume normalization
@@ -516,183 +451,58 @@ export default function AiChat() {
     }
   };
 
-  const speakText = async (text: string) => {
-    return new Promise<void>((resolve) => {
-      if (!('speechSynthesis' in window)) {
-        console.log('Speech synthesis not supported');
-        resolve();
-        return;
-      }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!inputMessage.trim()) return;
 
-      console.log('🎯 Starting speech synthesis for:', text.substring(0, 50) + '...');
-      console.log('🔍 Speech synthesis supported:', 'speechSynthesis' in window);
-      console.log('🔍 Current synthesis state - speaking:', window.speechSynthesis.speaking, 'pending:', window.speechSynthesis.pending);
-      
-      // Force load voices on first use
-      let availableVoices = window.speechSynthesis.getVoices();
-      console.log('Available voices:', availableVoices.length);
-      
-      if (availableVoices.length === 0) {
-        console.log('No voices loaded yet, waiting for voiceschanged event');
-        window.speechSynthesis.addEventListener('voiceschanged', () => {
-          console.log('Voices loaded:', window.speechSynthesis.getVoices().length);
-        }, { once: true });
-      }
-      
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Get available voices (synchronous)
-      let currentVoices = window.speechSynthesis.getVoices();
-      
-      // If no voices initially, wait briefly and try again
-      if (currentVoices.length === 0) {
-        setTimeout(() => {
-          currentVoices = window.speechSynthesis.getVoices();
-        }, 100);
-      }
-      
-      // Find best Bulgarian voice or use English/default
-      const bgVoice = currentVoices.find(voice => voice.lang.startsWith('bg'));
-      const enVoice = currentVoices.find(voice => voice.lang.startsWith('en'));
-      
-      if (bgVoice) {
-        utterance.voice = bgVoice;
-        utterance.lang = 'bg-BG';
-        console.log('Using Bulgarian voice:', bgVoice.name);
-      } else if (enVoice) {
-        utterance.voice = enVoice;
-        utterance.lang = 'en-US';
-        console.log('Using English voice for Bulgarian text:', enVoice.name);
-      } else {
-        utterance.lang = 'en-US'; // Fallback language
-        console.log('No Bulgarian or English voice found, using default');
-      }
-      
-      utterance.rate = 0.8; // Slower for clarity
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      
-      // Add onstart handler for debugging
-      utterance.onstart = () => {
-        console.log('✅ Speech synthesis started successfully');
-        setIsSpeaking(true);
-      };
-      
-      setIsSpeaking(true);
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: inputMessage,
+      timestamp: new Date(),
+    };
 
-      utterance.onend = () => {
-        console.log('🏁 Speech synthesis ended successfully');
-        setIsSpeaking(false);
-        resolve();
-        
-        // Start listening for next question after AI finishes speaking
-        if (conversationActive) {
-          setTimeout(() => {
-            if (conversationActive) {
-              console.log('🎤 Continuing conversation after speech ended');
-              startWhisperRecording();
-            }
-          }, 2000); // Wait 2 seconds after AI finishes speaking - user preference
-        }
-      };
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
 
-      utterance.onerror = (event) => {
-        console.error('❌ Speech synthesis error:', event.error, event);
-        setIsSpeaking(false);
-        resolve();
-        
-        // Continue listening even if speech synthesis fails
-        if (conversationActive) {
-          setTimeout(() => {
-            if (conversationActive) {
-              console.log('🎤 Continuing conversation after speech error');
-              startWhisperRecording();
-            }
-          }, 2000); // Consistent 2-second delay for all scenarios
-        }
-      };
-
-      console.log('Calling speechSynthesis.speak() with utterance:', utterance);
-      
-      // Important: Start speaking immediately after user interaction
-      try {
-        console.log('About to call speechSynthesis.speak() with text:', text.substring(0, 50) + '...');
-        console.log('Utterance settings:', {
-          lang: utterance.lang,
-          rate: utterance.rate,
-          pitch: utterance.pitch,
-          volume: utterance.volume,
-          voice: utterance.voice ? utterance.voice.name : 'default'
-        });
-        
-        window.speechSynthesis.speak(utterance);
-        console.log('📢 Speech synthesis speak() called successfully');
-        
-        // Check if speech started after delay
-        setTimeout(() => {
-          const speaking = window.speechSynthesis.speaking;
-          const pending = window.speechSynthesis.pending;
-          console.log('🔍 After 300ms - speaking:', speaking, 'pending:', pending);
-          
-          if (!speaking && !pending) {
-            console.log('⚠️ Speech not started, trying resume...');
-            window.speechSynthesis.resume();
-            
-            // Check again after resume
-            setTimeout(() => {
-              console.log('🔍 After resume - speaking:', window.speechSynthesis.speaking, 'pending:', window.speechSynthesis.pending);
-              if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-                console.log('💥 Speech completely failed to start');
-                setIsSpeaking(false);
-                resolve();
-              }
-            }, 100);
-          }
-        }, 300);
-        
-      } catch (error) {
-        console.error('Error calling speechSynthesis.speak():', error);
-        resolve();
-        return;
-      }
-      
-      // Debug: check if speaking started
-      setTimeout(() => {
-        console.log('Speech synthesis speaking status:', window.speechSynthesis.speaking);
-        console.log('Speech synthesis pending status:', window.speechSynthesis.pending);
-        console.log('Speech synthesis paused status:', window.speechSynthesis.paused);
-        
-        // If not speaking after 500ms, try to resume
-        if (!window.speechSynthesis.speaking && window.speechSynthesis.pending) {
-          console.log('Speech seems stuck, trying to resume');
-          window.speechSynthesis.resume();
-        }
-      }, 500);
-    });
+    try {
+      await chatMutation.mutateAsync(inputMessage);
+    } catch (error) {
+      console.error('Chat error:', error);
+      toast({
+        title: 'Грешка',
+        description: 'Неуспешно изпращане на съобщението.',
+        variant: 'destructive',
+      });
+    }
   };
 
+  const handleQuickQuestion = async (question: string) => {
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: question,
+      timestamp: new Date(),
+    };
 
+    setMessages(prev => [...prev, userMessage]);
 
-  const stopSpeaking = () => {
-    window.speechSynthesis.cancel();
-    setIsSpeaking(false);
+    try {
+      await chatMutation.mutateAsync(question);
+    } catch (error) {
+      console.error('Chat error:', error);
+      toast({
+        title: 'Грешка',
+        description: 'Неуспешно изпращане на въпроса.',
+        variant: 'destructive',
+      });
+    }
   };
-
-  const quickQuestions = [
-    "How is scoring calculated?",
-    "Find nearby vegan places",
-    "Allergy-friendly options",
-    "Best vegan restaurants",
-    "Explain vegan score breakdown"
-  ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col pb-20">
-      {/* Header with Back Link */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex flex-col">
+      {/* Header */}
+      <div className="bg-white shadow border-b">
+        <div className="p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-10 h-10 bg-vegan-green rounded-full flex items-center justify-center mr-3">
@@ -794,141 +604,51 @@ export default function AiChat() {
                         <i className="fas fa-volume-up mr-1"></i>
                         Play
                       </button>
-                      {isSpeaking && (
-                        <button
-                          onClick={stopSpeaking}
-                          className="text-xs text-red-500 hover:text-red-700 transition-colors flex items-center"
-                          title="Stop speaking"
-                        >
-                          <i className="fas fa-stop mr-1"></i>
-                          Stop
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
               </div>
             </div>
           ))}
-          
-          {chatMutation.isPending && (
-            <div className="flex items-start">
-              <div className="w-8 h-8 rounded-full bg-vegan-green flex items-center justify-center mr-3 flex-shrink-0 animate-pulse">
-                <i className="fas fa-robot text-white text-sm"></i>
-              </div>
-              <div className="bg-vegan-light-green rounded-2xl rounded-tl-md p-4 max-w-xs md:max-w-sm">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-vegan-green rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Google Maps style bottom input panel */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-4xl mx-auto p-4">
-          {/* Status and clear button row */}
-          <div className="flex justify-between items-center mb-3">
-            <div className="text-sm text-gray-600">
-              {isListening && <span className="text-red-500">🔴 Слушам...</span>}
-              {isSpeaking && <span className="text-orange-500">🟠 Говоря...</span>}
-              {!isListening && !isSpeaking && !conversationActive && (
-                <span className="text-green-500">🟢 Готов за въпроси</span>
-              )}
-            </div>
-            {messages.length > 0 && (
-              <Button 
-                onClick={clearChat} 
-                disabled={clearChatMutation.isPending}
-                variant="outline" 
-                size="sm"
-                className="text-gray-600 hover:text-red-600 disabled:opacity-50"
-              >
-                {clearChatMutation.isPending ? '...' : 'Изчисти'}
-              </Button>
-            )}
-          </div>
-
-          {/* Google Maps style search input with integrated controls */}
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      {/* Input Form */}
+      <div className="bg-white border-t p-4">
+        <div className="max-w-4xl mx-auto">
+          <form onSubmit={handleSubmit} className="flex items-center space-x-3">
             <div className="flex-1 relative">
-              <input
-                type="text"
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                placeholder="Задайте въпрос за вегански ресторанти..."
-                className={`
-                  w-full px-4 py-3 pr-12 rounded-full border-2 border-gray-300 focus:border-vegan-green focus:outline-none
-                  ${isMobile ? 'text-base' : 'text-sm'}
-                `}
-                style={{
-                  fontSize: isMobile ? '16px' : '14px',
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Напишете съобщение..."
+                disabled={chatMutation.isPending}
+                className="pr-12"
               />
-              
-              {/* Microphone button at the end of input - Google Maps style */}
               <button
                 type="button"
                 onClick={handleVoiceRecording}
-                disabled={chatMutation.isPending || isSpeaking}
-                className={`
-                  absolute right-2 top-1/2 transform -translate-y-1/2
-                  w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 text-sm
-                  ${conversationActive
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : isRecording
-                      ? 'bg-red-500 text-white animate-pulse'
-                      : isSpeaking
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-blue-500 text-white hover:bg-blue-600'
-                  }
-                  touch-manipulation active:scale-95
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                `}
-                style={{ 
-                  WebkitTapHighlightColor: 'transparent',
-                }}
+                disabled={chatMutation.isPending}
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full transition-all ${
+                  conversationActive
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : isListening
+                    ? 'bg-blue-500 text-white animate-pulse'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-600'
+                }`}
+                title={conversationActive ? 'Stop conversation' : 'Start voice conversation'}
               >
-                🎤
+                <i className={`fas ${conversationActive ? 'fa-stop' : 'fa-microphone'} text-sm`}></i>
               </button>
             </div>
-            
-            {/* Send button - Google Maps style */}
             <Button 
               type="submit" 
-              disabled={!currentMessage.trim() || chatMutation.isPending}
-              className={`
-                bg-vegan-green hover:bg-vegan-green/90 text-white rounded-full shadow-md
-                ${isMobile ? 'w-12 h-12 p-0 flex items-center justify-center' : 'px-6 py-3'}
-              `}
+              disabled={chatMutation.isPending || !inputMessage.trim()}
+              className="bg-vegan-green hover:bg-vegan-green/90"
             >
-              {chatMutation.isPending ? (
-                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-              ) : isMobile ? (
-                '➤'
-              ) : (
-                'Изпрати'
-              )}
+              {chatMutation.isPending ? 'Изпращане...' : 'Изпрати'}
             </Button>
           </form>
-          
-          {/* Help text - minimal and clean */}
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            {isMobile 
-              ? 'Задайте въпрос с текст или използвайте микрофона (Whisper AI)'
-              : 'Задайте въпрос или използвайте микрофона за гласов разговор'
-            }
-          </p>
         </div>
       </div>
     </div>

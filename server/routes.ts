@@ -497,6 +497,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OpenAI Text-to-Speech endpoint
+  app.post('/api/text-to-speech', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { text, voice = 'nova', model = 'tts-1' } = req.body;
+      
+      console.log(`Processing text-to-speech for user ${userId}, text length: ${text?.length} chars`);
+      
+      if (!text) {
+        return res.status(400).json({ message: "Text is required" });
+      }
+
+      // Call OpenAI TTS API
+      const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          input: text,
+          voice: voice,
+          response_format: 'mp3'
+        }),
+      });
+
+      if (!ttsResponse.ok) {
+        const errorText = await ttsResponse.text();
+        console.error('OpenAI TTS API error:', ttsResponse.status, errorText);
+        throw new Error(`TTS API error: ${ttsResponse.status}`);
+      }
+
+      // Stream the audio response directly
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Disposition': 'inline; filename="speech.mp3"'
+      });
+      
+      console.log(`TTS audio generated successfully for user ${userId}, streaming to client`);
+      
+      // Pipe the response stream directly to client
+      ttsResponse.body?.pipe(res);
+      
+    } catch (error) {
+      console.error("Error in text-to-speech:", error);
+      res.status(500).json({ 
+        message: "Failed to generate speech",
+        error: error.message 
+      });
+    }
+  });
+
   // Favorites routes
   app.post('/api/favorites', isAuthenticated, async (req: any, res) => {
     try {
