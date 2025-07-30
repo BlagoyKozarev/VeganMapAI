@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { registerApiStatsRoutes } from "./routes/api-stats";
 import { Client } from '@googlemaps/google-maps-services-js';
+import multer from 'multer';
+import fs from 'fs';
+import { FormData } from 'formdata-node';
 
 import { 
   mapAgent, 
@@ -23,6 +26,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register API stats routes
   registerApiStatsRoutes(app);
+
+  // Multer setup for voice assistant
+  const upload = multer({ dest: 'uploads/' });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -471,6 +477,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in batch scoring:", error);
       res.status(500).json({ message: "Failed to process batch scoring" });
+    }
+  });
+
+  // Voice Assistant endpoint
+  app.post('/api/audio', isAuthenticated, upload.single('audio'), async (req: any, res) => {
+    const filePath = req.file?.path;
+    if (!filePath) {
+      return res.status(400).json({ message: "No audio file provided" });
+    }
+
+    try {
+      // Whisper transcription
+      const audioData = fs.createReadStream(filePath);
+      const formData = new FormData();
+      formData.append('file', audioData);
+      formData.append('model', 'whisper-1');
+      formData.append('language', 'bg');
+
+      const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: formData
+      });
+
+      const whisperData = await whisperRes.json();
+      const userText = whisperData.text;
+
+      // GPT-4o response with VeganMap context
+      const gptRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: 'Ти си VeganMap AI асистент. Помагаш с намиране на веган ресторанти в София. Отговаряй кратко и полезно на български. Максимум 2 изречения. Ако питат за ресторанти, препоръчай търсене в картата или използване на филтрите за vegan score.'
+            },
+            {
+              role: 'user',
+              content: userText
+            }
+          ]
+        })
+      });
+
+      const gptData = await gptRes.json();
+      const reply = gptData.choices[0].message.content;
+
+      // Track voice assistant usage
+      const userId = req.user.claims.sub;
+      await profileAgent.trackUserBehavior(userId, 'voice_assistant_query', {
+        query: userText,
+        response: reply
+      });
+
+      res.json({ text: userText, reply });
+    } catch (err) {
+      console.error('Voice assistant error:', err);
+      res.status(500).json({ message: 'Грешка при обработка на аудио' });
+    } finally {
+      // Cleanup uploaded file
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
   });
 
