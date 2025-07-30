@@ -479,7 +479,17 @@ export default function AiChat() {
 
       console.log('Starting speech synthesis for:', text);
       console.log('Speech synthesis supported:', 'speechSynthesis' in window);
-      console.log('Available voices:', window.speechSynthesis.getVoices().length);
+      
+      // Force load voices on first use
+      let availableVoices = window.speechSynthesis.getVoices();
+      console.log('Available voices:', availableVoices.length);
+      
+      if (availableVoices.length === 0) {
+        console.log('No voices loaded yet, waiting for voiceschanged event');
+        window.speechSynthesis.addEventListener('voiceschanged', () => {
+          console.log('Voices loaded:', window.speechSynthesis.getVoices().length);
+        }, { once: true });
+      }
       
       window.speechSynthesis.cancel();
       
@@ -487,6 +497,17 @@ export default function AiChat() {
       utterance.lang = 'bg-BG';
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      // Try to find Bulgarian voice, fallback to any available voice
+      const currentVoices = window.speechSynthesis.getVoices();
+      const bgVoice = currentVoices.find(voice => voice.lang.startsWith('bg'));
+      if (bgVoice) {
+        utterance.voice = bgVoice;
+        console.log('Using Bulgarian voice:', bgVoice.name);
+      } else {
+        console.log('No Bulgarian voice found, using default voice');
+      }
       
       // Add onstart handler for debugging
       utterance.onstart = () => {
@@ -526,13 +547,29 @@ export default function AiChat() {
       };
 
       console.log('Calling speechSynthesis.speak() with utterance:', utterance);
-      window.speechSynthesis.speak(utterance);
+      
+      // Important: Start speaking immediately after user interaction
+      try {
+        window.speechSynthesis.speak(utterance);
+        console.log('Speech synthesis speak() called successfully');
+      } catch (error) {
+        console.error('Error calling speechSynthesis.speak():', error);
+        resolve();
+        return;
+      }
       
       // Debug: check if speaking started
       setTimeout(() => {
         console.log('Speech synthesis speaking status:', window.speechSynthesis.speaking);
         console.log('Speech synthesis pending status:', window.speechSynthesis.pending);
-      }, 100);
+        console.log('Speech synthesis paused status:', window.speechSynthesis.paused);
+        
+        // If not speaking after 500ms, try to resume
+        if (!window.speechSynthesis.speaking && window.speechSynthesis.pending) {
+          console.log('Speech seems stuck, trying to resume');
+          window.speechSynthesis.resume();
+        }
+      }, 500);
     });
   };
 
