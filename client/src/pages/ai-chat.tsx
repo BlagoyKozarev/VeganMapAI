@@ -488,6 +488,12 @@ export default function AiChat() {
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
       
+      // Add onstart handler for debugging
+      utterance.onstart = () => {
+        console.log('Speech synthesis started successfully');
+        setIsSpeaking(true);
+      };
+      
       setIsSpeaking(true);
 
       utterance.onend = () => {
@@ -519,7 +525,14 @@ export default function AiChat() {
         }
       };
 
+      console.log('Calling speechSynthesis.speak() with utterance:', utterance);
       window.speechSynthesis.speak(utterance);
+      
+      // Debug: check if speaking started
+      setTimeout(() => {
+        console.log('Speech synthesis speaking status:', window.speechSynthesis.speaking);
+        console.log('Speech synthesis pending status:', window.speechSynthesis.pending);
+      }, 100);
     });
   };
 
