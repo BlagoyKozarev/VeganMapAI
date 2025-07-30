@@ -203,7 +203,9 @@ export default function AiChat() {
           endConversation();
           break;
         case 'service-not-allowed':
-          errorMessage = 'Гласовото разпознаване не е разрешено за този сайт.';
+          errorMessage = isMobile 
+            ? 'Гласовото разпознаване не работи в този браузър. Опитайте с Chrome на Android или Safari на iOS.'
+            : 'Гласовото разпознаване не е разрешено за този сайт.';
           endConversation();
           break;
         case 'bad-grammar':
@@ -327,6 +329,21 @@ export default function AiChat() {
       setTimeout(() => {
         startListening();
       }, 300);
+      
+      // Show additional help for mobile users
+      if (isMobile) {
+        setTimeout(() => {
+          toast({
+            title: 'Мобилен съвет',
+            description: isIOS 
+              ? 'Ако не работи, опитайте в Safari браузър.'
+              : isAndroid 
+                ? 'Ако не работи, опитайте в Chrome браузър.'
+                : 'Ако не работи, опитайте в Chrome или Safari.',
+            variant: 'default',
+          });
+        }, 3000);
+      }
       
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -537,12 +554,12 @@ export default function AiChat() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <div className="max-w-4xl mx-auto">
           {/* Voice Recording Button */}
-          <div className="flex items-center justify-center mb-6">
+          <div className="flex flex-col items-center justify-center mb-6">
             <button
               onClick={handleVoiceRecording}
               disabled={chatMutation.isPending || isSpeaking}
               className={`
-                p-6 rounded-full border-2 transition-all duration-200 text-2xl
+                p-6 rounded-full border-2 transition-all duration-200 text-2xl mb-2
                 ${conversationActive
                   ? 'bg-red-500 border-red-500 text-white hover:bg-red-600'
                   : isRecording
@@ -562,6 +579,14 @@ export default function AiChat() {
             >
               🎤
             </button>
+            
+            {/* Help text for mobile users */}
+            <p className="text-xs text-gray-500 text-center max-w-xs">
+              {conversationActive 
+                ? 'Говорете сега на български'
+                : 'Натиснете за гласов разговор'
+              }
+            </p>
           </div>
 
           {/* Status Messages */}
