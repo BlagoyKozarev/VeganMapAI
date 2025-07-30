@@ -68,7 +68,10 @@ export default function AiChat() {
       if (conversationActive) {
         console.log('🔊 Voice conversation active, speaking response:', aiMessage.substring(0, 50) + '...');
         console.log('🎯 Attempting to start speech synthesis...');
+        console.log('🔍 conversationActive:', conversationActive, 'isSpeaking:', isSpeaking);
+        
         try {
+          console.log('📞 Calling speakText() function...');
           await speakText(aiMessage);
           console.log('✅ Speech synthesis completed successfully');
           
@@ -90,6 +93,9 @@ export default function AiChat() {
             }
           }, 2000);
         }
+      } else {
+        console.log('🔇 Voice conversation NOT active - skipping speech synthesis');
+        console.log('🔍 conversationActive:', conversationActive);
       }
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
