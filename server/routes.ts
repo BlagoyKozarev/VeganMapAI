@@ -392,6 +392,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/chat/clear', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Clear chat session by creating empty message array
+      await storage.upsertChatSession({
+        userId,
+        messages: []
+      });
+      
+      // Track user action
+      await profileAgent.trackUserBehavior(userId, 'clear_chat_history', {
+        clearedAt: new Date().toISOString()
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Chat history cleared successfully" 
+      });
+    } catch (error) {
+      console.error("Error clearing chat history:", error);
+      res.status(500).json({ message: "Failed to clear chat history" });
+    }
+  });
+
   // Favorites routes
   app.post('/api/favorites', isAuthenticated, async (req: any, res) => {
     try {
