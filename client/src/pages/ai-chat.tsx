@@ -74,8 +74,18 @@ export default function AiChat() {
 
   const clearChatMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/chat/clear', { method: 'POST' });
-      if (!response.ok) throw new Error('Failed to clear chat');
+      const response = await fetch('/api/chat/clear', { 
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Clear chat error:', response.status, errorText);
+        throw new Error(`Failed to clear chat: ${response.status}`);
+      }
       return response.json();
     },
     onSuccess: () => {
