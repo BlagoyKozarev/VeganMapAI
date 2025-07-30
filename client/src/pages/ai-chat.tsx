@@ -422,13 +422,13 @@ export default function AiChat() {
             });
           }
           
-          // Continue listening if conversation is active
+          // Continue listening if conversation is active - reduced to 2 seconds
           if (conversationActive && !isSpeaking) {
             setTimeout(() => {
               if (conversationActive && !isSpeaking) {
                 startWhisperRecording();
               }
-            }, 1500);
+            }, 2000); // Reduced from 1500ms to 2000ms for user preference
           }
           
         } catch (error) {
@@ -448,16 +448,16 @@ export default function AiChat() {
         stream.getTracks().forEach(track => track.stop());
       };
       
-      // Record for 10 seconds max for best Bulgarian accuracy
+      // Record for 8 seconds max - balance between accuracy and response speed
       mediaRecorder.start();
-      console.log('Starting Whisper recording for 10 seconds for optimal Bulgarian accuracy');
+      console.log('Starting Whisper recording for 8 seconds - optimized for speed and accuracy');
       
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') {
           mediaRecorder.stop();
-          console.log('Stopping Whisper recording after 10 seconds');
+          console.log('Stopping Whisper recording after 8 seconds');
         }
-      }, 10000); // Increased to 10 seconds for optimal accuracy
+      }, 8000); // Optimized 8 seconds for faster response
       
       // Store reference for manual stop
       (window as any).currentMediaRecorder = mediaRecorder;
@@ -554,7 +554,7 @@ export default function AiChat() {
             if (conversationActive) {
               startWhisperRecording();
             }
-          }, 1500); // Wait 1.5 seconds after AI finishes speaking
+          }, 2000); // Wait 2 seconds after AI finishes speaking - user preference
         }
       };
 
@@ -569,7 +569,7 @@ export default function AiChat() {
             if (conversationActive) {
               startWhisperRecording();
             }
-          }, 1000);
+          }, 2000); // Consistent 2-second delay for all scenarios
         }
       };
 

@@ -47,6 +47,14 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
 - **Google Maps style interface**: Microphone visually disabled on mobile, clear messaging directs users to text input
 - **Chat history management**: Complete database integration for clearing chat sessions with proper authentication
 
+**OpenAI Whisper Integration (July 30, 2025):**
+- Replaced Web Speech API with OpenAI Whisper API for superior Bulgarian language recognition
+- MediaRecorder captures 8-second audio files with 48kHz quality for optimal accuracy
+- Complete voice conversation flow: Whisper transcription → GPT-4o response → Bulgarian TTS
+- Enhanced speech synthesis with Bulgarian voice detection and English fallback
+- Optimized conversation timing: 2-second pause after user stops speaking (user preference)
+- Voice conversation fully functional with improved Bulgarian language support
+
 ## System Architecture
 
 ### Frontend Architecture
