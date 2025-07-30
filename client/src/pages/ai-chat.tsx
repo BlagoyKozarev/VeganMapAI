@@ -268,18 +268,29 @@ export default function AiChat() {
       setIsSpeaking(true);
       
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'bg-BG';
+      
+      // Enhanced language detection - check for Bulgarian characters
+      const isBulgarian = /[а-яА-Я]/.test(text);
+      utterance.lang = isBulgarian ? "bg-BG" : "en-US";
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
       
-      // Try to find Bulgarian voice
+      // Try to find appropriate voice based on detected language
       const voices = speechSynthesis.getVoices();
-      const bulgarianVoice = voices.find(voice => 
-        voice.lang.startsWith('bg') || voice.lang.includes('BG')
-      );
+      let preferredVoice;
       
-      if (bulgarianVoice) {
-        utterance.voice = bulgarianVoice;
+      if (isBulgarian) {
+        preferredVoice = voices.find(voice => 
+          voice.lang.startsWith('bg') || voice.lang.includes('BG')
+        );
+      } else {
+        preferredVoice = voices.find(voice => 
+          voice.lang.startsWith('en') && voice.lang.includes('US')
+        ) || voices.find(voice => voice.lang.startsWith('en'));
+      }
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
       }
       
       utterance.onend = () => {
@@ -287,11 +298,14 @@ export default function AiChat() {
         resolve();
       };
       
-      utterance.onerror = () => {
+      utterance.onerror = (error) => {
+        console.error('Speech synthesis error:', error);
         setIsSpeaking(false);
         resolve();
       };
       
+      // Cancel any existing speech before starting new one
+      speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
     });
   };
