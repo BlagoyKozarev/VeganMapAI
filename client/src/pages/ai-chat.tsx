@@ -349,10 +349,11 @@ export default function AiChat() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
-          sampleRate: 16000,
+          sampleRate: 48000, // Higher quality for better Bulgarian recognition
           channelCount: 1,
           echoCancellation: true,
-          noiseSuppression: true
+          noiseSuppression: true,
+          autoGainControl: true // Better volume normalization
         } 
       });
       
@@ -384,6 +385,9 @@ export default function AiChat() {
           const formData = new FormData();
           formData.append('audio', audioBlob, 'recording.webm');
           formData.append('language', 'bg');
+          formData.append('model', 'whisper-1');
+          formData.append('response_format', 'json');
+          formData.append('temperature', '0.2'); // Lower for more accurate transcription
           
           console.log('Sending audio to Whisper API, blob size:', audioBlob.size, 'bytes');
           
@@ -444,16 +448,16 @@ export default function AiChat() {
         stream.getTracks().forEach(track => track.stop());
       };
       
-      // Record for 8 seconds max for better Bulgarian accuracy
+      // Record for 10 seconds max for best Bulgarian accuracy
       mediaRecorder.start();
-      console.log('Starting Whisper recording for 8 seconds for better Bulgarian accuracy');
+      console.log('Starting Whisper recording for 10 seconds for optimal Bulgarian accuracy');
       
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') {
           mediaRecorder.stop();
-          console.log('Stopping Whisper recording after 8 seconds');
+          console.log('Stopping Whisper recording after 10 seconds');
         }
-      }, 8000); // Increased to 8 seconds for better accuracy
+      }, 10000); // Increased to 10 seconds for optimal accuracy
       
       // Store reference for manual stop
       (window as any).currentMediaRecorder = mediaRecorder;
@@ -500,20 +504,37 @@ export default function AiChat() {
       window.speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'bg-BG';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
       
-      // Try to find Bulgarian voice, fallback to any available voice
-      const currentVoices = window.speechSynthesis.getVoices();
+      // Get available voices (synchronous)
+      let currentVoices = window.speechSynthesis.getVoices();
+      
+      // If no voices initially, wait briefly and try again
+      if (currentVoices.length === 0) {
+        setTimeout(() => {
+          currentVoices = window.speechSynthesis.getVoices();
+        }, 100);
+      }
+      
+      // Find best Bulgarian voice or use English/default
       const bgVoice = currentVoices.find(voice => voice.lang.startsWith('bg'));
+      const enVoice = currentVoices.find(voice => voice.lang.startsWith('en'));
+      
       if (bgVoice) {
         utterance.voice = bgVoice;
+        utterance.lang = 'bg-BG';
         console.log('Using Bulgarian voice:', bgVoice.name);
+      } else if (enVoice) {
+        utterance.voice = enVoice;
+        utterance.lang = 'en-US';
+        console.log('Using English voice for Bulgarian text:', enVoice.name);
       } else {
-        console.log('No Bulgarian voice found, using default voice');
+        utterance.lang = 'en-US'; // Fallback language
+        console.log('No Bulgarian or English voice found, using default');
       }
+      
+      utterance.rate = 0.8; // Slower for clarity
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
       
       // Add onstart handler for debugging
       utterance.onstart = () => {
