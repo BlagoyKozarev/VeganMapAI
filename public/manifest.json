@@ -1,0 +1,23 @@
+{
+  "name": "VeganMapAI - Voice Assistant",
+  "short_name": "VeganMapAI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#22c55e",
+  "description": "AI-powered vegan restaurant discovery platform with voice assistant",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["food", "lifestyle", "travel"],
+  "orientation": "portrait-primary"
+}
