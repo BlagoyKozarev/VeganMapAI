@@ -341,7 +341,36 @@ export default function AiChat() {
         setIsRecording(false);
         setIsListening(false);
         
+        console.log('MediaRecorder stopped, audio chunks:', audioChunks.length);
+        
+        if (audioChunks.length === 0) {
+          console.warn('No audio chunks recorded');
+          toast({
+            title: 'Няма запис',
+            description: 'Не беше записан звук. Опитайте отново.',
+            variant: 'destructive',
+          });
+          if (conversationActive) {
+            endConversation();
+          }
+          return;
+        }
+        
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        console.log('Created audio blob, size:', audioBlob.size, 'bytes');
+        
+        if (audioBlob.size < 100) {
+          console.warn('Audio blob too small:', audioBlob.size, 'bytes');
+          toast({
+            title: 'Прекалено кратък запис',
+            description: 'Записът е прекалено кратък. Говорете по-дълго време.',
+            variant: 'destructive',
+          });
+          if (conversationActive) {
+            endConversation();
+          }
+          return;
+        }
         
         // Send to Whisper API
         try {
@@ -419,13 +448,20 @@ export default function AiChat() {
       };
       
       // Record for 8 seconds max - balance between accuracy and response speed
-      mediaRecorder.start();
+      console.log('Starting MediaRecorder with timeslice for better chunk collection');
+      mediaRecorder.start(100); // Request data every 100ms for better collection
       console.log('Starting Whisper recording for 8 seconds - optimized for speed and accuracy');
       
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') {
-          mediaRecorder.stop();
-          console.log('Stopping Whisper recording after 8 seconds');
+          console.log('Requesting final data before stopping recording');
+          mediaRecorder.requestData(); // Force final chunk
+          setTimeout(() => {
+            if (mediaRecorder.state === 'recording') {
+              mediaRecorder.stop();
+              console.log('Stopping Whisper recording after 8 seconds');
+            }
+          }, 100);
         }
       }, 8000); // Optimized 8 seconds for faster response
       
