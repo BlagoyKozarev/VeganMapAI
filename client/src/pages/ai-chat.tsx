@@ -346,6 +346,7 @@ export default function AiChat() {
 
     // Start Whisper-based voice recognition (works on mobile!)
     try {
+      console.log('🎤 Starting voice conversation - setting conversationActive to true');
       setConversationActive(true);
       setIsRecording(true);
       
@@ -357,6 +358,7 @@ export default function AiChat() {
       });
       
       setTimeout(() => {
+        console.log('🚀 Starting Whisper recording in 300ms');
         startWhisperRecording();
       }, 300);
       
@@ -373,6 +375,7 @@ export default function AiChat() {
 
   // Whisper API voice recognition (works on mobile!)
   const startWhisperRecording = async () => {
+    console.log('🎙️ Starting Whisper recording - conversationActive:', conversationActive);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -431,7 +434,8 @@ export default function AiChat() {
           const result = await response.json();
           
           if (result.text && result.text.trim()) {
-            console.log('Whisper transcription:', result.text);
+            console.log('🎯 Whisper transcription:', result.text);
+            console.log('🔍 About to send to chat - conversationActive:', conversationActive);
             
             const userMessage: ChatMessage = {
               role: 'user',
@@ -439,6 +443,12 @@ export default function AiChat() {
               timestamp: new Date(),
             };
             setMessages(prev => [...prev, userMessage]);
+            
+            // Ensure conversation is active for speech synthesis
+            if (!conversationActive) {
+              console.log('⚠️ Setting conversationActive to true for speech synthesis');
+              setConversationActive(true);
+            }
             
             await chatMutation.mutateAsync(result.text.trim());
           } else {
