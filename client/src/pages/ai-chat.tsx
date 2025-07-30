@@ -272,35 +272,23 @@ export default function AiChat() {
   };
 
   const handleVoiceRecording = async () => {
-    // Simplified mobile approach - skip permission check, go directly to speech recognition
     const hasSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/i.test(navigator.userAgent);
     
-    console.log('Speech recognition attempt:', {
-      hasSpeechRecognition,
-      isMobile,
-      isIOS,
-      isAndroid,
-      userAgent: navigator.userAgent,
-      isSecureContext: window.isSecureContext
-    });
+    // Mobile devices - show helpful message about text input
+    if (isMobile) {
+      toast({
+        title: 'Използвайте текстовото поле',
+        description: 'Гласовото разпознаване не работи надеждно на мобилни устройства. Напишете въпроса си в полето.',
+        variant: 'default',
+      });
+      return;
+    }
 
+    // Desktop - try speech recognition
     if (!hasSpeechRecognition) {
-      let browserMessage = 'Браузърът не поддържа гласово разпознаване.';
-      
-      if (isIOS) {
-        browserMessage = 'Използвайте Safari на iOS за гласово разпознаване.';
-      } else if (isAndroid) {
-        browserMessage = 'Използвайте Chrome на Android за гласово разпознаване.';
-      } else if (isMobile) {
-        browserMessage = 'Опитайте с Chrome на Android или Safari на iOS.';
-      }
-      
       toast({
         title: 'Гласът не се поддържа',
-        description: browserMessage,
+        description: 'Браузърът не поддържа гласово разпознаване. Използвайте текстовото поле.',
         variant: 'destructive',
       });
       return;
@@ -316,42 +304,26 @@ export default function AiChat() {
       return;
     }
 
-    // Direct speech recognition approach - let the browser handle permissions
+    // Desktop speech recognition
     try {
       setConversationActive(true);
       setIsRecording(true);
       
       toast({
         title: 'Гласов разговор започнат',
-        description: isMobile 
-          ? 'Говорете сега на български език. Браузърът може да поиска разрешение за микрофон.'
-          : 'Говорете на български език. Кликнете микрофона отново за да спрете.',
+        description: 'Говорете на български език. Кликнете микрофона отново за да спрете.',
       });
       
-      // Start speech recognition directly - browser will handle permission requests
       setTimeout(() => {
         startListening();
       }, 300);
       
-      // Show mobile fallback message after delay
-      if (isMobile) {
-        setTimeout(() => {
-          if (!conversationActive) { // Only show if speech recognition failed
-            toast({
-              title: 'Алтернатива за мобилни',
-              description: 'Ако гласът не работи, използвайте текстовото поле в долната част на екрана.',
-              variant: 'default',
-            });
-          }
-        }, 5000);
-      }
-      
     } catch (error) {
-      console.error('Unexpected error:', error);
+      console.error('Speech recognition error:', error);
       endConversation();
       toast({
         title: 'Грешка',
-        description: 'Проблем при стартиране на гласовия разговор. Опитайте отново.',
+        description: 'Проблем при стартиране на гласовия разговор. Използвайте текстовото поле.',
         variant: 'destructive',
       });
     }
@@ -606,16 +578,18 @@ export default function AiChat() {
                 className={`
                   absolute right-12 top-1/2 transform -translate-y-1/2
                   w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 text-sm
-                  ${conversationActive
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : isRecording
-                      ? 'bg-red-500 text-white animate-pulse'
-                      : isSpeaking
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ${isMobile 
+                    ? 'bg-gray-200 text-gray-400 cursor-default' // Disabled style for mobile
+                    : conversationActive
+                      ? 'bg-red-500 text-white hover:bg-red-600'
+                      : isRecording
+                        ? 'bg-red-500 text-white animate-pulse'
+                        : isSpeaking
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }
+                  ${!isMobile && 'touch-manipulation active:scale-95'}
                   disabled:opacity-50 disabled:cursor-not-allowed
-                  touch-manipulation active:scale-95
                 `}
                 style={{ 
                   WebkitTapHighlightColor: 'transparent',
@@ -658,7 +632,7 @@ export default function AiChat() {
           {/* Help text - minimal and clean */}
           <p className="text-xs text-gray-500 mt-2 text-center">
             {isMobile 
-              ? 'Въведете текст или натиснете 🎤 (може да не работи на мобилни)'
+              ? 'Напишете въпроса си в полето за текст'
               : 'Задайте въпрос или използвайте микрофона за гласов разговор'
             }
           </p>
