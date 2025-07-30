@@ -344,26 +344,49 @@ export default function AiChat() {
         console.error('Media permission error:', mediaError);
         
         let errorMessage = 'Моля, разрешете достъп до микрофона.';
+        console.error('MediaError details:', {
+          name: mediaError.name,
+          message: mediaError.message,
+          stack: mediaError.stack,
+          isMobile,
+          isIOS,
+          isAndroid
+        });
+        
         if (mediaError instanceof Error) {
           switch (mediaError.name) {
             case 'NotAllowedError':
               errorMessage = isMobile 
-                ? 'Достъпът до микрофона е отказан. Рефрешнете страницата и разрешете достъп.'
-                : 'Достъпът до микрофона е отказан. Проверете настройките на браузъра.';
+                ? 'Достъпът до микрофона е отказан. В настройките на браузъра разрешете достъп до микрофон за този сайт.'
+                : 'Достъпът до микрофона е отказан. Кликнете иконата за заключване до URL-а и разрешете микрофон.';
               break;
             case 'NotFoundError':
-              errorMessage = 'Микрофон не е намерен на устройството.';
+              errorMessage = isMobile
+                ? 'Микрофон не е намерен. Проверете дали устройството има микрофон.'
+                : 'Микрофон не е намерен на устройството.';
               break;
             case 'NotSupportedError':
-              errorMessage = 'Браузърът не поддържа достъп до микрофон.';
+              errorMessage = isIOS
+                ? 'Използвайте Safari браузър на iOS за гласово разпознаване.'
+                : isAndroid
+                  ? 'Използвайте Chrome браузър на Android за гласово разпознаване.'
+                  : 'Браузърът не поддържа достъп до микрофон.';
               break;
             case 'AbortError':
-              errorMessage = 'Заявката за микрофон беше прекратена.';
+              errorMessage = 'Заявката за микрофон беше прекратена от потребителя.';
+              break;
+            case 'NotReadableError':
+              errorMessage = isMobile
+                ? 'Микрофонът се използва от друго приложение. Затворете други приложения които използват микрофона.'
+                : 'Микрофонът не може да бъде достъпен. Възможно е да се използва от друго приложение.';
+              break;
+            case 'OverconstrainedError':
+              errorMessage = 'Настройките на микрофона не са поддържани. Опитайте с друг браузър.';
               break;
             default:
               errorMessage = isMobile 
-                ? 'Проблем с микрофона. Опитайте да рефрешнете страницата.'
-                : 'Грешка при достъп до микрофона.';
+                ? `Проблем с микрофона (${mediaError.name}). Опитайте да рефрешнете страницата или използвайте друг браузър.`
+                : `Грешка при достъп до микрофона: ${mediaError.name}`;
           }
         }
         
@@ -379,17 +402,17 @@ export default function AiChat() {
       setConversationActive(true);
       setIsRecording(true);
       
-      // Start listening immediately if permission was granted
-      setTimeout(() => {
-        startListening();
-      }, 100);
-      
       toast({
         title: 'Гласов разговор започнат',
         description: isMobile 
-          ? 'Говорете сега. Разговорът ще спре автоматично.'
+          ? 'Говорете сега на български език. Натиснете микрофона за да спрете.'
           : 'Говорете на български език. Кликнете микрофона отново за да спрете.',
       });
+      
+      // Start speech recognition immediately after getting permission
+      setTimeout(() => {
+        startListening();
+      }, 500);
     } catch (error) {
       console.error('Unexpected error:', error);
       toast({
