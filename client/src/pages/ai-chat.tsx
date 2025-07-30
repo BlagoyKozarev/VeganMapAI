@@ -75,10 +75,7 @@ export default function AiChat() {
               <Button
                 key={index}
                 variant="outline"
-                onClick={() => {
-                  setIsVoiceflowOpen(true);
-                  // Note: We'll implement auto-asking the question after Voiceflow opens
-                }}
+                onClick={() => setIsVoiceflowOpen(true)}
                 className="text-left h-auto p-4 justify-start bg-white/80 dark:bg-gray-700/80 hover:bg-white dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:shadow-md"
               >
                 <MessageCircle size={16} className="mr-3 text-green-500 flex-shrink-0" />

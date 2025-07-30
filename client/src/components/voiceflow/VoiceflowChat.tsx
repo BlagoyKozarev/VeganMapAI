@@ -45,7 +45,7 @@ export function VoiceflowChat({ isOpen, onClose }: VoiceflowChatProps) {
       if (!response.ok) throw new Error('Failed to send message');
       
       const data = await response.json();
-      const aiMessage = { role: 'assistant', content: data.message || data.response };
+      const aiMessage = { role: 'assistant', content: data.message };
       setMessages(prev => [...prev, aiMessage]);
 
     } catch (error) {
