@@ -281,6 +281,8 @@ export default function AiChat() {
 
   const speakText = async (text: string): Promise<void> => {
     console.log('🔊 speakText called with:', text);
+    console.log('🎯 Current states:', { isSpeaking, conversationActive, isRecording, isProcessing });
+    
     return new Promise((resolve) => {
       if (!('speechSynthesis' in window)) {
         console.log('❌ speechSynthesis not supported');
@@ -288,7 +290,7 @@ export default function AiChat() {
         return;
       }
 
-      console.log('🎙️ Setting speaking state');
+      console.log('🎙️ Setting speaking state to true');
       setIsSpeaking(true);
       
       const utterance = new SpeechSynthesisUtterance(text);
