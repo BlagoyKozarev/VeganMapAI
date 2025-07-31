@@ -12,28 +12,33 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// Simplified TTS function for testing
+// Direct TTS implementation - works with user interaction from confirm()
 const speak = (text: string) => {
-  console.log('🎯 SPEAK FUNCTION CALLED with:', text.substring(0, 20) + '...');
+  console.log('🎯 TTS activated with user consent');
   
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     console.error('🚫 speechSynthesis not supported');
     return;
   }
   
-  console.log('✅ speechSynthesis is available');
-  
-  // Simple TTS implementation
   const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  
+  // Bulgarian language preference
+  const voices = window.speechSynthesis.getVoices();
+  const bgVoice = voices.find(v => v.lang.startsWith('bg'));
+  if (bgVoice) {
+    utterance.voice = bgVoice;
+    console.log('🇧🇬 Using Bulgarian voice:', bgVoice.name);
+  }
   
   utterance.onstart = () => console.log('🎵 TTS STARTED');
-  utterance.onend = () => console.log('🔇 TTS ENDED');  
+  utterance.onend = () => console.log('🔇 TTS FINISHED');  
   utterance.onerror = (e) => console.error('❌ TTS ERROR:', e.error);
   
-  console.log('🚀 Calling speechSynthesis.speak()');
   window.speechSynthesis.speak(utterance);
-  
-  console.log('📞 speechSynthesis.speak() has been called');
 };
 
 // 2. Зареди гласове с debugging
@@ -158,16 +163,12 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Always speak AI response when it comes from voice input
-      console.log('🎤 Speaking AI response automatically');
-      console.log('🔊 About to call speak() with text:', data.reply.substring(0, 30) + '...');
+      // Ask user to click for TTS activation (required by browser autoplay policy)
+      const enableTTS = confirm('🎤 AI отговор готов! Натиснете OK за да чуете гласовия отговор:\n\n' + data.reply.substring(0, 100) + '...');
       
-      // Direct TTS test
-      try {
+      if (enableTTS) {
+        console.log('🎤 User confirmed - activating TTS');
         speak(data.reply);
-        console.log('✅ speak() function called successfully');
-      } catch (error) {
-        console.error('❌ Error calling speak():', error);
       }
       
       // Set conversation as active after first voice interaction
