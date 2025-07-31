@@ -153,20 +153,17 @@ export default function AiChat() {
         
         // Continue listening after 2 seconds
         setTimeout(() => {
-          if (conversationActive) {
-            startListening();
+          if (conversationActive && !mobileDevice) {
+            console.log('Continuing conversation...');
+            startWhisperRecording();
           }
         }, 2000);
       }
       
-      // Wait a moment then continue conversation
+      // Reset speaking state
       setTimeout(() => {
         setIsSpeaking(false);
-        if (conversationActive && !mobileDevice) {
-          console.log('Continuing voice conversation...');
-          startWhisperRecording();
-        }
-      }, 3000);
+      }, 1000);
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
