@@ -364,3 +364,66 @@
   background: white;
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
+
+/* Leaflet MarkerCluster Custom Styling */
+.marker-cluster {
+  background-color: rgba(34, 197, 94, 0.6);
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.marker-cluster:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.marker-cluster-small {
+  background-color: rgba(34, 197, 94, 0.6);
+}
+
+.marker-cluster-medium {
+  background-color: rgba(34, 197, 94, 0.7);
+}
+
+.marker-cluster-large {
+  background-color: rgba(34, 197, 94, 0.8);
+}
+
+.marker-cluster.with-score {
+  background-color: rgba(59, 130, 246, 0.8);
+}
+
+.marker-cluster.with-score.marker-cluster-small {
+  background-color: rgba(59, 130, 246, 0.6);
+}
+
+.marker-cluster.with-score.marker-cluster-medium {
+  background-color: rgba(59, 130, 246, 0.7);
+}
+
+.marker-cluster.with-score.marker-cluster-large {
+  background-color: rgba(59, 130, 246, 0.8);
+}
+
+.marker-cluster div {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker-cluster span {
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
