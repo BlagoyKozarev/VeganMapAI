@@ -488,10 +488,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      // Whisper transcription
-      const audioData = fs.createReadStream(filePath);
+      // Read audio file as buffer
+      const audioBuffer = fs.readFileSync(filePath);
+      const audioBlob = new Blob([audioBuffer], { type: 'audio/webm' });
+      
+      // Create FormData for Whisper API
       const formData = new FormData();
-      formData.append('file', audioData, 'audio.webm');
+      formData.append('file', audioBlob, 'audio.webm');
       formData.append('model', 'whisper-1');
       formData.append('language', 'bg');
 
