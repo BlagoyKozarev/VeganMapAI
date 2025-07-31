@@ -492,11 +492,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const audioBuffer = fs.readFileSync(filePath);
       const audioBlob = new Blob([audioBuffer], { type: 'audio/webm' });
       
-      // Create FormData for Whisper API
+      // Create FormData for Whisper API with improved Bulgarian settings
       const formData = new FormData();
       formData.append('file', audioBlob, 'audio.webm');
       formData.append('model', 'whisper-1');
       formData.append('language', 'bg');
+      formData.append('temperature', '0');
+      formData.append('prompt', 'Това е разговор на български език за веган ресторанти в София.');
 
       const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
         method: 'POST',
@@ -508,6 +510,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const whisperData = await whisperRes.json();
       const userText = whisperData.text;
+      
+      console.log('Whisper transcription result:', userText);
 
       // GPT-4o response with VeganMap context
       const gptRes = await fetch('https://api.openai.com/v1/chat/completions', {
