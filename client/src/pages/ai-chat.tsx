@@ -128,11 +128,11 @@ export default function AiChat() {
       console.log('🎯 TTS support check:', 'speechSynthesis' in window);
       console.log('🎯 Window object has speechSynthesis:', !!window.speechSynthesis);
       
-      // Force alert to confirm this code runs
-      alert('TTS код се изпълнява! Response: ' + data.reply.substring(0, 50));
+      // Browser autoplay policy requires user interaction for TTS
+      const userWantsVoice = confirm('AI отговор получен! Искате ли да чуете гласовия отговор?\n\n' + data.reply.substring(0, 100) + '...');
       
-      // Ultra-aggressive TTS activation with manual user interaction trigger
-      if ('speechSynthesis' in window) {
+      // Only activate TTS if user explicitly wants it (browser policy compliance)
+      if (userWantsVoice && 'speechSynthesis' in window) {
         console.log('=== TTS DIAGNOSTIC START ===');
         console.log('SpeechSynthesis API available:', !!window.speechSynthesis);
         console.log('Speaking state:', speechSynthesis.speaking);

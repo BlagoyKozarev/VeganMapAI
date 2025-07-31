@@ -89,7 +89,7 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
 **Voice Chat Debugging (July 31, 2025):**
 - **Whisper Working**: Perfect Bulgarian transcription confirmed - "Здравей, човече ми, какво говоря?"
 - **GPT-4o Responses**: AI assistant responding correctly with contextual answers
-- **TTS Issue**: Text-to-speech not activating after responses - added forced TTS activation
+- **TTS Issue**: Text-to-speech blocked by browser autoplay policy - added user interaction trigger
 - **Browser Compatibility**: System tested on Chrome desktop with proper microphone access
 - **Debug Logging**: Enhanced console logging to track TTS activation and identify issues
 
