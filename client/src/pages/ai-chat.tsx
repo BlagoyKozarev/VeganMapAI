@@ -29,21 +29,9 @@ export default function AiChat() {
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Mobile detection - more accurate detection that allows desktop browsers
-  const isMobile = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const mobileKeywords = ['android', 'webos', 'iphone', 'ipad', 'ipod', 'blackberry', 'iemobile', 'opera mini'];
-    const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword));
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmallScreen = window.innerWidth <= 768;
-    
-    // Only consider mobile if it has mobile user agent AND (touch OR small screen)
-    const result = isMobileUserAgent && (isTouchDevice || isSmallScreen);
-    console.log('Mobile detection:', { userAgent, isMobileUserAgent, isTouchDevice, isSmallScreen, result });
-    return result;
-  };
-  
-  const mobileDevice = isMobile();
+  // Mobile detection - show voice controls on desktop/tablet
+  const mobileDevice = false; // Временно изключваме mobile detection за да тестваме voice
+  console.log('Mobile detection disabled - showing voice controls');
 
   // Load chat history
   const { data: chatHistory } = useQuery({
