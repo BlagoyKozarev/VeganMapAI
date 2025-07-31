@@ -195,12 +195,40 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Ask user to click for TTS activation (required by browser autoplay policy)
-      const enableTTS = confirm('🎤 AI отговор готов! Натиснете OK за да чуете гласовия отговор:\n\n' + data.reply.substring(0, 100) + '...');
+      // Direct TTS test with manual trigger
+      console.log('🎤 AI response ready for TTS');
+      console.log('🔊 Response text:', data.reply);
       
-      if (enableTTS) {
-        console.log('🎤 User confirmed - activating TTS');
-        speak(data.reply);
+      // Show response and provide manual TTS button
+      const ttsButton = confirm('🎤 AI отговор:\n\n' + data.reply + '\n\nНатиснете OK за гласов отговор или Cancel за text only');
+      
+      if (ttsButton) {
+        console.log('✅ User wants TTS - activating');
+        
+        // Direct TTS call with immediate execution
+        const utterance = new SpeechSynthesisUtterance(data.reply);
+        utterance.rate = 0.8;
+        utterance.volume = 1;
+        utterance.pitch = 1;
+        
+        utterance.onstart = () => console.log('🎵 TTS НАЧАЛО');
+        utterance.onend = () => console.log('🔇 TTS КРАЙ');
+        utterance.onerror = (e) => console.error('❌ TTS ГРЕШКА:', e);
+        
+        // Force clear and speak
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+        
+        console.log('🚀 Direct speechSynthesis.speak() executed');
+        
+        // Status check
+        setTimeout(() => {
+          console.log('📊 TTS Status:', {
+            speaking: speechSynthesis.speaking,
+            pending: speechSynthesis.pending,
+            paused: speechSynthesis.paused
+          });
+        }, 1000);
       }
       
       // Set conversation as active after first voice interaction
