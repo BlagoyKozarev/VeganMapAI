@@ -131,97 +131,60 @@ export default function AiChat() {
       // Browser autoplay policy requires user interaction for TTS
       const userWantsVoice = confirm('AI отговор получен! Искате ли да чуете гласовия отговор?\n\n' + data.reply.substring(0, 100) + '...');
       
-      // Only activate TTS if user explicitly wants it (browser policy compliance)
+      // Direct TTS activation after user consent
       if (userWantsVoice && 'speechSynthesis' in window) {
-        console.log('=== TTS DIAGNOSTIC START ===');
-        console.log('SpeechSynthesis API available:', !!window.speechSynthesis);
-        console.log('Speaking state:', speechSynthesis.speaking);
-        console.log('Pending state:', speechSynthesis.pending);
-        console.log('Paused state:', speechSynthesis.paused);
+        console.log('✅ User confirmed TTS - starting immediately');
         
-        // Force cancel and resume
-        speechSynthesis.cancel();
-        speechSynthesis.resume();
+        // Simple, direct TTS approach
+        speechSynthesis.cancel(); // Clear any existing
         
-        console.log('Creating utterance for:', data.reply.substring(0, 30) + '...');
         const utterance = new SpeechSynthesisUtterance(data.reply);
-        
-        const isBulgarian = /[а-яА-Я]/.test(data.reply);
-        utterance.lang = isBulgarian ? "bg-BG" : "en-US";
-        utterance.rate = 0.8;
-        utterance.pitch = 1.0;
+        utterance.lang = /[а-яА-Я]/.test(data.reply) ? "bg-BG" : "en-US";
+        utterance.rate = 1.0;
         utterance.volume = 1.0;
         
-        console.log('TTS Language:', utterance.lang, 'Bulgarian detected:', isBulgarian);
-        
         utterance.onstart = () => {
-          console.log('🔊 TTS ACTUALLY STARTED!');
+          console.log('🎵 TTS STARTED SUCCESSFULLY!');
           setIsSpeaking(true);
         };
         
         utterance.onend = () => {
-          console.log('🔇 TTS ENDED');
+          console.log('🔇 TTS FINISHED');
           setIsSpeaking(false);
         };
         
-        utterance.onerror = (event) => {
-          console.error('❌ TTS ERROR EVENT:', event);
-          console.error('Error type:', event.error);
+        utterance.onerror = (e) => {
+          console.error('❌ TTS ERROR:', e.error);
+          alert('TTS грешка: ' + e.error);
           setIsSpeaking(false);
         };
         
-        utterance.onboundary = (event) => {
-          console.log('📍 TTS Boundary:', event.name, event.charIndex);
-        };
+        console.log('🚀 Starting TTS immediately...');
+        speechSynthesis.speak(utterance);
         
-        // Wait for voices and try multiple times
-        const trySpeak = () => {
-          const voices = speechSynthesis.getVoices();
-          console.log('Available voices count:', voices.length);
+        // Verify it started
+        setTimeout(() => {
+          console.log('TTS Status check:', {
+            speaking: speechSynthesis.speaking,
+            pending: speechSynthesis.pending,
+            voicesCount: speechSynthesis.getVoices().length
+          });
           
-          if (voices.length > 0) {
-            console.log('First 3 voices:', voices.slice(0, 3).map(v => ({ name: v.name, lang: v.lang })));
+          if (!speechSynthesis.speaking && !speechSynthesis.pending) {
+            console.error('⚠️ TTS failed to start - trying fallback');
+            alert('TTS не стартира. Опитвам отново...');
             
-            // Try to find Bulgarian voice or use default
-            const bgVoice = voices.find(v => v.lang.includes('bg') || v.lang.includes('BG'));
-            const enVoice = voices.find(v => v.lang.includes('en-US'));
-            
-            if (isBulgarian && bgVoice) {
-              utterance.voice = bgVoice;
-              console.log('Using Bulgarian voice:', bgVoice.name);
-            } else if (!isBulgarian && enVoice) {
-              utterance.voice = enVoice;
-              console.log('Using English voice:', enVoice.name);
-            } else {
-              console.log('Using default system voice');
-            }
+            // Fallback attempt
+            setTimeout(() => {
+              speechSynthesis.speak(utterance);
+            }, 500);
           }
-          
-          console.log('🎯 CALLING speechSynthesis.speak() NOW');
-          speechSynthesis.speak(utterance);
-          
-          // Check status after attempt
-          setTimeout(() => {
-            console.log('Post-speak status:', {
-              speaking: speechSynthesis.speaking,
-              pending: speechSynthesis.pending,
-              paused: speechSynthesis.paused
-            });
-          }, 100);
-        };
+        }, 200);
         
-        if (speechSynthesis.getVoices().length === 0) {
-          console.log('⏳ Waiting for voices to load...');
-          speechSynthesis.addEventListener('voiceschanged', trySpeak, { once: true });
-          // Fallback timeout
-          setTimeout(trySpeak, 1000);
-        } else {
-          trySpeak();
-        }
-        
+      } else if (userWantsVoice) {
+        alert('TTS не се поддържа в този браузър');
       } else {
-        console.error('❌ Speech synthesis NOT supported in this browser');
-        alert('Speech synthesis не се поддържа в този браузър');
+        console.log('👤 User declined TTS');
       }
       
       // Wait a moment then continue conversation
