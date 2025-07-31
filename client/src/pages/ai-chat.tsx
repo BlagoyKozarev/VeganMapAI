@@ -312,7 +312,7 @@ export default function AiChat() {
   };
 
   const toggleVoiceConversation = () => {
-    if (isMobile) {
+    if (mobileDevice) {
       toast({
         title: "Гласов разговор не е достъпен",
         description: "На мобилни устройства използвайте текстовия чат.",
