@@ -6,9 +6,10 @@ interface MobileHeaderProps {
   showSuggestions: boolean;
   onShowSuggestions: (show: boolean) => void;
   searchSuggestions: any[];
+  onOpenChat?: () => void;
 }
 
-export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions }: MobileHeaderProps) {
+export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions, onOpenChat }: MobileHeaderProps) {
   return (
     <header 
       className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg h-16 z-[99999]"
@@ -117,16 +118,16 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
         {/* Navigation Icons */}
         <div className="flex items-center space-x-2">
           <button 
-            onClick={() => alert('AI чат скоро ще бъде достъпен с Voiceflow интеграция')}
-            className="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105" 
-            title="AI Assistant"
+            onClick={onOpenChat || (() => window.location.href = '/ai-chat')}
+            className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
+            title="AI Voice Assistant"
+            style={{ touchAction: 'manipulation' }}
           >
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M7 4a3 3 0 616 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 715 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-            </svg>
+            <span className="text-white text-lg">🎤</span>
           </button>
           <a href="/profile">
-            <button className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
+            <button className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+              style={{ touchAction: 'manipulation' }}>
               BK
             </button>
           </a>
