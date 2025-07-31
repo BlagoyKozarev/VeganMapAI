@@ -86,6 +86,13 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
 - **Server Audio Processing**: Fixed audio file buffer handling and FormData construction
 - **Voice Chat Ready**: Complete Whisper + GPT-4o + TTS system operational without errors
 
+**Voice Chat Debugging (July 31, 2025):**
+- **Whisper Working**: Perfect Bulgarian transcription confirmed - "Здравей, човече ми, какво говоря?"
+- **GPT-4o Responses**: AI assistant responding correctly with contextual answers
+- **TTS Issue**: Text-to-speech not activating after responses - added forced TTS activation
+- **Browser Compatibility**: System tested on Chrome desktop with proper microphone access
+- **Debug Logging**: Enhanced console logging to track TTS activation and identify issues
+
 ## System Architecture
 
 ### Frontend Architecture
