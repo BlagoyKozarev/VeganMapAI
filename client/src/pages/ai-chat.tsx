@@ -29,8 +29,14 @@ export default function AiChat() {
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Mobile detection
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  // Mobile detection - temporarily disabled for testing
+  const isMobile = false; // /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  console.log('🔍 Device detection:', { 
+    userAgent: navigator.userAgent, 
+    isMobile, 
+    windowWidth: window.innerWidth 
+  });
 
   // Load chat history
   const { data: chatHistory } = useQuery({
