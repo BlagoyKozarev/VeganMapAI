@@ -82,7 +82,26 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       animateAddingMarkers: true,
       iconCreateFunction: function(cluster: any) {
         const childCount = cluster.getChildCount();
+        const markers = cluster.getAllChildMarkers();
+        
+        // Calculate average vegan score from markers
+        let totalScore = 0;
+        let validScores = 0;
+        
+        markers.forEach((marker: any) => {
+          if (marker.options && marker.options.veganScore) {
+            const score = parseFloat(marker.options.veganScore);
+            if (!isNaN(score) && score > 0) {
+              totalScore += score;
+              validScores++;
+            }
+          }
+        });
+        
+        const avgScore = validScores > 0 ? (totalScore / validScores).toFixed(1) : '?';
+        
         let className = 'marker-cluster marker-cluster-';
+        let displayText = childCount.toString();
         
         if (childCount < 5) {
           className += 'small';
@@ -92,8 +111,14 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
           className += 'large';
         }
         
+        // Show average score if available, otherwise show count
+        if (avgScore !== '?') {
+          displayText = avgScore;
+          className += ' with-score';
+        }
+        
         return new L.DivIcon({
-          html: '<div><span>' + childCount + '</span></div>',
+          html: `<div><span>${displayText}</span></div>`,
           className: className,
           iconSize: new L.Point(40, 40)
         });
@@ -163,7 +188,8 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
       const marker = L.marker([lat, lng], { 
         icon: restaurantIcon,
-        riseOnHover: true
+        riseOnHover: true,
+        veganScore: veganScore.toString() // Store vegan score in marker options
       });
 
       marker.on('click', (e) => {
