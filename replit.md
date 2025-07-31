@@ -94,16 +94,16 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
 - **Server Audio Processing**: Fixed audio file buffer handling and FormData construction
 - **Voice Chat Ready**: Complete Whisper + GPT-4o + TTS system operational without errors
 
-**Voice Chat System Complete (July 31, 2025):**
+**Voice Chat System Status (July 31, 2025):**
 - **Whisper Integration**: ✅ Perfect Bulgarian transcription - "Добре, човек мересе!"
 - **GPT-4o Responses**: ✅ Contextual Bulgarian/English AI responses with VeganMap context
 - **Voice Recording**: ✅ 8-second MediaRecorder audio capture with file upload
 - **OpenAI TTS**: ✅ Real MP3 audio generation (108KB files) with proper MIME headers
 - **Complete Pipeline**: Voice input → Whisper → GPT-4o → OpenAI TTS → Valid MP3 files
-- **Technical Implementation**: /api/tts endpoint with comprehensive HTTP headers
-- **File Validation**: TTS files work perfectly when downloaded - confirmed by user
-- **Browser Limitation**: Autoplay policy blocks automatic playback but files are valid
-- **Revolutionary Achievement**: Complete end-to-end voice AI system with working TTS generation
+- **Technical Implementation**: /api/tts endpoint with comprehensive HTTP headers and user gesture handling
+- **User Experience Challenge**: Browser autoplay restrictions prevent automatic conversation flow
+- **Current State**: Voice input works, TTS generates valid audio, but requires manual play button click
+- **User Feedback**: "това е далече от разговор" - needs seamless audio playback for true conversation
 
 ## System Architecture
 
