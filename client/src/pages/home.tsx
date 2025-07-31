@@ -49,10 +49,11 @@ export default function Home() {
   const [minVeganScore, setMinVeganScore] = useState(0);
   const [minGoogleScore, setMinGoogleScore] = useState(0);
   
-  // Check URL parameters for custom location
+  // Check URL parameters for custom location and restaurant selection
   const urlParams = new URLSearchParams(window.location.search);
   const customLat = urlParams.get('lat');
   const customLng = urlParams.get('lng');
+  const restaurantId = urlParams.get('restaurant');
   
   // Use custom location if provided, otherwise use geolocation
   const currentPosition = customLat && customLng ? 
@@ -72,13 +73,28 @@ export default function Home() {
     },
   });
 
-  // Log restaurants data once when loaded
+  // Log restaurants data once when loaded and handle restaurant selection from URL
   useEffect(() => {
     if (restaurants.length > 0) {
       console.log('Home component - restaurants count:', restaurants.length);
       console.log('Sample restaurant scores:', restaurants.slice(0, 10).map((r: Restaurant) => ({ name: r.name, score: r.veganScore })));
+      
+      // Handle restaurant selection from URL parameter
+      if (restaurantId) {
+        const targetRestaurant = restaurants.find((r: Restaurant) => r.id === restaurantId);
+        if (targetRestaurant) {
+          console.log('Auto-selecting restaurant from URL:', targetRestaurant.name);
+          setSelectedRestaurant(targetRestaurant);
+          setShowDropdown(true);
+          
+          // Clear the URL parameter to avoid re-triggering
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.delete('restaurant');
+          window.history.replaceState({}, '', newUrl.toString());
+        }
+      }
     }
-  }, [restaurants.length]); // Stable dependency
+  }, [restaurants.length, restaurantId]); // Stable dependency
 
   // Filter restaurants based on search query and scores - memoized to prevent loops
   useEffect(() => {
