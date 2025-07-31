@@ -29,8 +29,21 @@ export default function AiChat() {
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Mobile detection
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  // Mobile detection - more accurate detection that allows desktop browsers
+  const isMobile = () => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const mobileKeywords = ['android', 'webos', 'iphone', 'ipad', 'ipod', 'blackberry', 'iemobile', 'opera mini'];
+    const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword));
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    // Only consider mobile if it has mobile user agent AND (touch OR small screen)
+    const result = isMobileUserAgent && (isTouchDevice || isSmallScreen);
+    console.log('Mobile detection:', { userAgent, isMobileUserAgent, isTouchDevice, isSmallScreen, result });
+    return result;
+  };
+  
+  const mobileDevice = isMobile();
 
   // Load chat history
   const { data: chatHistory } = useQuery({
@@ -489,7 +502,7 @@ export default function AiChat() {
       {/* Input Area */}
       <div className="border-t border-gray-200 p-4 bg-white">
         {/* Voice Controls */}
-        {!isMobile && (
+        {!mobileDevice && (
           <div className="mb-4 flex justify-center">
             <Button
               onClick={toggleVoiceConversation}
@@ -508,7 +521,7 @@ export default function AiChat() {
           <Textarea
             value={currentMessage}
             onChange={(e) => setCurrentMessage(e.target.value)}
-            placeholder={isMobile ? "Напишете съобщение..." : "Напишете съобщение или използвайте гласовия асистент..."}
+            placeholder={mobileDevice ? "Напишете съобщение..." : "Напишете съобщение или използвайте гласовия асистент..."}
             className="flex-1 min-h-[2.5rem] max-h-32 resize-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -525,6 +538,13 @@ export default function AiChat() {
             <Send className="w-4 h-4" />
           </Button>
         </form>
+
+        {/* Mobile Voice Info */}
+        {mobileDevice && (
+          <p className="text-xs text-gray-500 text-center mt-2">
+            Гласовият асистент е достъпен само на десктоп браузъри
+          </p>
+        )}
       </div>
     </div>
   );
