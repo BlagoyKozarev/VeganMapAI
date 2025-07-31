@@ -298,6 +298,7 @@ export default function Home() {
         showSuggestions={showSuggestions}
         onShowSuggestions={setShowSuggestions}
         searchSuggestions={searchSuggestions}
+        onOpenChat={() => setLocation('/ai-chat')}
       />
 
       <div 
@@ -479,8 +480,30 @@ export default function Home() {
                   <span className="text-gray-700">&lt;5.5 Poor</span>
                 </div>
               </div>
+
+              {/* Mobile Location Button */}
+              <div className="mt-3 pt-2 border-t border-gray-100">
+                <Button
+                  onClick={handleCurrentLocation}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 flex items-center justify-center shadow-md hover:shadow-lg text-xs font-medium active:scale-95"
+                  disabled={loading}
+                  style={{ touchAction: 'manipulation' }}
+                >
+                  <span className="mr-1">📍</span>
+                  {loading ? 'Loading...' : 'My Location'}
+                </Button>
+              </div>
             </div>
 
+            {/* Mobile Filter Button - Bottom Left */}
+            <div className="absolute bottom-6 left-4 z-[999]">
+              <MobileFilterDrawer
+                minVeganScore={minVeganScore}
+                minGoogleScore={minGoogleScore}
+                onVeganScoreChange={setMinVeganScore}
+                onGoogleScoreChange={setMinGoogleScore}
+              />
+            </div>
 
           </>
         )}
