@@ -29,9 +29,20 @@ export default function AiChat() {
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Mobile detection - show voice controls on desktop/tablet
-  const mobileDevice = false; // Временно изключваме mobile detection за да тестваме voice
-  console.log('Mobile detection disabled - showing voice controls');
+  // Mobile detection - proper detection for voice/TTS functionality
+  const isMobileDevice = () => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const mobileKeywords = ['android', 'webos', 'iphone', 'ipad', 'ipod', 'blackberry', 'iemobile', 'opera mini'];
+    const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword));
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    // Consider mobile if it has mobile user agent OR very small screen
+    const result = isMobileUserAgent || isSmallScreen;
+    console.log('Mobile detection:', { userAgent, isMobileUserAgent, isSmallScreen, result, windowWidth: window.innerWidth });
+    return result;
+  };
+  
+  const mobileDevice = isMobileDevice();
 
   // Load chat history
   const { data: chatHistory } = useQuery({
@@ -113,16 +124,18 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Speak the response if conversation is active
+      // Speak the response if conversation is active (works on all devices)
       if (conversationActive) {
         await speakText(data.reply);
         
-        // Continue conversation after speaking
-        setTimeout(() => {
-          if (conversationActive && !isSpeaking) {
-            startWhisperRecording();
-          }
-        }, 2000);
+        // Continue conversation after speaking (only on desktop with microphone)
+        if (!mobileDevice) {
+          setTimeout(() => {
+            if (conversationActive && !isSpeaking) {
+              startWhisperRecording();
+            }
+          }, 2000);
+        }
       }
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
@@ -489,8 +502,28 @@ export default function AiChat() {
 
       {/* Input Area */}
       <div className="border-t border-gray-200 p-4 bg-white">
-        {/* Voice Controls */}
-        {!mobileDevice && (
+        {/* Voice Controls - show on all devices but with different functionality */}
+        <div className="mb-4 flex justify-center">
+          {!mobileDevice ? (
+            <Button
+              onClick={toggleVoiceConversation}
+              variant={voiceButtonState.variant}
+              disabled={voiceButtonState.disabled}
+              className="flex items-center space-x-2"
+            >
+              {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              <span>{voiceButtonState.text}</span>
+            </Button>
+          ) : (
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-2">Voice chat работи на всички устройства</p>
+              <p className="text-xs text-gray-500">Микрофон: само десктоп | TTS: всички устройства</p>
+            </div>
+          )}
+        </div>
+
+        {/* Original desktop-only controls (hidden) */}
+        {false && (
           <div className="mb-4 flex justify-center">
             <Button
               onClick={toggleVoiceConversation}
