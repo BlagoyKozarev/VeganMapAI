@@ -6,7 +6,7 @@ import { registerApiStatsRoutes } from "./routes/api-stats";
 import { Client } from '@googlemaps/google-maps-services-js';
 import multer from 'multer';
 import fs from 'fs';
-import { FormData } from 'formdata-node';
+// FormData is now globally available in Node.js
 
 import { 
   mapAgent, 
@@ -471,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processed: results.length,
         errors: errors.length,
         results,
-        errors
+        errorList: errors
       });
 
     } catch (error) {
@@ -491,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Whisper transcription
       const audioData = fs.createReadStream(filePath);
       const formData = new FormData();
-      formData.append('file', audioData);
+      formData.append('file', audioData, 'audio.webm');
       formData.append('model', 'whisper-1');
       formData.append('language', 'bg');
 
