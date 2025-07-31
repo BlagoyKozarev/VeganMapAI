@@ -178,30 +178,80 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
         ? cluster.restaurants.length.toString()
         : (cluster.avgScore > 0 ? cluster.avgScore.toFixed(1) : '?');
 
+      // Enhanced Google Maps style cluster design
+      const clusterSize = Math.min(60, Math.max(40, 30 + cluster.restaurants.length * 2));
+      const backgroundColor = isCluster 
+        ? (cluster.restaurants.length >= 10 ? '#1565C0' : cluster.restaurants.length >= 5 ? '#FB8C00' : '#E53935')
+        : '#0F9D58';
+
       const customIcon = L.divIcon({
-        className: 'custom-restaurant-marker',
+        className: `custom-restaurant-marker ${isCluster ? 'cluster-marker' : 'single-marker'}`,
         html: `
-          <div style="
-            background-color: ${isCluster ? '#dc2626' : '#16a34a'};
-            color: white;
-            border-radius: 50%;
-            width: ${isCluster ? '44px' : '36px'};
-            height: ${isCluster ? '44px' : '36px'};
+          <div class="marker-container" style="
+            position: relative;
+            width: ${isCluster ? clusterSize : 38}px;
+            height: ${isCluster ? clusterSize : 38}px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: ${isCluster ? '14px' : '12px'};
-            border: 3px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            cursor: pointer;
-            ${isCluster ? 'animation: pulse 2s infinite;' : ''}
+            transition: all 0.2s ease;
           ">
-            ${displayText}
+            <div class="marker-inner" style="
+              background: ${backgroundColor};
+              color: white;
+              border-radius: 50%;
+              width: 100%;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 600;
+              font-size: ${isCluster ? Math.min(16, 12 + cluster.restaurants.length) : 11}px;
+              border: 3px solid white;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15);
+              cursor: pointer;
+              font-family: 'Roboto', -apple-system, sans-serif;
+              letter-spacing: -0.5px;
+              ${isCluster ? 'transform: scale(1); animation: cluster-pulse 3s ease-in-out infinite;' : ''}
+            ">
+              ${displayText}
+            </div>
+            ${isCluster ? `
+              <div class="cluster-ring" style="
+                position: absolute;
+                top: -3px;
+                left: -3px;
+                right: -3px;
+                bottom: -3px;
+                border: 2px solid ${backgroundColor}40;
+                border-radius: 50%;
+                animation: cluster-expand 2s ease-in-out infinite;
+              "></div>
+            ` : ''}
           </div>
+          <style>
+            @keyframes cluster-pulse {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.05); }
+            }
+            @keyframes cluster-expand {
+              0%, 100% { 
+                transform: scale(1); 
+                opacity: 0.6; 
+              }
+              50% { 
+                transform: scale(1.2); 
+                opacity: 0.3; 
+              }
+            }
+            .marker-container:hover .marker-inner {
+              transform: scale(1.1);
+              box-shadow: 0 6px 16px rgba(0,0,0,0.3), 0 3px 6px rgba(0,0,0,0.2);
+            }
+          </style>
         `,
-        iconSize: isCluster ? [44, 44] : [36, 36],
-        iconAnchor: isCluster ? [22, 22] : [18, 18],
+        iconSize: isCluster ? [clusterSize, clusterSize] : [38, 38],
+        iconAnchor: isCluster ? [clusterSize/2, clusterSize/2] : [19, 19],
       });
 
       const marker = L.marker(cluster.center, { icon: customIcon })
@@ -241,16 +291,28 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
           }
         });
 
-      // Different tooltips for clusters vs individual restaurants
+      // Enhanced Google Maps style tooltips
       const tooltipText = isCluster 
-        ? `${cluster.restaurants.length} ресторанта (средна оценка: ${cluster.avgScore.toFixed(1)})`
-        : `${cluster.restaurants[0].name} (${displayText})`;
+        ? `<div style="text-align: center; padding: 2px;">
+             <div style="font-weight: 600; color: #333;">${cluster.restaurants.length} ресторанта</div>
+             <div style="font-size: 12px; color: #666; margin-top: 2px;">
+               Средна оценка: ${cluster.avgScore > 0 ? cluster.avgScore.toFixed(1) : 'N/A'}/10
+             </div>
+             <div style="font-size: 11px; color: #888; margin-top: 1px;">Кликнете за увеличаване</div>
+           </div>`
+        : `<div style="text-align: center; padding: 2px;">
+             <div style="font-weight: 600; color: #333; max-width: 200px;">${cluster.restaurants[0].name}</div>
+             <div style="font-size: 12px; color: #666; margin-top: 2px;">
+               Vegan Score: ${displayText}/10
+             </div>
+           </div>`;
 
       marker.bindTooltip(tooltipText, {
         permanent: false,
         direction: 'top',
-        offset: [0, -10],
-        className: 'restaurant-tooltip',
+        offset: [0, isCluster ? -Math.ceil(clusterSize/2) - 5 : -24],
+        className: 'google-maps-tooltip',
+        opacity: 0.95
       });
 
       markersRef.current.push(marker);
