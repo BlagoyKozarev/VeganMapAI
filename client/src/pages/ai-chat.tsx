@@ -452,7 +452,7 @@ export default function AiChat() {
         description: "Гласовият разговор спря заради липса на активност.",
       });
       endConversation();
-    }, 5000); // 5 seconds
+    }, 10000); // 10 seconds
     
     startWhisperRecording();
   };
