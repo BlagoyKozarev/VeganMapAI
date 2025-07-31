@@ -272,57 +272,83 @@ export default function AiChat() {
             audio.autoplay = false;
             audio.muted = false;
             
-            // Browser requires user gesture for audio playback
-            // Since this is triggered by voice recording (user gesture), try immediate play
-            audio.play()
-              .then(() => {
-                console.log('✅ Audio playback successful!');
-                setIsListening(true); // Continue conversation
-                setTimeout(() => {
-                  if (isRecording) return; // Don't start if already recording
-                  handleStartRecording(); // Auto-continue conversation
-                }, 2000);
-              })
-              .catch((error) => {
-                console.log('📋 Browser autoplay policy blocked audio');
+            // Try Web Audio API for better control and bypass autoplay restrictions
+            const playAudioWithWebAPI = async () => {
+              try {
+                // Create or resume AudioContext on user interaction
+                if (!window.audioContext) {
+                  window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
                 
-                // Create a visible play button for user to click
-                const playButton = document.createElement('button');
-                playButton.textContent = '🔊 Възпроизведи отговор';
-                playButton.style.cssText = `
-                  position: fixed;
-                  top: 50%;
-                  left: 50%;
-                  transform: translate(-50%, -50%);
-                  z-index: 9999;
-                  padding: 15px 25px;
-                  background: #22c55e;
-                  color: white;
-                  border: none;
-                  border-radius: 8px;
-                  font-size: 16px;
-                  cursor: pointer;
-                  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                `;
+                if (window.audioContext.state === 'suspended') {
+                  await window.audioContext.resume();
+                }
                 
-                playButton.onclick = () => {
-                  audio.play();
-                  document.body.removeChild(playButton);
+                // Convert blob to array buffer
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const audioBuffer = await window.audioContext.decodeAudioData(arrayBuffer);
+                
+                // Create and play audio source
+                const source = window.audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(window.audioContext.destination);
+                
+                console.log('🎵 Starting Web Audio API playback');
+                source.start(0);
+                
+                // Auto-continue conversation after audio ends
+                source.onended = () => {
+                  console.log('🔇 Audio completed, continuing conversation');
+                  setIsListening(true);
+                  setTimeout(() => {
+                    if (!isRecording) {
+                      handleStartRecording(); // Auto-continue conversation
+                    }
+                  }, 1500);
+                };
+                
+                return true;
+              } catch (webAudioError) {
+                console.log('❌ Web Audio API failed:', webAudioError);
+                return false;
+              }
+            };
+            
+            // Try Web Audio API first, fallback to regular audio
+            const success = await playAudioWithWebAPI();
+            
+            if (!success) {
+              // Fallback to regular HTML5 audio with user interaction requirement
+              audio.play()
+                .then(() => {
+                  console.log('✅ HTML5 audio playback successful');
                   setIsListening(true);
                   setTimeout(() => {
                     if (!isRecording) handleStartRecording();
                   }, 2000);
-                };
-                
-                document.body.appendChild(playButton);
-                
-                // Auto-remove after 10 seconds
-                setTimeout(() => {
-                  if (document.body.contains(playButton)) {
+                })
+                .catch(() => {
+                  console.log('📋 All audio methods failed - requiring user click');
+                  
+                  // Minimal play button that auto-continues conversation
+                  const playButton = document.createElement('button');
+                  playButton.textContent = '▶️';
+                  playButton.style.cssText = `
+                    position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+                    width: 60px; height: 60px; border-radius: 50%;
+                    background: #22c55e; color: white; border: none;
+                    font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                  `;
+                  
+                  playButton.onclick = async () => {
+                    const webSuccess = await playAudioWithWebAPI();
+                    if (!webSuccess) audio.play();
                     document.body.removeChild(playButton);
-                  }
-                }, 10000);
-              });
+                  };
+                  
+                  document.body.appendChild(playButton);
+                });
+            }
             
           } else {
             console.error('❌ TTS API error:', ttsResponse.status);
