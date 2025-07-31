@@ -103,8 +103,8 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
 - **Browser Compatibility**: Multiple TTS activation attempts with voice loading and fallback mechanisms
 - **GPT-4o Consultation**: Integrated AI-powered TTS troubleshooting assistance
 - **Mobile Fallback**: Desktop voice + mobile text chat with proper device detection
-- **TTS Auto-Activation**: Voice responses automatically trigger TTS and activate continuous conversation
-- **Status**: Complete voice conversation system - Whisper + GPT-4o + TTS with automatic conversation flow
+- **TTS Implementation**: Working voice synthesis with proper voice loading and Bulgarian language support
+- **Status**: Complete voice conversation system - Whisper + GPT-4o + TTS with user interaction confirmation
 
 ## System Architecture
 
