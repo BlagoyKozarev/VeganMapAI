@@ -203,32 +203,43 @@ export default function AiChat() {
       const ttsButton = confirm('🎤 AI отговор:\n\n' + data.reply + '\n\nНатиснете OK за гласов отговор или Cancel за text only');
       
       if (ttsButton) {
-        console.log('✅ User wants TTS - activating');
+        // Ultra-simple TTS test
+        console.log('🎤 TTS Test - Creating utterance');
         
-        // Direct TTS call with immediate execution
-        const utterance = new SpeechSynthesisUtterance(data.reply);
-        utterance.rate = 0.8;
-        utterance.volume = 1;
-        utterance.pitch = 1;
+        try {
+          // Test 1: Simple text
+          const testUtterance = new SpeechSynthesisUtterance('Тест');
+          testUtterance.volume = 1;
+          testUtterance.rate = 1;
+          
+          console.log('🔊 Test utterance created');
+          console.log('🎛️ Available voices:', speechSynthesis.getVoices().length);
+          
+          // Test 2: Force speak
+          speechSynthesis.speak(testUtterance);
+          console.log('✅ speechSynthesis.speak(testUtterance) called');
+          
+          // Test 3: Main response
+          setTimeout(() => {
+            const mainUtterance = new SpeechSynthesisUtterance(data.reply);
+            speechSynthesis.speak(mainUtterance);
+            console.log('🚀 Main response TTS started');
+          }, 1000);
+          
+        } catch (error) {
+          console.error('❌ TTS Exception:', error);
+        }
         
-        utterance.onstart = () => console.log('🎵 TTS НАЧАЛО');
-        utterance.onend = () => console.log('🔇 TTS КРАЙ');
-        utterance.onerror = (e) => console.error('❌ TTS ГРЕШКА:', e);
+        // Debug info
+        console.log('🔍 Browser TTS Support:', {
+          speechSynthesis: !!window.speechSynthesis,
+          voicesLength: speechSynthesis.getVoices().length,
+          speaking: speechSynthesis.speaking
+        });
         
-        // Force clear and speak
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
-        
-        console.log('🚀 Direct speechSynthesis.speak() executed');
-        
-        // Status check
-        setTimeout(() => {
-          console.log('📊 TTS Status:', {
-            speaking: speechSynthesis.speaking,
-            pending: speechSynthesis.pending,
-            paused: speechSynthesis.paused
-          });
-        }, 1000);
+        // Manual console test suggestion
+        console.log('🧪 Manual test: Open console and run:');
+        console.log('speechSynthesis.speak(new SpeechSynthesisUtterance("Здравей"))');
       }
       
       // Set conversation as active after first voice interaction
