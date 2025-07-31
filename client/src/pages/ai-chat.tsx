@@ -190,18 +190,26 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Auto-continue conversation with voice after response
-      if (conversationActive) {
-        console.log('🎤 Auto-speaking AI response');
-        speak(data.reply);
-        
-        // Continue listening after 2 seconds
+      // Debug conversation state and force TTS
+      console.log('🔍 Debug state:', {
+        conversationActive,
+        mobileDevice,
+        textLength: data.reply.length
+      });
+      
+      // Force TTS regardless of conversation state for testing
+      console.log('🎤 Force-speaking AI response for testing');
+      speak(data.reply);
+      
+      // Auto-continue conversation if active
+      if (conversationActive && !mobileDevice) {
+        // Continue listening after 3 seconds
         setTimeout(() => {
-          if (conversationActive && !mobileDevice) {
-            console.log('Continuing conversation...');
+          if (conversationActive) {
+            console.log('Continuing voice conversation...');
             startWhisperRecording();
           }
-        }, 2000);
+        }, 3000);
       }
       
       // Reset speaking state
