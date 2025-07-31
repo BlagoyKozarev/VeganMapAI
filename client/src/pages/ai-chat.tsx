@@ -502,38 +502,23 @@ export default function AiChat() {
 
       {/* Input Area */}
       <div className="border-t border-gray-200 p-4 bg-white">
-        {/* Voice Controls - show on all devices but with different functionality */}
+        {/* Voice Controls */}
         <div className="mb-4 flex justify-center">
-          {!mobileDevice ? (
-            <Button
-              onClick={toggleVoiceConversation}
-              variant={voiceButtonState.variant}
-              disabled={voiceButtonState.disabled}
-              className="flex items-center space-x-2"
-            >
-              {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              <span>{voiceButtonState.text}</span>
-            </Button>
-          ) : (
-            <div className="text-center">
-              <p className="text-sm text-gray-600 mb-2">Voice chat работи на всички устройства</p>
-              <p className="text-xs text-gray-500">Микрофон: само десктоп | TTS: всички устройства</p>
-            </div>
-          )}
+          <Button
+            onClick={toggleVoiceConversation}
+            variant={voiceButtonState.variant}
+            disabled={voiceButtonState.disabled}
+            className="flex items-center space-x-2"
+          >
+            {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            <span>{voiceButtonState.text}</span>
+          </Button>
         </div>
 
-        {/* Original desktop-only controls (hidden) */}
-        {false && (
-          <div className="mb-4 flex justify-center">
-            <Button
-              onClick={toggleVoiceConversation}
-              variant={voiceButtonState.variant}
-              disabled={voiceButtonState.disabled}
-              className="flex items-center space-x-2"
-            >
-              {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              <span>{voiceButtonState.text}</span>
-            </Button>
+        {/* Mobile info */}
+        {mobileDevice && (
+          <div className="text-center mb-4">
+            <p className="text-xs text-gray-500">TTS работи на всички устройства</p>
           </div>
         )}
 
