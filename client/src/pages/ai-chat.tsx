@@ -37,6 +37,14 @@ export default function AiChat() {
     isMobile, 
     windowWidth: window.innerWidth 
   });
+  
+  // Debug conversation state
+  console.log('🎯 Conversation state:', { 
+    conversationActive, 
+    isRecording, 
+    isProcessing, 
+    isSpeaking 
+  });
 
   // Load chat history
   const { data: chatHistory } = useQuery({
@@ -102,6 +110,9 @@ export default function AiChat() {
       return await response.json();
     },
     onSuccess: async (data: any) => {
+      console.log('🎉 Voice chat success data:', data);
+      console.log('🔍 Current conversation state:', { conversationActive, isSpeaking, isRecording, isProcessing });
+      
       // Add user message
       const userMessage: ChatMessage = {
         role: 'user',
@@ -118,22 +129,21 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Speak the response if conversation is active
-      if (conversationActive) {
-        console.log('🔊 Starting TTS for response:', data.reply);
-        await speakText(data.reply);
-        console.log('✅ TTS completed, scheduling next recording');
-        
-        // Continue conversation after speaking
-        setTimeout(() => {
-          if (conversationActive && !isSpeaking) {
-            console.log('🎙️ Starting next recording after TTS timeout');
-            startWhisperRecording();
-          }
-        }, 2000);
-      } else {
-        console.log('❌ Not speaking because conversation not active:', conversationActive);
-      }
+      // Always speak the response during voice conversation
+      console.log('🔊 Starting TTS for response:', data.reply);
+      console.log('🎯 Before TTS - conversationActive:', conversationActive);
+      
+      await speakText(data.reply);
+      console.log('✅ TTS completed, checking continuation');
+      
+      // Continue conversation after speaking
+      setTimeout(() => {
+        console.log('⏰ Timeout check - conversationActive:', conversationActive, 'isSpeaking:', isSpeaking);
+        if (conversationActive && !isSpeaking) {
+          console.log('🎙️ Starting next recording after TTS timeout');
+          startWhisperRecording();
+        }
+      }, 2000);
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
