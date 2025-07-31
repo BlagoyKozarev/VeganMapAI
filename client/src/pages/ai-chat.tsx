@@ -224,35 +224,58 @@ export default function AiChat() {
             console.log('🎵 Audio blob size:', audioBlob.size, 'bytes');
             console.log('🔗 Audio URL created:', audioUrl);
             
-            const audio = new Audio(audioUrl);
+            // Create invisible HTML audio element for better browser support
+            const audio = document.createElement('audio');
+            audio.src = audioUrl;
+            audio.preload = 'auto';
+            audio.volume = 1.0;
             
-            // Add detailed event listeners
+            console.log('🎛️ Audio element created with src:', audioUrl);
+            
+            // Add to DOM temporarily for better compatibility
+            audio.style.display = 'none';
+            document.body.appendChild(audio);
+            
+            // Event listeners
             audio.onloadstart = () => console.log('📥 Audio loading started');
             audio.oncanplay = () => console.log('▶️ Audio can play');
             audio.onplay = () => console.log('🎵 Audio play started');
             audio.onended = () => {
-              console.log('🔇 Audio ended');
+              console.log('🔇 Audio playback completed');
+              document.body.removeChild(audio);
               URL.revokeObjectURL(audioUrl);
             };
-            audio.onerror = (e) => console.error('❌ Audio error:', e);
+            audio.onerror = (e) => {
+              console.error('❌ Audio error:', e);
+              console.error('Error details:', {
+                code: audio.error?.code,
+                message: audio.error?.message
+              });
+            };
             
-            // Force play with user interaction
-            const playPromise = audio.play();
+            // Load and play
+            audio.load();
             
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  console.log('✅ Audio playback started successfully');
-                })
-                .catch(error => {
-                  console.error('❌ Audio play failed:', error);
-                  // Try alternative approach
-                  setTimeout(() => {
-                    console.log('🔄 Retrying audio playback...');
-                    audio.play().catch(e => console.error('❌ Retry failed:', e));
-                  }, 500);
-                });
-            }
+            // Try multiple play attempts
+            const attemptPlay = async () => {
+              try {
+                console.log('🚀 Attempting audio playback...');
+                await audio.play();
+                console.log('✅ Audio started successfully');
+              } catch (error) {
+                console.error('❌ Play attempt failed:', error);
+                
+                // Final fallback - show download link
+                console.log('💾 Creating download fallback');
+                const link = document.createElement('a');
+                link.href = audioUrl;
+                link.download = 'tts-response.mp3';
+                link.textContent = 'Download TTS Response';
+                link.click();
+              }
+            };
+            
+            setTimeout(attemptPlay, 100);
             
           } else {
             console.error('❌ TTS API error:', ttsResponse.status);
