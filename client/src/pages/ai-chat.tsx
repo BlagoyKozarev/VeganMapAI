@@ -206,22 +206,30 @@ export default function AiChat() {
         console.log('✅ Starting OpenAI TTS generation');
         
         try {
-          // Call our OpenAI TTS endpoint
+          // Call our OpenAI TTS endpoint with proper headers
           const ttsResponse = await fetch('/api/tts', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'audio/mpeg',
             },
             credentials: 'include',
             body: JSON.stringify({ text: data.reply })
           });
           
           if (ttsResponse.ok) {
-            // Get the MP3 blob and play it
+            // Get the MP3 blob and verify MIME type
             const audioBlob = await ttsResponse.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
             
             console.log('🎵 Audio blob size:', audioBlob.size, 'bytes');
+            console.log('🎧 Audio blob type:', audioBlob.type);
+            console.log('📋 Response headers:', Object.fromEntries(ttsResponse.headers.entries()));
+            
+            // Force correct MIME type if needed
+            const correctedBlob = audioBlob.type.includes('audio') ? audioBlob : 
+              new Blob([audioBlob], { type: 'audio/mpeg' });
+            
+            const audioUrl = URL.createObjectURL(correctedBlob);
             console.log('🔗 Audio URL created:', audioUrl);
             
             // Create invisible HTML audio element for better browser support
