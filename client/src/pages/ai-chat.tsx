@@ -272,29 +272,33 @@ export default function AiChat() {
             // Try Web Audio API for better control and bypass autoplay restrictions
             const playAudioWithWebAPI = async () => {
               try {
-                // Create or resume AudioContext on user interaction
-                if (!window.audioContext) {
-                  window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                // Create AudioContext with proper typing
+                let audioCtx: AudioContext;
+                if (!(window as any).audioContext) {
+                  audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                  (window as any).audioContext = audioCtx;
+                } else {
+                  audioCtx = (window as any).audioContext;
                 }
                 
-                if (window.audioContext.state === 'suspended') {
-                  await window.audioContext.resume();
+                if (audioCtx.state === 'suspended') {
+                  await audioCtx.resume();
                 }
                 
                 // Convert blob to array buffer
                 const arrayBuffer = await audioBlob.arrayBuffer();
-                const audioBuffer = await window.audioContext.decodeAudioData(arrayBuffer);
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                 
                 // Create and play audio source
-                const source = window.audioContext.createBufferSource();
+                const source = audioCtx.createBufferSource();
                 source.buffer = audioBuffer;
-                source.connect(window.audioContext.destination);
+                source.connect(audioCtx.destination);
                 
                 console.log('🎵 Starting Web Audio API playback');
                 source.start(0);
                 
                 // Auto-continue conversation after audio ends
-                source.onended = () => {
+                source.addEventListener('ended', () => {
                   console.log('🔇 Audio completed, continuing conversation');
                   setTimeout(() => {
                     if (!isRecording && !isProcessing) {
@@ -302,7 +306,7 @@ export default function AiChat() {
                       startWhisperRecording(); // Continue conversation
                     }
                   }, 1500);
-                };
+                });
                 
                 return true;
               } catch (webAudioError) {
@@ -341,8 +345,16 @@ export default function AiChat() {
                   
                   playButton.onclick = async () => {
                     const webSuccess = await playAudioWithWebAPI();
-                    if (!webSuccess) audio.play();
+                    if (!webSuccess) {
+                      await audio.play();
+                    }
                     document.body.removeChild(playButton);
+                    // Continue conversation after manual play
+                    setTimeout(() => {
+                      if (!isRecording && !isProcessing) {
+                        startWhisperRecording();
+                      }
+                    }, 2000);
                   };
                   
                   document.body.appendChild(playButton);
@@ -473,9 +485,16 @@ export default function AiChat() {
       
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        console.log('🎤 Recording stopped, processing audio...');
         setIsProcessing(true);
-        await voiceChatMutation.mutateAsync(audioBlob);
-        setIsProcessing(false);
+        
+        try {
+          await voiceChatMutation.mutateAsync(audioBlob);
+        } catch (error) {
+          console.error('❌ Voice processing error:', error);
+        } finally {
+          setIsProcessing(false);
+        }
         
         stream.getTracks().forEach(track => track.stop());
       };
@@ -483,12 +502,13 @@ export default function AiChat() {
       mediaRecorder.start();
       setIsRecording(true);
       
-      // Auto-stop after 10 seconds for better Bulgarian recognition
+      // Auto-stop after 8 seconds for better conversation flow
       setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          console.log('⏰ Auto-stopping recording after 8 seconds');
           stopRecording();
         }
-      }, 10000);
+      }, 8000);
       
     } catch (error) {
       console.error('Failed to start recording:', error);
