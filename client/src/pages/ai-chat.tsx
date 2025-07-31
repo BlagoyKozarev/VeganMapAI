@@ -12,60 +12,28 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// GPT-4o exact TTS solution with debugging
+// Simplified TTS function for testing
 const speak = (text: string) => {
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    console.log('🔊 TTS Debug - Starting speak function');
-    
-    // Cancel any existing speech
-    window.speechSynthesis.cancel();
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voices = window.speechSynthesis.getVoices();
-    
-    console.log('🎤 Available voices:', voices.length);
-    console.log('🎯 First 3 voices:', voices.slice(0, 3).map(v => `${v.name} (${v.lang})`));
-
-    // Избери български или Google глас
-    const selectedVoice = voices.find(v =>
-      v.lang.startsWith("bg") || v.name.includes("Google")
-    );
-    
-    utterance.voice = selectedVoice || null;
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    
-    console.log('🎵 Selected voice:', selectedVoice?.name || 'default');
-    console.log('📝 Text to speak:', text.substring(0, 50) + '...');
-    
-    // Add event listeners for debugging
-    utterance.onstart = () => {
-      console.log('✅ TTS STARTED SUCCESSFULLY');
-    };
-    
-    utterance.onend = () => {
-      console.log('🔇 TTS FINISHED');
-    };
-    
-    utterance.onerror = (e) => {
-      console.error('❌ TTS ERROR:', e.error);
-    };
-    
-    // Force speak
-    console.log('🚀 Calling speechSynthesis.speak()');
-    window.speechSynthesis.speak(utterance);
-    
-    // Check status after 500ms
-    setTimeout(() => {
-      console.log('📊 TTS Status check:', {
-        speaking: window.speechSynthesis.speaking,
-        pending: window.speechSynthesis.pending,
-        paused: window.speechSynthesis.paused
-      });
-    }, 500);
-  } else {
+  console.log('🎯 SPEAK FUNCTION CALLED with:', text.substring(0, 20) + '...');
+  
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     console.error('🚫 speechSynthesis not supported');
+    return;
   }
+  
+  console.log('✅ speechSynthesis is available');
+  
+  // Simple TTS implementation
+  const utterance = new SpeechSynthesisUtterance(text);
+  
+  utterance.onstart = () => console.log('🎵 TTS STARTED');
+  utterance.onend = () => console.log('🔇 TTS ENDED');  
+  utterance.onerror = (e) => console.error('❌ TTS ERROR:', e.error);
+  
+  console.log('🚀 Calling speechSynthesis.speak()');
+  window.speechSynthesis.speak(utterance);
+  
+  console.log('📞 speechSynthesis.speak() has been called');
 };
 
 // 2. Зареди гласове с debugging
@@ -192,7 +160,15 @@ export default function AiChat() {
       
       // Always speak AI response when it comes from voice input
       console.log('🎤 Speaking AI response automatically');
-      speak(data.reply);
+      console.log('🔊 About to call speak() with text:', data.reply.substring(0, 30) + '...');
+      
+      // Direct TTS test
+      try {
+        speak(data.reply);
+        console.log('✅ speak() function called successfully');
+      } catch (error) {
+        console.error('❌ Error calling speak():', error);
+      }
       
       // Set conversation as active after first voice interaction
       if (!conversationActive) {
