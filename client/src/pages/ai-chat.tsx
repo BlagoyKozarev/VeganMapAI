@@ -257,8 +257,8 @@ export default function AiChat() {
           const newCount = inactivityCount + 1;
           setInactivityCount(newCount);
           
-          // Stop conversation after 3 silent recordings
-          if (newCount >= 3) {
+          // Stop conversation after 2 silent recordings for faster response
+          if (newCount >= 2) {
             console.log('⏹️ Too many silent recordings, ending conversation');
             toast({
               title: "Разговорът завърши",
@@ -278,7 +278,7 @@ export default function AiChat() {
           const newCount = inactivityCount + 1;
           setInactivityCount(newCount);
           
-          if (newCount >= 3) {
+          if (newCount >= 2) {
             console.log('⏹️ Too many failed recordings, ending conversation');
             endConversation();
           }
@@ -452,7 +452,7 @@ export default function AiChat() {
         description: "Гласовият разговор спря заради липса на активност.",
       });
       endConversation();
-    }, 120000); // 2 minutes
+    }, 5000); // 5 seconds
     
     startWhisperRecording();
   };
@@ -636,19 +636,6 @@ export default function AiChat() {
             >
               {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               <span>{voiceButtonState.text}</span>
-            </Button>
-            
-            {/* Test TTS Button */}
-            <Button
-              onClick={() => {
-                console.log('🧪 Testing TTS directly');
-                speakText('Здравей! Това е тест на гласовата синтеза.');
-              }}
-              variant="outline"
-              size="sm"
-              className="flex items-center space-x-2"
-            >
-              <span>🔊 Тест TTS</span>
             </Button>
           </div>
         )}
