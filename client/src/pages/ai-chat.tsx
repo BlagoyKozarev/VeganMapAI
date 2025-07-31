@@ -188,58 +188,44 @@ What specific Chrome/browser issues could cause speechSynthesis.speak() to silen
           setIsSpeaking(false);
         };
         
-        // Force voices to load first
-        const forceVoiceLoading = () => {
+        // GPT-4o recommended TTS fix
+        console.log('🎯 Applying GPT-4o TTS solution');
+        
+        // Set voice using GPT-4o recommendation
+        utterance.voice = speechSynthesis.getVoices().find(v => v.lang.startsWith("bg") || v.name.includes("Google"));
+        
+        // Handle voice loading with onvoiceschanged event
+        window.speechSynthesis.onvoiceschanged = () => {
+          console.log('🔄 Voices changed event triggered');
           const voices = speechSynthesis.getVoices();
-          console.log('Voices available:', voices.length);
+          console.log('Available voices:', voices.length);
           
-          if (voices.length === 0) {
-            console.log('No voices loaded, triggering load...');
-            speechSynthesis.addEventListener('voiceschanged', forceVoiceLoading, { once: true });
-            return false;
+          // Find Bulgarian voice or fallback to Google
+          utterance.voice = voices.find(v => v.lang.startsWith("bg")) || voices.find(v => v.name.includes("Google"));
+          
+          if (utterance.voice) {
+            console.log('✅ Voice selected:', utterance.voice.name, utterance.voice.lang);
+          } else {
+            console.log('⚠️ No Bulgarian/Google voice found, using default');
           }
-          
-          // Set a voice explicitly
-          const bgVoice = voices.find(v => v.lang.includes('bg'));
-          const enVoice = voices.find(v => v.lang.includes('en'));
-          
-          if (/[а-яА-Я]/.test(data.reply) && bgVoice) {
-            utterance.voice = bgVoice;
-            console.log('Using Bulgarian voice:', bgVoice.name);
-          } else if (enVoice) {
-            utterance.voice = enVoice;
-            console.log('Using English voice:', enVoice.name);
-          }
-          
-          console.log('🚀 FORCE STARTING TTS NOW');
-          
-          // Multiple attempts to ensure it works
-          speechSynthesis.speak(utterance);
-          
-          // Check if it started after 100ms
-          setTimeout(() => {
-            if (!speechSynthesis.speaking) {
-              console.log('First attempt failed, trying again...');
-              speechSynthesis.cancel();
-              speechSynthesis.speak(utterance);
-              
-              // Third attempt if needed
-              setTimeout(() => {
-                if (!speechSynthesis.speaking) {
-                  console.log('Second attempt failed, final try...');
-                  speechSynthesis.resume();
-                  speechSynthesis.speak(utterance);
-                }
-              }, 300);
-            }
-          }, 100);
-          
-          return true;
         };
         
-        if (!forceVoiceLoading()) {
-          console.log('Waiting for voices to load...');
-        }
+        console.log('🚀 Starting TTS with GPT-4o method');
+        speechSynthesis.speak(utterance);
+        
+        // Single verification check
+        setTimeout(() => {
+          console.log('TTS Status:', {
+            speaking: speechSynthesis.speaking,
+            pending: speechSynthesis.pending,
+            selectedVoice: utterance.voice?.name || 'default'
+          });
+          
+          if (!speechSynthesis.speaking && !speechSynthesis.pending) {
+            console.log('⚠️ TTS not started, trying one more time...');
+            speechSynthesis.speak(utterance);
+          }
+        }, 200);
         
       } else if (userWantsVoice) {
         alert('TTS не се поддържа в този браузър');
