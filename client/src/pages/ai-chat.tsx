@@ -24,10 +24,12 @@ export default function AiChat() {
   const [conversationActive, setConversationActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [inactivityCount, setInactivityCount] = useState(0);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Mobile detection - temporarily disabled for testing
   const isMobile = false; // /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -136,7 +138,10 @@ export default function AiChat() {
       await speakText(data.reply);
       console.log('✅ TTS completed, checking continuation');
       
-      // Continue conversation after speaking
+      // Reset inactivity count on successful conversation
+      setInactivityCount(0);
+      
+      // Continue conversation after speaking with timeout check
       setTimeout(() => {
         console.log('⏰ Timeout check - conversationActive:', conversationActive, 'isSpeaking:', isSpeaking);
         if (conversationActive && !isSpeaking) {
@@ -245,9 +250,41 @@ export default function AiChat() {
       
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        // Check if audio has content (not silent)
+        if (audioBlob.size < 1000) { // Very small file likely means silence
+          console.log('🔇 Silent recording detected, incrementing inactivity count');
+          const newCount = inactivityCount + 1;
+          setInactivityCount(newCount);
+          
+          // Stop conversation after 3 silent recordings
+          if (newCount >= 3) {
+            console.log('⏹️ Too many silent recordings, ending conversation');
+            toast({
+              title: "Разговорът завърши",
+              description: "Гласовият разговор спря заради липса на активност.",
+            });
+            endConversation();
+            stream.getTracks().forEach(track => track.stop());
+            return;
+          }
+        }
+        
         setIsProcessing(true);
-        await voiceChatMutation.mutateAsync(audioBlob);
-        setIsProcessing(false);
+        try {
+          await voiceChatMutation.mutateAsync(audioBlob);
+        } catch (error) {
+          console.log('🔇 Error processing audio, incrementing inactivity count');
+          const newCount = inactivityCount + 1;
+          setInactivityCount(newCount);
+          
+          if (newCount >= 3) {
+            console.log('⏹️ Too many failed recordings, ending conversation');
+            endConversation();
+          }
+        } finally {
+          setIsProcessing(false);
+        }
         
         stream.getTracks().forEach(track => track.stop());
       };
@@ -328,15 +365,6 @@ export default function AiChat() {
       utterance.onend = () => {
         console.log('🎤 TTS onend event fired');
         setIsSpeaking(false);
-        
-        // Continue conversation after speaking
-        if (conversationActive && !isRecording && !isProcessing) {
-          setTimeout(() => {
-            console.log('🎙️ Auto-continuing conversation after TTS');
-            startWhisperRecording();
-          }, 2000);
-        }
-        
         resolve();
       };
       
@@ -385,9 +413,6 @@ export default function AiChat() {
         if (isSpeaking) {
           console.log('⏰ TTS backup timeout triggered');
           setIsSpeaking(false);
-          if (conversationActive && !isRecording && !isProcessing) {
-            startWhisperRecording();
-          }
           resolve();
         }
       }, 8000);
@@ -413,6 +438,22 @@ export default function AiChat() {
 
   const startConversation = () => {
     setConversationActive(true);
+    setInactivityCount(0);
+    
+    // Set auto-stop timeout for 2 minutes of inactivity
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
+    }
+    
+    inactivityTimeoutRef.current = setTimeout(() => {
+      console.log('⏰ Auto-stopping conversation due to inactivity');
+      toast({
+        title: "Разговорът завърши",
+        description: "Гласовият разговор спря заради липса на активност.",
+      });
+      endConversation();
+    }, 120000); // 2 minutes
+    
     startWhisperRecording();
   };
 
@@ -421,6 +462,18 @@ export default function AiChat() {
     setIsRecording(false);
     setIsProcessing(false);
     setIsSpeaking(false);
+    setInactivityCount(0);
+    
+    // Clear inactivity timeout
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
+      inactivityTimeoutRef.current = null;
+    }
+    
+    // Stop any ongoing speech
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
     
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
