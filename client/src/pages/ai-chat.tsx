@@ -159,27 +159,58 @@ export default function AiChat() {
           setIsSpeaking(false);
         };
         
-        console.log('🚀 Starting TTS immediately...');
-        speechSynthesis.speak(utterance);
-        
-        // Verify it started
-        setTimeout(() => {
-          console.log('TTS Status check:', {
-            speaking: speechSynthesis.speaking,
-            pending: speechSynthesis.pending,
-            voicesCount: speechSynthesis.getVoices().length
-          });
+        // Force voices to load first
+        const forceVoiceLoading = () => {
+          const voices = speechSynthesis.getVoices();
+          console.log('Voices available:', voices.length);
           
-          if (!speechSynthesis.speaking && !speechSynthesis.pending) {
-            console.error('⚠️ TTS failed to start - trying fallback');
-            alert('TTS не стартира. Опитвам отново...');
-            
-            // Fallback attempt
-            setTimeout(() => {
-              speechSynthesis.speak(utterance);
-            }, 500);
+          if (voices.length === 0) {
+            console.log('No voices loaded, triggering load...');
+            speechSynthesis.addEventListener('voiceschanged', forceVoiceLoading, { once: true });
+            return false;
           }
-        }, 200);
+          
+          // Set a voice explicitly
+          const bgVoice = voices.find(v => v.lang.includes('bg'));
+          const enVoice = voices.find(v => v.lang.includes('en'));
+          
+          if (/[а-яА-Я]/.test(data.reply) && bgVoice) {
+            utterance.voice = bgVoice;
+            console.log('Using Bulgarian voice:', bgVoice.name);
+          } else if (enVoice) {
+            utterance.voice = enVoice;
+            console.log('Using English voice:', enVoice.name);
+          }
+          
+          console.log('🚀 FORCE STARTING TTS NOW');
+          
+          // Multiple attempts to ensure it works
+          speechSynthesis.speak(utterance);
+          
+          // Check if it started after 100ms
+          setTimeout(() => {
+            if (!speechSynthesis.speaking) {
+              console.log('First attempt failed, trying again...');
+              speechSynthesis.cancel();
+              speechSynthesis.speak(utterance);
+              
+              // Third attempt if needed
+              setTimeout(() => {
+                if (!speechSynthesis.speaking) {
+                  console.log('Second attempt failed, final try...');
+                  speechSynthesis.resume();
+                  speechSynthesis.speak(utterance);
+                }
+              }, 300);
+            }
+          }, 100);
+          
+          return true;
+        };
+        
+        if (!forceVoiceLoading()) {
+          console.log('Waiting for voices to load...');
+        }
         
       } else if (userWantsVoice) {
         alert('TTS не се поддържа в този браузър');
