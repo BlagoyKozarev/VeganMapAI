@@ -12,6 +12,21 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+// GPT-4o recommended TTS function
+const speak = (text: string) => {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    utterance.voice = voices.find(v => v.lang.startsWith("bg") || v.name.includes("Google"));
+    
+    utterance.onstart = () => console.log('🎵 TTS Started');
+    utterance.onend = () => console.log('🔇 TTS Ended');
+    utterance.onerror = (e) => console.error('TTS Error:', e.error);
+    
+    speechSynthesis.speak(utterance);
+  }
+};
+
 export default function AiChat() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -157,78 +172,18 @@ What specific Chrome/browser issues could cause speechSynthesis.speak() to silen
         return; // Skip normal TTS for now
       }
       
-      // Normal TTS attempt
+      // Simple TTS with GPT-4o solution
       const userWantsVoice = confirm('AI отговор получен! Искате ли да чуете гласовия отговор?\n\n' + data.reply.substring(0, 100) + '...');
       
-      // Direct TTS activation after user consent
-      if (userWantsVoice && 'speechSynthesis' in window) {
-        console.log('✅ User confirmed TTS - starting immediately');
+      if (userWantsVoice) {
+        console.log('🎯 Using GPT-4o recommended speak function');
+        setIsSpeaking(true);
+        speak(data.reply);
         
-        // Simple, direct TTS approach
-        speechSynthesis.cancel(); // Clear any existing
-        
-        const utterance = new SpeechSynthesisUtterance(data.reply);
-        utterance.lang = /[а-яА-Я]/.test(data.reply) ? "bg-BG" : "en-US";
-        utterance.rate = 1.0;
-        utterance.volume = 1.0;
-        
-        utterance.onstart = () => {
-          console.log('🎵 TTS STARTED SUCCESSFULLY!');
-          setIsSpeaking(true);
-        };
-        
-        utterance.onend = () => {
-          console.log('🔇 TTS FINISHED');
-          setIsSpeaking(false);
-        };
-        
-        utterance.onerror = (e) => {
-          console.error('❌ TTS ERROR:', e.error);
-          alert('TTS грешка: ' + e.error);
-          setIsSpeaking(false);
-        };
-        
-        // GPT-4o recommended TTS fix
-        console.log('🎯 Applying GPT-4o TTS solution');
-        
-        // Set voice using GPT-4o recommendation
-        utterance.voice = speechSynthesis.getVoices().find(v => v.lang.startsWith("bg") || v.name.includes("Google"));
-        
-        // Handle voice loading with onvoiceschanged event
-        window.speechSynthesis.onvoiceschanged = () => {
-          console.log('🔄 Voices changed event triggered');
-          const voices = speechSynthesis.getVoices();
-          console.log('Available voices:', voices.length);
-          
-          // Find Bulgarian voice or fallback to Google
-          utterance.voice = voices.find(v => v.lang.startsWith("bg")) || voices.find(v => v.name.includes("Google"));
-          
-          if (utterance.voice) {
-            console.log('✅ Voice selected:', utterance.voice.name, utterance.voice.lang);
-          } else {
-            console.log('⚠️ No Bulgarian/Google voice found, using default');
-          }
-        };
-        
-        console.log('🚀 Starting TTS with GPT-4o method');
-        speechSynthesis.speak(utterance);
-        
-        // Single verification check
+        // Reset speaking state after estimated duration
         setTimeout(() => {
-          console.log('TTS Status:', {
-            speaking: speechSynthesis.speaking,
-            pending: speechSynthesis.pending,
-            selectedVoice: utterance.voice?.name || 'default'
-          });
-          
-          if (!speechSynthesis.speaking && !speechSynthesis.pending) {
-            console.log('⚠️ TTS not started, trying one more time...');
-            speechSynthesis.speak(utterance);
-          }
-        }, 200);
-        
-      } else if (userWantsVoice) {
-        alert('TTS не се поддържа в този браузър');
+          setIsSpeaking(false);
+        }, data.reply.length * 50); // Rough estimate
       } else {
         console.log('👤 User declined TTS');
       }
