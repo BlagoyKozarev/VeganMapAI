@@ -29,17 +29,14 @@ export default function AiChat() {
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Mobile detection - proper detection for voice/TTS functionality
+  // Mobile detection - based only on user agent, not screen size
   const isMobileDevice = () => {
     const userAgent = navigator.userAgent.toLowerCase();
     const mobileKeywords = ['android', 'webos', 'iphone', 'ipad', 'ipod', 'blackberry', 'iemobile', 'opera mini'];
     const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword));
-    const isSmallScreen = window.innerWidth <= 768;
     
-    // Consider mobile if it has mobile user agent OR very small screen
-    const result = isMobileUserAgent || isSmallScreen;
-    console.log('Mobile detection:', { userAgent, isMobileUserAgent, isSmallScreen, result, windowWidth: window.innerWidth });
-    return result;
+    console.log('Mobile detection:', { userAgent, isMobileUserAgent, windowWidth: window.innerWidth });
+    return isMobileUserAgent; // Only true mobile devices, not small desktop windows
   };
   
   const mobileDevice = isMobileDevice();
@@ -325,15 +322,7 @@ export default function AiChat() {
   };
 
   const toggleVoiceConversation = () => {
-    if (mobileDevice) {
-      toast({
-        title: "Гласов разговор не е достъпен",
-        description: "На мобилни устройства използвайте текстовия чат.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Allow voice conversation on all devices - let user decide
     if (conversationActive) {
       endConversation();
     } else {
