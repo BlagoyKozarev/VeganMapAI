@@ -12,33 +12,65 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// Direct TTS implementation - works with user interaction from confirm()
+// Working TTS implementation with proper voice loading
 const speak = (text: string) => {
-  console.log('🎯 TTS activated with user consent');
+  console.log('🎯 TTS starting with text:', text.substring(0, 30) + '...');
   
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     console.error('🚫 speechSynthesis not supported');
     return;
   }
   
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  utterance.volume = 1;
+  const doSpeak = () => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    // Try to get Bulgarian voice
+    const voices = window.speechSynthesis.getVoices();
+    console.log('📢 Available voices:', voices.length);
+    
+    const bgVoice = voices.find(v => v.lang.includes('bg') || v.lang.includes('BG'));
+    const enVoice = voices.find(v => v.lang.includes('en') && v.name.includes('Google'));
+    
+    if (bgVoice) {
+      utterance.voice = bgVoice;
+      console.log('🇧🇬 Using voice:', bgVoice.name);
+    } else if (enVoice) {
+      utterance.voice = enVoice;
+      console.log('🇺🇸 Using English voice:', enVoice.name);
+    }
+    
+    utterance.onstart = () => {
+      console.log('✅ TTS STARTED SUCCESSFULLY!');
+    };
+    
+    utterance.onend = () => {
+      console.log('🔇 TTS COMPLETED');
+    };
+    
+    utterance.onerror = (e) => {
+      console.error('❌ TTS ERROR:', e.error);
+    };
+    
+    // Force start TTS
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+    
+    console.log('🚀 speechSynthesis.speak() called');
+  };
   
-  // Bulgarian language preference
-  const voices = window.speechSynthesis.getVoices();
-  const bgVoice = voices.find(v => v.lang.startsWith('bg'));
-  if (bgVoice) {
-    utterance.voice = bgVoice;
-    console.log('🇧🇬 Using Bulgarian voice:', bgVoice.name);
+  // Ensure voices are loaded
+  if (window.speechSynthesis.getVoices().length === 0) {
+    console.log('⏳ Waiting for voices to load...');
+    window.speechSynthesis.onvoiceschanged = () => {
+      console.log('🔄 Voices loaded, trying TTS');
+      doSpeak();
+    };
+  } else {
+    doSpeak();
   }
-  
-  utterance.onstart = () => console.log('🎵 TTS STARTED');
-  utterance.onend = () => console.log('🔇 TTS FINISHED');  
-  utterance.onerror = (e) => console.error('❌ TTS ERROR:', e.error);
-  
-  window.speechSynthesis.speak(utterance);
 };
 
 // 2. Зареди гласове с debugging
