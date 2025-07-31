@@ -195,51 +195,49 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Direct TTS test with manual trigger
-      console.log('🎤 AI response ready for TTS');
+      // OpenAI TTS implementation - bypasses browser restrictions
+      console.log('🎤 AI response ready for OpenAI TTS');
       console.log('🔊 Response text:', data.reply);
       
-      // Show response and provide manual TTS button
-      const ttsButton = confirm('🎤 AI отговор:\n\n' + data.reply + '\n\nНатиснете OK за гласов отговор или Cancel за text only');
+      // Show response and provide TTS option
+      const ttsButton = confirm('🎤 AI отговор:\n\n' + data.reply + '\n\nНатиснете OK за гласов отговор (OpenAI TTS) или Cancel за text only');
       
       if (ttsButton) {
-        // Ultra-simple TTS test
-        console.log('🎤 TTS Test - Creating utterance');
+        console.log('✅ Starting OpenAI TTS generation');
         
         try {
-          // Test 1: Simple text
-          const testUtterance = new SpeechSynthesisUtterance('Тест');
-          testUtterance.volume = 1;
-          testUtterance.rate = 1;
+          // Call our OpenAI TTS endpoint
+          const ttsResponse = await fetch('/api/tts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ text: data.reply })
+          });
           
-          console.log('🔊 Test utterance created');
-          console.log('🎛️ Available voices:', speechSynthesis.getVoices().length);
-          
-          // Test 2: Force speak
-          speechSynthesis.speak(testUtterance);
-          console.log('✅ speechSynthesis.speak(testUtterance) called');
-          
-          // Test 3: Main response
-          setTimeout(() => {
-            const mainUtterance = new SpeechSynthesisUtterance(data.reply);
-            speechSynthesis.speak(mainUtterance);
-            console.log('🚀 Main response TTS started');
-          }, 1000);
+          if (ttsResponse.ok) {
+            // Get the MP3 blob and play it
+            const audioBlob = await ttsResponse.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            
+            console.log('🎵 Playing OpenAI TTS audio');
+            audio.play();
+            
+            // Clean up URL after playing
+            audio.onended = () => {
+              URL.revokeObjectURL(audioUrl);
+              console.log('🔇 TTS playback completed');
+            };
+            
+          } else {
+            console.error('❌ TTS API error:', ttsResponse.status);
+          }
           
         } catch (error) {
-          console.error('❌ TTS Exception:', error);
+          console.error('❌ TTS Error:', error);
         }
-        
-        // Debug info
-        console.log('🔍 Browser TTS Support:', {
-          speechSynthesis: !!window.speechSynthesis,
-          voicesLength: speechSynthesis.getVoices().length,
-          speaking: speechSynthesis.speaking
-        });
-        
-        // Manual console test suggestion
-        console.log('🧪 Manual test: Open console and run:');
-        console.log('speechSynthesis.speak(new SpeechSynthesisUtterance("Здравей"))');
       }
       
       // Set conversation as active after first voice interaction

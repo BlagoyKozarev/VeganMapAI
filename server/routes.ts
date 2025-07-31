@@ -17,6 +17,8 @@ import {
   analyticsAgent 
 } from "./agents";
 
+import { ttsHandler } from "./api/tts";
+
 import { insertUserProfileSchema, insertUserFavoriteSchema, insertUserVisitSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -556,6 +558,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   });
+
+  // OpenAI TTS endpoint
+  app.post('/api/tts', isAuthenticated, ttsHandler);
 
   const httpServer = createServer(app);
   return httpServer;
