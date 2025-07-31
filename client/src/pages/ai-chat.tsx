@@ -120,14 +120,19 @@ export default function AiChat() {
       
       // Speak the response if conversation is active
       if (conversationActive) {
+        console.log('🔊 Starting TTS for response:', data.reply);
         await speakText(data.reply);
+        console.log('✅ TTS completed, scheduling next recording');
         
         // Continue conversation after speaking
         setTimeout(() => {
           if (conversationActive && !isSpeaking) {
+            console.log('🎙️ Starting next recording after TTS timeout');
             startWhisperRecording();
           }
         }, 2000);
+      } else {
+        console.log('❌ Not speaking because conversation not active:', conversationActive);
       }
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
@@ -265,12 +270,15 @@ export default function AiChat() {
   };
 
   const speakText = async (text: string): Promise<void> => {
+    console.log('🔊 speakText called with:', text);
     return new Promise((resolve) => {
       if (!('speechSynthesis' in window)) {
+        console.log('❌ speechSynthesis not supported');
         resolve();
         return;
       }
 
+      console.log('🎙️ Setting speaking state');
       setIsSpeaking(true);
       
       const utterance = new SpeechSynthesisUtterance(text);
@@ -281,8 +289,11 @@ export default function AiChat() {
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
       
+      console.log('🔍 Language detection:', { isBulgarian, lang: utterance.lang });
+      
       // Try to find appropriate voice based on detected language
       const voices = speechSynthesis.getVoices();
+      console.log('🎵 Available voices:', voices.length);
       let preferredVoice;
       
       if (isBulgarian) {
@@ -296,11 +307,14 @@ export default function AiChat() {
       }
       
       if (preferredVoice) {
+        console.log('✅ Using voice:', preferredVoice.name);
         utterance.voice = preferredVoice;
+      } else {
+        console.log('⚠️ No preferred voice found, using default');
       }
       
       utterance.onend = () => {
-        console.log('🎤 TTS ended, checking conversation continuation');
+        console.log('🎤 TTS onend event fired');
         setIsSpeaking(false);
         
         // Continue conversation after speaking
@@ -314,6 +328,23 @@ export default function AiChat() {
         resolve();
       };
       
+      utterance.onstart = () => {
+        console.log('▶️ TTS started speaking');
+      };
+      
+      utterance.onerror = (error) => {
+        console.error('❌ Speech synthesis error:', error);
+        setIsSpeaking(false);
+        resolve();
+      };
+      
+      // Cancel any existing speech before starting new one
+      console.log('🛑 Canceling existing speech');
+      speechSynthesis.cancel();
+      
+      console.log('🎵 Starting speech synthesis');
+      speechSynthesis.speak(utterance);
+      
       // Backup timeout in case onend doesn't fire
       setTimeout(() => {
         if (isSpeaking) {
@@ -325,16 +356,6 @@ export default function AiChat() {
           resolve();
         }
       }, 8000);
-      
-      utterance.onerror = (error) => {
-        console.error('Speech synthesis error:', error);
-        setIsSpeaking(false);
-        resolve();
-      };
-      
-      // Cancel any existing speech before starting new one
-      speechSynthesis.cancel();
-      speechSynthesis.speak(utterance);
     });
   };
 
