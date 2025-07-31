@@ -127,36 +127,107 @@ export default function AiChat() {
       console.log('Conversation active:', conversationActive);
       console.log('TTS support:', 'speechSynthesis' in window);
       
-      // Force immediate TTS activation
+      // Ultra-aggressive TTS activation with manual user interaction trigger
       if ('speechSynthesis' in window) {
-        console.log('Forcing TTS to speak...');
-        speechSynthesis.cancel(); // Clear any existing speech
+        console.log('=== TTS DIAGNOSTIC START ===');
+        console.log('SpeechSynthesis API available:', !!window.speechSynthesis);
+        console.log('Speaking state:', speechSynthesis.speaking);
+        console.log('Pending state:', speechSynthesis.pending);
+        console.log('Paused state:', speechSynthesis.paused);
         
+        // Force cancel and resume
+        speechSynthesis.cancel();
+        speechSynthesis.resume();
+        
+        console.log('Creating utterance for:', data.reply.substring(0, 30) + '...');
         const utterance = new SpeechSynthesisUtterance(data.reply);
-        utterance.lang = /[а-яА-Я]/.test(data.reply) ? "bg-BG" : "en-US";
-        utterance.rate = 0.9;
+        
+        const isBulgarian = /[а-яА-Я]/.test(data.reply);
+        utterance.lang = isBulgarian ? "bg-BG" : "en-US";
+        utterance.rate = 0.8;
+        utterance.pitch = 1.0;
         utterance.volume = 1.0;
         
-        utterance.onstart = () => console.log('✓ TTS STARTED SUCCESSFULLY');
-        utterance.onend = () => console.log('✓ TTS FINISHED');
-        utterance.onerror = (e) => console.error('✗ TTS ERROR:', e);
+        console.log('TTS Language:', utterance.lang, 'Bulgarian detected:', isBulgarian);
         
-        console.log('About to call speechSynthesis.speak()...');
-        speechSynthesis.speak(utterance);
-        setIsSpeaking(true);
+        utterance.onstart = () => {
+          console.log('🔊 TTS ACTUALLY STARTED!');
+          setIsSpeaking(true);
+        };
+        
+        utterance.onend = () => {
+          console.log('🔇 TTS ENDED');
+          setIsSpeaking(false);
+        };
+        
+        utterance.onerror = (event) => {
+          console.error('❌ TTS ERROR EVENT:', event);
+          console.error('Error type:', event.error);
+          setIsSpeaking(false);
+        };
+        
+        utterance.onboundary = (event) => {
+          console.log('📍 TTS Boundary:', event.name, event.charIndex);
+        };
+        
+        // Wait for voices and try multiple times
+        const trySpeak = () => {
+          const voices = speechSynthesis.getVoices();
+          console.log('Available voices count:', voices.length);
+          
+          if (voices.length > 0) {
+            console.log('First 3 voices:', voices.slice(0, 3).map(v => ({ name: v.name, lang: v.lang })));
+            
+            // Try to find Bulgarian voice or use default
+            const bgVoice = voices.find(v => v.lang.includes('bg') || v.lang.includes('BG'));
+            const enVoice = voices.find(v => v.lang.includes('en-US'));
+            
+            if (isBulgarian && bgVoice) {
+              utterance.voice = bgVoice;
+              console.log('Using Bulgarian voice:', bgVoice.name);
+            } else if (!isBulgarian && enVoice) {
+              utterance.voice = enVoice;
+              console.log('Using English voice:', enVoice.name);
+            } else {
+              console.log('Using default system voice');
+            }
+          }
+          
+          console.log('🎯 CALLING speechSynthesis.speak() NOW');
+          speechSynthesis.speak(utterance);
+          
+          // Check status after attempt
+          setTimeout(() => {
+            console.log('Post-speak status:', {
+              speaking: speechSynthesis.speaking,
+              pending: speechSynthesis.pending,
+              paused: speechSynthesis.paused
+            });
+          }, 100);
+        };
+        
+        if (speechSynthesis.getVoices().length === 0) {
+          console.log('⏳ Waiting for voices to load...');
+          speechSynthesis.addEventListener('voiceschanged', trySpeak, { once: true });
+          // Fallback timeout
+          setTimeout(trySpeak, 1000);
+        } else {
+          trySpeak();
+        }
+        
       } else {
-        console.error('Speech synthesis NOT supported in this browser');
+        console.error('❌ Speech synthesis NOT supported in this browser');
+        alert('Speech synthesis не се поддържа в този браузър');
       }
       
-      // Continue conversation after speaking if conversation is active
-      if (conversationActive && !mobileDevice) {
-        setTimeout(() => {
-          if (conversationActive && !isSpeaking) {
-            console.log('Continuing voice conversation...');
-            startWhisperRecording();
-          }
-        }, 2000);
-      }
+      // Wait a moment then continue conversation
+      setTimeout(() => {
+        setIsSpeaking(false);
+        if (conversationActive && !mobileDevice) {
+          console.log('Continuing voice conversation...');
+          startWhisperRecording();
+        }
+      }, 3000);
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
