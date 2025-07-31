@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeganMapAI Mobile Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile Header Test -->
+    <header class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg h-14 z-50">
+        <div class="flex items-center px-4 py-2 h-full">
+            <!-- Search Bar -->
+            <div class="flex-1 relative mr-2">
+                <div class="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5">
+                    <i class="fas fa-search text-gray-400 mr-2 text-sm"></i>
+                    <input
+                        type="text"
+                        placeholder="Search vegan places..."
+                        class="flex-1 outline-none text-gray-700 text-sm bg-transparent"
+                    />
+                </div>
+            </div>
+            
+            <!-- Icons -->
+            <div class="flex items-center space-x-2">
+                <button onclick="alert('AI Assistant clicked')" class="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md active:scale-95">
+                    <span class="text-white text-base">🎤</span>
+                </button>
+                <button onclick="alert('Profile clicked')" class="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md active:scale-95">
+                    BK
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content with mobile padding -->
+    <div style="padding-top: 56px;" class="p-4">
+        <div class="text-center bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h1 class="text-2xl font-bold mb-4 text-green-600">VeganMapAI Mobile Test</h1>
+            <p class="text-gray-700 mb-4">На мобилни устройства трябва да видиш header с:</p>
+            <ul class="list-disc text-left pl-6 text-gray-700 mb-4">
+                <li>Search bar с плейсхолдър "Search vegan places..."</li>
+                <li>🎤 бутон за AI Assistant (зелен)</li>
+                <li>BK бутон за Profile (син)</li>
+            </ul>
+            <p class="text-sm text-gray-500">Тествай като кликнеш бутоните</p>
+        </div>
+        
+        <!-- Mobile Filter Panel Test - Position 9.5rem from bottom -->
+        <div class="fixed bottom-0 right-4 w-48 bg-white border border-gray-200 rounded-t-lg shadow-lg p-3 z-50 backdrop-blur-sm" style="bottom: 9.5rem;">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Filter Controls</h3>
+            <div class="mb-3">
+                <label class="text-xs text-gray-600 block mb-1">Min Vegan Score: <span id="veganValue">3.5</span></label>
+                <input type="range" min="0" max="10" step="0.1" value="3.5" class="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg" onchange="document.getElementById('veganValue').textContent = this.value">
+            </div>
+            <div>
+                <label class="text-xs text-gray-600 block mb-1">Min Google Score: <span id="googleValue">2.5</span></label>
+                <input type="range" min="0" max="5" step="0.1" value="2.5" class="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg" onchange="document.getElementById('googleValue').textContent = this.value">
+            </div>
+        </div>
+
+        <!-- Mobile Legend Test - Top right -->
+        <div class="fixed top-16 right-4 w-48 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-40 backdrop-blur-sm">
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Vegan Score Legend</h3>
+            <div class="space-y-1 text-xs">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-green-600 rounded-full mr-2"></div>
+                    <span>8.5+ Excellent</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
+                    <span>7.0-8.4 Very Good</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
+                    <span>5.5-6.9 Good</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-orange-400 rounded-full mr-2"></div>
+                    <span>4.0-5.4 Fair</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
+                    <span>&lt;4.0 Poor</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile detection and responsive behavior
+        function checkMobile() {
+            const isMobile = window.innerWidth < 1024;
+            const header = document.querySelector('header');
+            const filterPanel = document.querySelector('.fixed.bottom-0');
+            const legendPanel = document.querySelector('.fixed.top-16');
+            
+            if (!isMobile) {
+                header.style.display = 'none';
+                filterPanel.style.display = 'none';
+                legendPanel.style.display = 'none';
+                document.querySelector('div[style*="padding-top"]').innerHTML = 
+                    '<div class="text-center p-8 bg-white rounded-lg shadow-lg"><h2 class="text-xl text-gray-700 mb-4">Mobile Interface Test</h2><p class="text-gray-600">Това е мобилен тест. Отвори в по-малък прозорец или на телефон за да видиш mobile header-а.</p><p class="text-sm text-gray-400 mt-4">Ширина на прозореца: ' + window.innerWidth + 'px (трябва < 1024px)</p></div>';
+            }
+        }
+        
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        
+        // Touch optimization
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.style.touchAction = 'manipulation';
+            });
+        });
+    </script>
+</body>
+</html>
