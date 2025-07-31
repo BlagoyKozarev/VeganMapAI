@@ -220,19 +220,44 @@ export default function AiChat() {
             // Get the MP3 blob and play it
             const audioBlob = await ttsResponse.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
+            
+            console.log('🎵 Audio blob size:', audioBlob.size, 'bytes');
+            console.log('🔗 Audio URL created:', audioUrl);
+            
             const audio = new Audio(audioUrl);
             
-            console.log('🎵 Playing OpenAI TTS audio');
-            audio.play();
-            
-            // Clean up URL after playing
+            // Add detailed event listeners
+            audio.onloadstart = () => console.log('📥 Audio loading started');
+            audio.oncanplay = () => console.log('▶️ Audio can play');
+            audio.onplay = () => console.log('🎵 Audio play started');
             audio.onended = () => {
+              console.log('🔇 Audio ended');
               URL.revokeObjectURL(audioUrl);
-              console.log('🔇 TTS playback completed');
             };
+            audio.onerror = (e) => console.error('❌ Audio error:', e);
+            
+            // Force play with user interaction
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  console.log('✅ Audio playback started successfully');
+                })
+                .catch(error => {
+                  console.error('❌ Audio play failed:', error);
+                  // Try alternative approach
+                  setTimeout(() => {
+                    console.log('🔄 Retrying audio playback...');
+                    audio.play().catch(e => console.error('❌ Retry failed:', e));
+                  }, 500);
+                });
+            }
             
           } else {
             console.error('❌ TTS API error:', ttsResponse.status);
+            const errorText = await ttsResponse.text();
+            console.error('Error details:', errorText);
           }
           
         } catch (error) {
