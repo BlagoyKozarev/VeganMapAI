@@ -309,14 +309,17 @@ export default function AiChat() {
                 source.addEventListener('ended', handleAudioEnd);
                 source.onended = handleAudioEnd;
                 
-                // Also try timeout as backup (estimated audio duration + buffer)
-                const estimatedDuration = Math.ceil(audioBuffer.duration * 1000) + 500;
-                console.log('⏰ Setting backup timeout for', estimatedDuration, 'ms');
+                // Primary timeout-based continuation (most reliable)
+                const estimatedDuration = Math.ceil(audioBuffer.duration * 1000) + 1000; // Add 1 second buffer
+                console.log('⏰ Setting PRIMARY timeout for', estimatedDuration, 'ms (duration:', audioBuffer.duration, 's)');
                 setTimeout(() => {
-                  console.log('⏰ BACKUP TIMEOUT: Checking if audio completed');
-                  if (!isRecording && !isProcessing) {
-                    console.log('⏰ BACKUP ACTIVATION: Starting recording via timeout');
+                  console.log('⏰ PRIMARY TIMEOUT TRIGGERED: Audio should be finished');
+                  console.log('📊 States at timeout:', { isRecording, isProcessing, conversationActive });
+                  if (!isRecording && !isProcessing && conversationActive) {
+                    console.log('⏰ TIMEOUT CONTINUATION: Starting next recording...');
                     startWhisperRecording();
+                  } else {
+                    console.log('🚫 TIMEOUT BLOCKED: States prevent continuation');
                   }
                 }, estimatedDuration);
                 
@@ -349,6 +352,15 @@ export default function AiChat() {
                   
                   audio.addEventListener('ended', handleHTML5End);
                   audio.onended = handleHTML5End;
+                  
+                  // Also add timeout for HTML5 audio as backup
+                  setTimeout(() => {
+                    console.log('⏰ HTML5 TIMEOUT: Assuming audio finished');
+                    if (!isRecording && !isProcessing && conversationActive) {
+                      console.log('⏰ HTML5 TIMEOUT CONTINUATION');
+                      startWhisperRecording();
+                    }
+                  }, 8000); // 8 second timeout for HTML5 audio
                 })
                 .catch(() => {
                   console.log('📋 All audio methods failed - requiring user click');
@@ -474,16 +486,22 @@ export default function AiChat() {
   };
 
   const startWhisperRecording = async () => {
-    console.log('🎙️ startWhisperRecording called - States:', { isRecording, isProcessing, mobileDevice });
+    console.log('🎙️ START WHISPER RECORDING - Full State Check:', { 
+      isRecording, 
+      isProcessing, 
+      conversationActive, 
+      mobileDevice,
+      timestamp: new Date().toLocaleTimeString()
+    });
     
     // Проверка дали вече записваме или обработваме
     if (isRecording || isProcessing) {
-      console.log('🚫 Already recording or processing, skipping...');
+      console.log('🚫 BLOCKED: Already recording or processing, skipping...');
       return;
     }
     
-    if (mobileDevice) {
-      console.log('📱 Mobile device detected, voice recording disabled');
+    if (!conversationActive) {
+      console.log('🚫 BLOCKED: Conversation not active');
       return;
     }
 
