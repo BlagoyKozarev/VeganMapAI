@@ -128,7 +128,36 @@ export default function AiChat() {
       console.log('🎯 TTS support check:', 'speechSynthesis' in window);
       console.log('🎯 Window object has speechSynthesis:', !!window.speechSynthesis);
       
-      // Browser autoplay policy requires user interaction for TTS
+      // Ask GPT-4o for help with TTS issue
+      const askGPTForHelp = confirm('TTS проблем персистира. Искате ли да попитам GPT-4o за помощ с browser speech synthesis?\n\nПроблем: speechSynthesis.speak() не стартира въпреки user interaction.');
+      
+      if (askGPTForHelp) {
+        // Send TTS debugging question to GPT-4o
+        const debugQuestion = `I have a persistent TTS (Text-to-Speech) issue in Chrome browser:
+
+Problem: speechSynthesis.speak() is called after user interaction (confirm dialog) but doesn't start speaking.
+
+Current code:
+- User confirms with confirm() dialog (provides user interaction)
+- speechSynthesis.cancel() called first
+- SpeechSynthesisUtterance created with Bulgarian text
+- utterance.lang = "bg-BG", rate = 1.0, volume = 1.0
+- speechSynthesis.speak(utterance) called
+- onstart/onend/onerror handlers attached
+- Multiple retry attempts made
+
+Status checks show:
+- speechSynthesis.speaking = false
+- speechSynthesis.pending = false  
+- speechSynthesis.getVoices().length > 0
+
+What specific Chrome/browser issues could cause speechSynthesis.speak() to silently fail even with user interaction? What's the most reliable way to force TTS activation in modern browsers?`;
+
+        textChatMutation.mutate(debugQuestion);
+        return; // Skip normal TTS for now
+      }
+      
+      // Normal TTS attempt
       const userWantsVoice = confirm('AI отговор получен! Искате ли да чуете гласовия отговор?\n\n' + data.reply.substring(0, 100) + '...');
       
       // Direct TTS activation after user consent
