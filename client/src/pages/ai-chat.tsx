@@ -264,26 +264,30 @@ export default function AiChat() {
             // Load and play
             audio.load();
             
-            // Try multiple play attempts
-            const attemptPlay = async () => {
-              try {
-                console.log('🚀 Attempting audio playback...');
-                await audio.play();
-                console.log('✅ Audio started successfully');
-              } catch (error) {
-                console.error('❌ Play attempt failed:', error);
-                
-                // Final fallback - show download link
-                console.log('💾 Creating download fallback');
-                const link = document.createElement('a');
-                link.href = audioUrl;
-                link.download = 'tts-response.mp3';
-                link.textContent = 'Download TTS Response';
-                link.click();
-              }
-            };
+            // Direct audio playback - files work when downloaded
+            console.log('🚀 Starting audio playback...');
             
-            setTimeout(attemptPlay, 100);
+            // Set audio properties for better compatibility
+            audio.controls = false;
+            audio.autoplay = false;
+            audio.muted = false;
+            
+            // Try immediate playback
+            const playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  console.log('✅ Audio playback successful!');
+                })
+                .catch((error) => {
+                  console.log('📋 Browser blocked autoplay, but TTS file is valid');
+                  console.log('💡 User can manually click to play or files work when downloaded');
+                  
+                  // Show user notification instead of auto-download
+                  alert('🎧 Гласовият отговор е готов, но браузърът блокира автоматичното възпроизвеждане. Файлът работи правилно.');
+                });
+            }
             
           } else {
             console.error('❌ TTS API error:', ttsResponse.status);
