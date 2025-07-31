@@ -296,10 +296,10 @@ export default function AiChat() {
                 // Auto-continue conversation after audio ends
                 source.onended = () => {
                   console.log('🔇 Audio completed, continuing conversation');
-                  setIsListening(true);
                   setTimeout(() => {
-                    if (!isRecording) {
-                      handleStartRecording(); // Auto-continue conversation
+                    if (!isRecording && !isProcessing) {
+                      console.log('🎙️ Auto-starting next recording...');
+                      startWhisperRecording(); // Continue conversation
                     }
                   }, 1500);
                 };
@@ -319,9 +319,11 @@ export default function AiChat() {
               audio.play()
                 .then(() => {
                   console.log('✅ HTML5 audio playback successful');
-                  setIsListening(true);
                   setTimeout(() => {
-                    if (!isRecording) handleStartRecording();
+                    if (!isRecording && !isProcessing) {
+                      console.log('🎙️ Auto-starting next recording (HTML5 fallback)...');
+                      startWhisperRecording();
+                    }
                   }, 2000);
                 })
                 .catch(() => {
@@ -363,13 +365,7 @@ export default function AiChat() {
         console.log('✅ Conversation activated');
       }
       
-      // Continue listening after TTS finishes (estimate 3 seconds)
-      setTimeout(() => {
-        if (!mobileDevice) {
-          console.log('🎙️ Continuing voice conversation...');
-          startWhisperRecording();
-        }
-      }, 3000);
+      // Remove old timeout - audio playback handlers now manage conversation continuation
       
       // Reset speaking state
       setTimeout(() => {
@@ -446,14 +442,9 @@ export default function AiChat() {
   };
 
   const startWhisperRecording = async () => {
-    // Директно заявяване на микрофон permission без отделен dialog
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop()); // Close immediately
-      setPermissionGranted(true);
-    } catch (error) {
-      console.error('Microphone permission denied:', error);
-      setPermissionGranted(false);
+    // Проверка дали вече записваме или обработваме
+    if (isRecording || isProcessing) {
+      console.log('🚫 Already recording or processing, skipping...');
       return;
     }
 
