@@ -12,20 +12,30 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// GPT-4o recommended TTS function
+// GPT-4o exact TTS solution
 const speak = (text: string) => {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
-    utterance.voice = voices.find(v => v.lang.startsWith("bg") || v.name.includes("Google"));
-    
-    utterance.onstart = () => console.log('🎵 TTS Started');
-    utterance.onend = () => console.log('🔇 TTS Ended');
-    utterance.onerror = (e) => console.error('TTS Error:', e.error);
-    
-    speechSynthesis.speak(utterance);
+
+    // Избери български или Google глас
+    utterance.voice = voices.find(v =>
+      v.lang.startsWith("bg") || v.name.includes("Google")
+    ) || null;
+
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
   }
 };
+
+// 2. Зареди гласове
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    // preload voices
+    window.speechSynthesis.getVoices();
+  };
+}
 
 export default function AiChat() {
   const [, setLocation] = useLocation();
@@ -172,20 +182,11 @@ What specific Chrome/browser issues could cause speechSynthesis.speak() to silen
         return; // Skip normal TTS for now
       }
       
-      // Simple TTS with GPT-4o solution
+      // 3. Извикай speak(...) след като получиш отговор
       const userWantsVoice = confirm('AI отговор получен! Искате ли да чуете гласовия отговор?\n\n' + data.reply.substring(0, 100) + '...');
       
       if (userWantsVoice) {
-        console.log('🎯 Using GPT-4o recommended speak function');
-        setIsSpeaking(true);
-        speak(data.reply);
-        
-        // Reset speaking state after estimated duration
-        setTimeout(() => {
-          setIsSpeaking(false);
-        }, data.reply.length * 50); // Rough estimate
-      } else {
-        console.log('👤 User declined TTS');
+        speak(data.reply); // тук се добавя говора
       }
       
       // Wait a moment then continue conversation
