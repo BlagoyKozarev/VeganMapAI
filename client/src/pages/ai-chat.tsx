@@ -272,22 +272,57 @@ export default function AiChat() {
             audio.autoplay = false;
             audio.muted = false;
             
-            // Try immediate playback
-            const playPromise = audio.play();
-            
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  console.log('✅ Audio playback successful!');
-                })
-                .catch((error) => {
-                  console.log('📋 Browser blocked autoplay, but TTS file is valid');
-                  console.log('💡 User can manually click to play or files work when downloaded');
-                  
-                  // Show user notification instead of auto-download
-                  alert('🎧 Гласовият отговор е готов, но браузърът блокира автоматичното възпроизвеждане. Файлът работи правилно.');
-                });
-            }
+            // Browser requires user gesture for audio playback
+            // Since this is triggered by voice recording (user gesture), try immediate play
+            audio.play()
+              .then(() => {
+                console.log('✅ Audio playback successful!');
+                setIsListening(true); // Continue conversation
+                setTimeout(() => {
+                  if (isRecording) return; // Don't start if already recording
+                  handleStartRecording(); // Auto-continue conversation
+                }, 2000);
+              })
+              .catch((error) => {
+                console.log('📋 Browser autoplay policy blocked audio');
+                
+                // Create a visible play button for user to click
+                const playButton = document.createElement('button');
+                playButton.textContent = '🔊 Възпроизведи отговор';
+                playButton.style.cssText = `
+                  position: fixed;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  z-index: 9999;
+                  padding: 15px 25px;
+                  background: #22c55e;
+                  color: white;
+                  border: none;
+                  border-radius: 8px;
+                  font-size: 16px;
+                  cursor: pointer;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                `;
+                
+                playButton.onclick = () => {
+                  audio.play();
+                  document.body.removeChild(playButton);
+                  setIsListening(true);
+                  setTimeout(() => {
+                    if (!isRecording) handleStartRecording();
+                  }, 2000);
+                };
+                
+                document.body.appendChild(playButton);
+                
+                // Auto-remove after 10 seconds
+                setTimeout(() => {
+                  if (document.body.contains(playButton)) {
+                    document.body.removeChild(playButton);
+                  }
+                }, 10000);
+              });
             
           } else {
             console.error('❌ TTS API error:', ttsResponse.status);
