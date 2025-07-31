@@ -146,15 +146,17 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Clean TTS implementation
-      console.log('✅ AI Response received:', data.reply.substring(0, 50) + '...');
-      
-      // 3. Извикай speak(...) след като получиш отговор
-      const userWantsVoice = confirm('AI отговор получен! Искате ли да чуете гласовия отговор?\n\n' + data.reply.substring(0, 100) + '...');
-      
-      if (userWantsVoice) {
-        console.log('🎤 Starting TTS with GPT-4o solution');
-        speak(data.reply); // тук се добавя говора
+      // Auto-continue conversation with voice after response
+      if (conversationActive) {
+        console.log('🎤 Auto-speaking AI response');
+        speak(data.reply);
+        
+        // Continue listening after 2 seconds
+        setTimeout(() => {
+          if (conversationActive) {
+            startListening();
+          }
+        }, 2000);
       }
       
       // Wait a moment then continue conversation
