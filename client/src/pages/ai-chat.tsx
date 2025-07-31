@@ -195,14 +195,11 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // OpenAI TTS implementation - bypasses browser restrictions
+      // OpenAI TTS implementation - автоматично без dialog
       console.log('🎤 AI response ready for OpenAI TTS');
       console.log('🔊 Response text:', data.reply);
       
-      // Show response and provide TTS option
-      const ttsButton = confirm('🎤 AI отговор:\n\n' + data.reply + '\n\nНатиснете OK за гласов отговор (OpenAI TTS) или Cancel за text only');
-      
-      if (ttsButton) {
+      // Автоматично стартиране на TTS без потребителски dialog
         console.log('✅ Starting OpenAI TTS generation');
         
         try {
@@ -359,7 +356,6 @@ export default function AiChat() {
         } catch (error) {
           console.error('❌ TTS Error:', error);
         }
-      }
       
       // Set conversation as active after first voice interaction
       if (!conversationActive) {
@@ -450,9 +446,15 @@ export default function AiChat() {
   };
 
   const startWhisperRecording = async () => {
-    if (!permissionGranted) {
-      const granted = await requestMicrophonePermission();
-      if (!granted) return;
+    // Директно заявяване на микрофон permission без отделен dialog
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop()); // Close immediately
+      setPermissionGranted(true);
+    } catch (error) {
+      console.error('Microphone permission denied:', error);
+      setPermissionGranted(false);
+      return;
     }
 
     try {
