@@ -121,18 +121,18 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Speak the response if conversation is active (works on all devices)
-      if (conversationActive) {
-        await speakText(data.reply);
-        
-        // Continue conversation after speaking (only on desktop with microphone)
-        if (!mobileDevice) {
-          setTimeout(() => {
-            if (conversationActive && !isSpeaking) {
-              startWhisperRecording();
-            }
-          }, 2000);
-        }
+      // Always speak the response when we get one from voice input
+      console.log('Speaking AI response:', data.reply);
+      await speakText(data.reply);
+      
+      // Continue conversation after speaking if conversation is active
+      if (conversationActive && !mobileDevice) {
+        setTimeout(() => {
+          if (conversationActive && !isSpeaking) {
+            console.log('Continuing voice conversation...');
+            startWhisperRecording();
+          }
+        }, 2000);
       }
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
@@ -309,13 +309,23 @@ export default function AiChat() {
         resolve();
       };
       
-      utterance.onerror = (error) => {
-        console.error('Speech synthesis error:', error);
+      utterance.onstart = () => {
+        console.log('TTS started successfully');
+      };
+      
+      utterance.onend = () => {
+        console.log('TTS finished');
         setIsSpeaking(false);
         resolve();
       };
       
-      // Cancel any existing speech before starting new one
+      utterance.onerror = (error) => {
+        console.error('TTS error:', error);
+        setIsSpeaking(false);
+        resolve();
+      };
+      
+      console.log('About to start TTS with text:', text.substring(0, 50) + '...');
       speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
     });
