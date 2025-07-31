@@ -121,11 +121,15 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Force TTS to work - speak immediately after getting response
-      console.log('=== FORCE TTS START ===');
-      console.log('AI Response received:', data.reply);
-      console.log('Conversation active:', conversationActive);
-      console.log('TTS support:', 'speechSynthesis' in window);
+      // MANDATORY TTS - this MUST execute
+      console.log('🚨 === MANDATORY TTS EXECUTION === 🚨');
+      console.log('🎯 AI Response received:', data.reply);
+      console.log('🎯 Conversation active:', conversationActive);
+      console.log('🎯 TTS support check:', 'speechSynthesis' in window);
+      console.log('🎯 Window object has speechSynthesis:', !!window.speechSynthesis);
+      
+      // Force alert to confirm this code runs
+      alert('TTS код се изпълнява! Response: ' + data.reply.substring(0, 50));
       
       // Ultra-aggressive TTS activation with manual user interaction trigger
       if ('speechSynthesis' in window) {
