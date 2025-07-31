@@ -344,18 +344,41 @@ export default function AiChat() {
         console.log('▶️ TTS started speaking');
       };
       
+      utterance.onboundary = (event) => {
+        console.log('🔤 TTS boundary event:', event.name, event.charIndex);
+      };
+      
       utterance.onerror = (error) => {
         console.error('❌ Speech synthesis error:', error);
         setIsSpeaking(false);
         resolve();
       };
       
+      // Check if speech synthesis is ready
+      console.log('🎵 speechSynthesis state:', {
+        speaking: speechSynthesis.speaking,
+        pending: speechSynthesis.pending,
+        paused: speechSynthesis.paused
+      });
+      
       // Cancel any existing speech before starting new one
       console.log('🛑 Canceling existing speech');
       speechSynthesis.cancel();
       
-      console.log('🎵 Starting speech synthesis');
-      speechSynthesis.speak(utterance);
+      // Small delay to ensure cancellation is processed
+      setTimeout(() => {
+        console.log('🎵 Starting speech synthesis after delay');
+        speechSynthesis.speak(utterance);
+        
+        // Check if it actually started
+        setTimeout(() => {
+          console.log('🔍 After speak() - speechSynthesis state:', {
+            speaking: speechSynthesis.speaking,
+            pending: speechSynthesis.pending,
+            paused: speechSynthesis.paused
+          });
+        }, 100);
+      }, 100);
       
       // Backup timeout in case onend doesn't fire
       setTimeout(() => {
@@ -551,7 +574,7 @@ export default function AiChat() {
       <div className="border-t border-gray-200 p-4 bg-white">
         {/* Voice Controls */}
         {!isMobile && (
-          <div className="mb-4 flex justify-center">
+          <div className="mb-4 flex justify-center space-x-3">
             <Button
               onClick={toggleVoiceConversation}
               variant={voiceButtonState.variant}
@@ -560,6 +583,19 @@ export default function AiChat() {
             >
               {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               <span>{voiceButtonState.text}</span>
+            </Button>
+            
+            {/* Test TTS Button */}
+            <Button
+              onClick={() => {
+                console.log('🧪 Testing TTS directly');
+                speakText('Здравей! Това е тест на гласовата синтеза.');
+              }}
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-2"
+            >
+              <span>🔊 Тест TTS</span>
             </Button>
           </div>
         )}
