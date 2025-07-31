@@ -82,26 +82,7 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       animateAddingMarkers: true,
       iconCreateFunction: function(cluster: any) {
         const childCount = cluster.getChildCount();
-        const markers = cluster.getAllChildMarkers();
-        
-        // Calculate average vegan score from markers
-        let totalScore = 0;
-        let validScores = 0;
-        
-        markers.forEach((marker: any) => {
-          if (marker.options && marker.options.veganScore) {
-            const score = parseFloat(marker.options.veganScore);
-            if (!isNaN(score) && score > 0) {
-              totalScore += score;
-              validScores++;
-            }
-          }
-        });
-        
-        const avgScore = validScores > 0 ? (totalScore / validScores).toFixed(1) : '?';
-        
         let className = 'marker-cluster marker-cluster-';
-        let displayText = childCount.toString();
         
         if (childCount < 5) {
           className += 'small';
@@ -111,14 +92,8 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
           className += 'large';
         }
         
-        // Show average score if available, otherwise show count
-        if (avgScore !== '?') {
-          displayText = avgScore;
-          className += ' with-score';
-        }
-        
         return new L.DivIcon({
-          html: `<div><span>${displayText}</span></div>`,
+          html: '<div><span>' + childCount + '</span></div>',
           className: className,
           iconSize: new L.Point(40, 40)
         });
@@ -159,7 +134,9 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       
       const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
       
-      // Create green restaurant marker
+      // Create green restaurant marker with vegan score
+      const displayScore = veganScore > 0 ? veganScore.toFixed(1) : '?';
+      
       const restaurantIcon = L.divIcon({
         className: 'restaurant-marker-leaflet',
         html: `
@@ -175,11 +152,16 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 600;
+            font-size: 8px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
           " 
           onmouseover="this.style.transform='scale(1.2)'; this.style.boxShadow='0 4px 16px rgba(34,197,94,0.4)'"
           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.3)'"
           title="${restaurant.name} - Vegan Score: ${veganScore}/10">
-            <span style="color: white; font-size: 10px; font-weight: bold;">🍃</span>
+            ${displayScore}
           </div>
         `,
         iconSize: [24, 24],
@@ -188,8 +170,7 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
 
       const marker = L.marker([lat, lng], { 
         icon: restaurantIcon,
-        riseOnHover: true,
-        veganScore: veganScore.toString() // Store vegan score in marker options
+        riseOnHover: true
       });
 
       marker.on('click', (e) => {
