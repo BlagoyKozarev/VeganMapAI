@@ -1,219 +1,135 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Square } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { Mic, MicOff, Loader2 } from 'lucide-react';
 
-interface VoiceAssistantProps {
-  onTranscription?: (text: string) => void;
-  onResponse?: (response: string) => void;
-}
-
-export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAssistantProps) {
+export default function VoiceAssistant() {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [lastTranscription, setLastTranscription] = useState('');
   const [lastResponse, setLastResponse] = useState('');
-  const [permissionGranted, setPermissionGranted] = useState(false);
-  
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const { toast } = useToast();
 
-  const requestMicrophonePermission = async () => {
+  const handleStartRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setPermissionGranted(true);
-      // Stop the stream immediately after getting permission
-      stream.getTracks().forEach(track => track.stop());
-      return true;
-    } catch (error) {
-      console.error('Microphone permission denied:', error);
-      toast({
-        title: "Достъп до микрофона отказан",
-        description: "Моля, разрешете достъп до микрофона в настройките на браузъра.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const startRecording = async () => {
-    if (!permissionGranted) {
-      const granted = await requestMicrophonePermission();
-      if (!granted) return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          sampleRate: 48000,
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true
-        }
-      });
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-      
+      const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
-      
+
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
+        audioChunksRef.current.push(event.data);
       };
-      
+
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await processAudio(audioBlob);
-        
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
+        await sendAudioToServer(audioBlob);
       };
-      
+
       mediaRecorder.start();
       setIsRecording(true);
-      
-      // Auto-stop after 8 seconds for optimal Whisper processing
-      setTimeout(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          stopRecording();
-        }
-      }, 8000);
-      
     } catch (error) {
-      console.error('Failed to start recording:', error);
-      toast({
-        title: "Грешка при записването",
-        description: "Не може да се достъпи микрофонът. Проверете настройките.",
-        variant: "destructive",
-      });
+      console.error("Грешка при достъп до микрофона:", error);
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+  const handleStopRecording = () => {
+    if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
   };
 
-  const processAudio = async (audioBlob: Blob) => {
+  const sendAudioToServer = async (audioBlob: Blob) => {
     setIsProcessing(true);
-    
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64Audio = (reader.result as string).split(',')[1];
+
+      try {
+        const response = await fetch('/api/whisper', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ audio: base64Audio }),
+        });
+
+        const data = await response.json();
+        const resultText = data.text || 'Грешка при разпознаване.';
+        setLastResponse(resultText);
+        await playWithTTS(resultText);
+      } catch (err) {
+        console.error("Грешка при изпращане на аудио:", err);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    reader.readAsDataURL(audioBlob);
+  };
+
+  const playWithTTS = async (text: string) => {
     try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
-      
-      const response = await fetch('/api/audio', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include' // Important for authentication
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
       });
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast({
-            title: "Неоторизиран достъп",
-            description: "Моля, влезте в профила си.",
-            variant: "destructive",
-          });
-          return;
-        }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+      const contentType = response.headers.get("Content-Type");
+      if (!contentType?.includes("audio")) {
+        const errorText = await response.text();
+        console.error("Expected audio, got:", errorText);
+        return;
       }
-      
-      const data = await response.json();
-      
-      setLastTranscription(data.text);
-      setLastResponse(data.reply);
-      
-      // Call callbacks if provided
-      onTranscription?.(data.text);
-      onResponse?.(data.reply);
-      
-      // Use Speech Synthesis for Bulgarian response
-      if ('speechSynthesis' in window && data.reply) {
-        const utterance = new SpeechSynthesisUtterance(data.reply);
-        utterance.lang = 'bg-BG';
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        
-        // Try to find Bulgarian voice, fallback to default
-        const voices = speechSynthesis.getVoices();
-        const bulgarianVoice = voices.find(voice => 
-          voice.lang.startsWith('bg') || voice.lang.includes('BG')
-        );
-        
-        if (bulgarianVoice) {
-          utterance.voice = bulgarianVoice;
-        }
-        
-        speechSynthesis.speak(utterance);
-      }
-      
-    } catch (error) {
-      console.error('Error processing audio:', error);
-      toast({
-        title: "Грешка при обработката",
-        description: "Възникна проблем при обработката на аудиото. Опитайте отново.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const audio = new Audio();
+      audio.src = url;
+      audio.load();
+
+      audio.oncanplaythrough = () => {
+        console.log("🔁 Playing response audio");
+        audio.play().catch(err => console.error("❌ Audio play failed:", err));
+      };
+
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+      };
+
+      audio.onerror = (e) => {
+        console.error("🎧 Audio error:", e);
+      };
+
+    } catch (err) {
+      console.error("TTS playback failed:", err);
     }
   };
 
-  const getButtonState = () => {
-    if (isProcessing) return { icon: Square, text: "Обработка...", variant: "secondary" as const };
-    if (isRecording) return { icon: MicOff, text: "Записвам...", variant: "destructive" as const };
-    return { icon: Mic, text: "Говори", variant: "default" as const };
-  };
-
-  const buttonState = getButtonState();
-  const ButtonIcon = buttonState.icon;
-
   return (
-    <div className="flex flex-col items-center space-y-4 p-4">
-      <Button
-        onClick={isRecording ? stopRecording : startRecording}
-        disabled={isProcessing}
-        variant={buttonState.variant}
-        size="lg"
-        className="flex items-center space-x-2 px-6 py-3"
-      >
-        <ButtonIcon className="w-5 h-5" />
-        <span>{buttonState.text}</span>
-      </Button>
-      
-      {lastTranscription && (
-        <div className="w-full max-w-md space-y-2">
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-              Вие казахте:
-            </p>
-            <p className="text-blue-900 dark:text-blue-100">{lastTranscription}</p>
-          </div>
-          
-          {lastResponse && (
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                VeganMap отговаря:
-              </p>
-              <p className="text-green-900 dark:text-green-100">{lastResponse}</p>
-            </div>
-          )}
+    <div className="p-4 border rounded-xl space-y-4">
+      <h2 className="text-xl font-semibold">Гласов Асистент</h2>
+
+      <div className="flex gap-4 items-center">
+        {isRecording ? (
+          <Button onClick={handleStopRecording} variant="destructive">
+            <MicOff className="mr-2" /> Спри
+          </Button>
+        ) : (
+          <Button onClick={handleStartRecording} disabled={isProcessing}>
+            <Mic className="mr-2" /> Говори
+          </Button>
+        )}
+
+        {isProcessing && <Loader2 className="animate-spin" />}
+      </div>
+
+      {lastResponse && (
+        <div className="bg-muted p-3 rounded text-sm">
+          <strong>Ти каза:</strong> {lastResponse}
         </div>
       )}
-      
-      <div className="text-xs text-muted-foreground text-center max-w-xs">
-        Натиснете бутона и говорете до 8 секунди. 
-        Асистентът ще отговори на български език.
-      </div>
     </div>
   );
 }
