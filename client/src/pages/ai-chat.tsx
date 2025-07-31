@@ -121,9 +121,32 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // Always speak the response when we get one from voice input
-      console.log('Speaking AI response:', data.reply);
-      await speakText(data.reply);
+      // Force TTS to work - speak immediately after getting response
+      console.log('=== FORCE TTS START ===');
+      console.log('AI Response received:', data.reply);
+      console.log('Conversation active:', conversationActive);
+      console.log('TTS support:', 'speechSynthesis' in window);
+      
+      // Force immediate TTS activation
+      if ('speechSynthesis' in window) {
+        console.log('Forcing TTS to speak...');
+        speechSynthesis.cancel(); // Clear any existing speech
+        
+        const utterance = new SpeechSynthesisUtterance(data.reply);
+        utterance.lang = /[а-яА-Я]/.test(data.reply) ? "bg-BG" : "en-US";
+        utterance.rate = 0.9;
+        utterance.volume = 1.0;
+        
+        utterance.onstart = () => console.log('✓ TTS STARTED SUCCESSFULLY');
+        utterance.onend = () => console.log('✓ TTS FINISHED');
+        utterance.onerror = (e) => console.error('✗ TTS ERROR:', e);
+        
+        console.log('About to call speechSynthesis.speak()...');
+        speechSynthesis.speak(utterance);
+        setIsSpeaking(true);
+      } else {
+        console.error('Speech synthesis NOT supported in this browser');
+      }
       
       // Continue conversation after speaking if conversation is active
       if (conversationActive && !mobileDevice) {
