@@ -12,29 +12,73 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// GPT-4o exact TTS solution
+// GPT-4o exact TTS solution with debugging
 const speak = (text: string) => {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    console.log('🔊 TTS Debug - Starting speak function');
+    
+    // Cancel any existing speech
+    window.speechSynthesis.cancel();
+    
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
+    
+    console.log('🎤 Available voices:', voices.length);
+    console.log('🎯 First 3 voices:', voices.slice(0, 3).map(v => `${v.name} (${v.lang})`));
 
     // Избери български или Google глас
-    utterance.voice = voices.find(v =>
+    const selectedVoice = voices.find(v =>
       v.lang.startsWith("bg") || v.name.includes("Google")
-    ) || null;
-
+    );
+    
+    utterance.voice = selectedVoice || null;
     utterance.rate = 1;
     utterance.pitch = 1;
+    
+    console.log('🎵 Selected voice:', selectedVoice?.name || 'default');
+    console.log('📝 Text to speak:', text.substring(0, 50) + '...');
+    
+    // Add event listeners for debugging
+    utterance.onstart = () => {
+      console.log('✅ TTS STARTED SUCCESSFULLY');
+    };
+    
+    utterance.onend = () => {
+      console.log('🔇 TTS FINISHED');
+    };
+    
+    utterance.onerror = (e) => {
+      console.error('❌ TTS ERROR:', e.error);
+    };
+    
+    // Force speak
+    console.log('🚀 Calling speechSynthesis.speak()');
     window.speechSynthesis.speak(utterance);
+    
+    // Check status after 500ms
+    setTimeout(() => {
+      console.log('📊 TTS Status check:', {
+        speaking: window.speechSynthesis.speaking,
+        pending: window.speechSynthesis.pending,
+        paused: window.speechSynthesis.paused
+      });
+    }, 500);
+  } else {
+    console.error('🚫 speechSynthesis not supported');
   }
 };
 
-// 2. Зареди гласове
+// 2. Зареди гласове с debugging
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = () => {
     // preload voices
-    window.speechSynthesis.getVoices();
+    const voices = window.speechSynthesis.getVoices();
+    console.log('🔄 Voices loaded event:', voices.length, 'voices available');
   };
+  
+  // Force initial voice loading
+  const initialVoices = window.speechSynthesis.getVoices();
+  console.log('🚀 Initial voices:', initialVoices.length);
 }
 
 export default function AiChat() {
