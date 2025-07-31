@@ -12,80 +12,6 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// Working TTS implementation with proper voice loading
-const speak = (text: string) => {
-  console.log('🎯 TTS starting with text:', text.substring(0, 30) + '...');
-  
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-    console.error('🚫 speechSynthesis not supported');
-    return;
-  }
-  
-  const doSpeak = () => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    
-    // Try to get Bulgarian voice
-    const voices = window.speechSynthesis.getVoices();
-    console.log('📢 Available voices:', voices.length);
-    
-    const bgVoice = voices.find(v => v.lang.includes('bg') || v.lang.includes('BG'));
-    const enVoice = voices.find(v => v.lang.includes('en') && v.name.includes('Google'));
-    
-    if (bgVoice) {
-      utterance.voice = bgVoice;
-      console.log('🇧🇬 Using voice:', bgVoice.name);
-    } else if (enVoice) {
-      utterance.voice = enVoice;
-      console.log('🇺🇸 Using English voice:', enVoice.name);
-    }
-    
-    utterance.onstart = () => {
-      console.log('✅ TTS STARTED SUCCESSFULLY!');
-    };
-    
-    utterance.onend = () => {
-      console.log('🔇 TTS COMPLETED');
-    };
-    
-    utterance.onerror = (e) => {
-      console.error('❌ TTS ERROR:', e.error);
-    };
-    
-    // Force start TTS
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-    
-    console.log('🚀 speechSynthesis.speak() called');
-  };
-  
-  // Ensure voices are loaded
-  if (window.speechSynthesis.getVoices().length === 0) {
-    console.log('⏳ Waiting for voices to load...');
-    window.speechSynthesis.onvoiceschanged = () => {
-      console.log('🔄 Voices loaded, trying TTS');
-      doSpeak();
-    };
-  } else {
-    doSpeak();
-  }
-};
-
-// 2. Зареди гласове с debugging
-if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = () => {
-    // preload voices
-    const voices = window.speechSynthesis.getVoices();
-    console.log('🔄 Voices loaded event:', voices.length, 'voices available');
-  };
-  
-  // Force initial voice loading
-  const initialVoices = window.speechSynthesis.getVoices();
-  console.log('🚀 Initial voices:', initialVoices.length);
-}
-
 export default function AiChat() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -103,10 +29,8 @@ export default function AiChat() {
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Временно деактивиране на mobile detection за testing
-  const mobileDevice = false; // Принудително активиране на voice функционалност
-  
-  console.log('Voice functionality enabled (mobile detection disabled for testing)');
+  // Mobile detection
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   // Load chat history
   const { data: chatHistory } = useQuery({
@@ -188,233 +112,17 @@ export default function AiChat() {
       
       setMessages(prev => [...prev, userMessage, assistantMessage]);
       
-      // OpenAI TTS implementation - автоматично без dialog
-      console.log('🎤 AI response ready for OpenAI TTS');
-      console.log('🔊 Response text:', data.reply);
-      
-      // Автоматично стартиране на TTS без потребителски dialog
-        console.log('✅ Starting OpenAI TTS generation');
+      // Speak the response if conversation is active
+      if (conversationActive) {
+        await speakText(data.reply);
         
-        try {
-          // Call our OpenAI TTS endpoint with proper headers
-          const ttsResponse = await fetch('/api/tts', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'audio/mpeg',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ text: data.reply })
-          });
-          
-          if (ttsResponse.ok) {
-            // Get the MP3 blob and verify MIME type
-            const audioBlob = await ttsResponse.blob();
-            
-            console.log('🎵 Audio blob size:', audioBlob.size, 'bytes');
-            console.log('🎧 Audio blob type:', audioBlob.type);
-            console.log('📋 Response headers:', Object.fromEntries(ttsResponse.headers.entries()));
-            
-            // Force correct MIME type if needed
-            const correctedBlob = audioBlob.type.includes('audio') ? audioBlob : 
-              new Blob([audioBlob], { type: 'audio/mpeg' });
-            
-            const audioUrl = URL.createObjectURL(correctedBlob);
-            console.log('🔗 Audio URL created:', audioUrl);
-            
-            // Create invisible HTML audio element for better browser support
-            const audio = document.createElement('audio');
-            audio.src = audioUrl;
-            audio.preload = 'auto';
-            audio.volume = 1.0;
-            
-            console.log('🎛️ Audio element created with src:', audioUrl);
-            
-            // Add to DOM temporarily for better compatibility
-            audio.style.display = 'none';
-            document.body.appendChild(audio);
-            
-            // Event listeners
-            audio.onloadstart = () => console.log('📥 Audio loading started');
-            audio.oncanplay = () => console.log('▶️ Audio can play');
-            audio.onplay = () => console.log('🎵 Audio play started');
-            audio.onended = () => {
-              console.log('🔇 Audio playback completed');
-              document.body.removeChild(audio);
-              URL.revokeObjectURL(audioUrl);
-            };
-            audio.onerror = (e) => {
-              console.error('❌ Audio error:', e);
-              console.error('Error details:', {
-                code: audio.error?.code,
-                message: audio.error?.message
-              });
-            };
-            
-            // Load and play
-            audio.load();
-            
-            // Direct audio playback - files work when downloaded
-            console.log('🚀 Starting audio playback...');
-            
-            // Set audio properties for better compatibility
-            audio.controls = false;
-            audio.autoplay = false;
-            audio.muted = false;
-            
-            // Try Web Audio API for better control and bypass autoplay restrictions
-            const playAudioWithWebAPI = async () => {
-              try {
-                // Create AudioContext with proper typing
-                let audioCtx: AudioContext;
-                if (!(window as any).audioContext) {
-                  audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                  (window as any).audioContext = audioCtx;
-                } else {
-                  audioCtx = (window as any).audioContext;
-                }
-                
-                if (audioCtx.state === 'suspended') {
-                  await audioCtx.resume();
-                }
-                
-                // Convert blob to array buffer
-                const arrayBuffer = await audioBlob.arrayBuffer();
-                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                
-                // Create and play audio source
-                const source = audioCtx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(audioCtx.destination);
-                
-                console.log('🎵 Starting Web Audio API playback');
-                console.log('🎵 Audio buffer duration:', audioBuffer.duration, 'seconds');
-                source.start(0);
-                
-                // Auto-continue conversation after audio ends
-                const handleAudioEnd = () => {
-                  console.log('🔇 WEB AUDIO ENDED - Audio playback completed!');
-                  console.log('📊 Current states before continuation:', { isRecording, isProcessing, conversationActive, mobileDevice });
-                  setTimeout(() => {
-                    if (!isRecording && !isProcessing) {
-                      console.log('🎙️ AUTO-CONTINUING: Starting next recording...');
-                      startWhisperRecording(); // Continue conversation
-                    } else {
-                      console.log('🚫 BLOCKED: Cannot continue - states:', { isRecording, isProcessing });
-                    }
-                  }, 1500);
-                };
-                
-                // Multiple event binding approaches for maximum compatibility
-                source.addEventListener('ended', handleAudioEnd);
-                source.onended = handleAudioEnd;
-                
-                // Primary timeout-based continuation (most reliable)
-                const estimatedDuration = Math.ceil(audioBuffer.duration * 1000) + 1000; // Add 1 second buffer
-                console.log('⏰ Setting PRIMARY timeout for', estimatedDuration, 'ms (duration:', audioBuffer.duration, 's)');
-                setTimeout(() => {
-                  console.log('⏰ PRIMARY TIMEOUT TRIGGERED: Audio should be finished');
-                  console.log('📊 States at timeout:', { isRecording, isProcessing, conversationActive });
-                  if (!isRecording && !isProcessing && conversationActive) {
-                    console.log('⏰ TIMEOUT CONTINUATION: Starting next recording...');
-                    startWhisperRecording();
-                  } else {
-                    console.log('🚫 TIMEOUT BLOCKED: States prevent continuation');
-                  }
-                }, estimatedDuration);
-                
-                return true;
-              } catch (webAudioError) {
-                console.log('❌ Web Audio API failed:', webAudioError);
-                return false;
-              }
-            };
-            
-            // Try Web Audio API first, fallback to regular audio
-            const success = await playAudioWithWebAPI();
-            
-            if (!success) {
-              // Fallback to regular HTML5 audio with user interaction requirement
-              audio.play()
-                .then(() => {
-                  console.log('✅ HTML5 audio playback successful');
-                  
-                  // Add event listener for when HTML5 audio ends
-                  const handleHTML5End = () => {
-                    console.log('🔇 HTML5 AUDIO ENDED - Continuing conversation');
-                    setTimeout(() => {
-                      if (!isRecording && !isProcessing) {
-                        console.log('🎙️ HTML5 AUTO-CONTINUE: Starting next recording...');
-                        startWhisperRecording();
-                      }
-                    }, 1500);
-                  };
-                  
-                  audio.addEventListener('ended', handleHTML5End);
-                  audio.onended = handleHTML5End;
-                  
-                  // Also add timeout for HTML5 audio as backup
-                  setTimeout(() => {
-                    console.log('⏰ HTML5 TIMEOUT: Assuming audio finished');
-                    if (!isRecording && !isProcessing && conversationActive) {
-                      console.log('⏰ HTML5 TIMEOUT CONTINUATION');
-                      startWhisperRecording();
-                    }
-                  }, 8000); // 8 second timeout for HTML5 audio
-                })
-                .catch(() => {
-                  console.log('📋 All audio methods failed - requiring user click');
-                  
-                  // Minimal play button that auto-continues conversation
-                  const playButton = document.createElement('button');
-                  playButton.textContent = '▶️';
-                  playButton.style.cssText = `
-                    position: fixed; bottom: 20px; right: 20px; z-index: 9999;
-                    width: 60px; height: 60px; border-radius: 50%;
-                    background: #22c55e; color: white; border: none;
-                    font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                  `;
-                  
-                  playButton.onclick = async () => {
-                    const webSuccess = await playAudioWithWebAPI();
-                    if (!webSuccess) {
-                      await audio.play();
-                    }
-                    document.body.removeChild(playButton);
-                    // Continue conversation after manual play
-                    setTimeout(() => {
-                      if (!isRecording && !isProcessing) {
-                        startWhisperRecording();
-                      }
-                    }, 2000);
-                  };
-                  
-                  document.body.appendChild(playButton);
-                });
-            }
-            
-          } else {
-            console.error('❌ TTS API error:', ttsResponse.status);
-            const errorText = await ttsResponse.text();
-            console.error('Error details:', errorText);
+        // Continue conversation after speaking
+        setTimeout(() => {
+          if (conversationActive && !isSpeaking) {
+            startWhisperRecording();
           }
-          
-        } catch (error) {
-          console.error('❌ TTS Error:', error);
-        }
-      
-      // Set conversation as active after first voice interaction
-      if (!conversationActive) {
-        setConversationActive(true);
-        console.log('✅ Conversation activated');
+        }, 2000);
       }
-      
-      // Remove old timeout - audio playback handlers now manage conversation continuation
-      
-      // Reset speaking state
-      setTimeout(() => {
-        setIsSpeaking(false);
-      }, 1000);
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
@@ -486,23 +194,9 @@ export default function AiChat() {
   };
 
   const startWhisperRecording = async () => {
-    console.log('🎙️ START WHISPER RECORDING - Full State Check:', { 
-      isRecording, 
-      isProcessing, 
-      conversationActive, 
-      mobileDevice,
-      timestamp: new Date().toLocaleTimeString()
-    });
-    
-    // Проверка дали вече записваме или обработваме
-    if (isRecording || isProcessing) {
-      console.log('🚫 BLOCKED: Already recording or processing, skipping...');
-      return;
-    }
-    
-    if (!conversationActive) {
-      console.log('🚫 BLOCKED: Conversation not active');
-      return;
+    if (!permissionGranted) {
+      const granted = await requestMicrophonePermission();
+      if (!granted) return;
     }
 
     try {
@@ -530,16 +224,9 @@ export default function AiChat() {
       
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        console.log('🎤 Recording stopped, processing audio...');
         setIsProcessing(true);
-        
-        try {
-          await voiceChatMutation.mutateAsync(audioBlob);
-        } catch (error) {
-          console.error('❌ Voice processing error:', error);
-        } finally {
-          setIsProcessing(false);
-        }
+        await voiceChatMutation.mutateAsync(audioBlob);
+        setIsProcessing(false);
         
         stream.getTracks().forEach(track => track.stop());
       };
@@ -547,10 +234,9 @@ export default function AiChat() {
       mediaRecorder.start();
       setIsRecording(true);
       
-      // Auto-stop after 8 seconds for better conversation flow
+      // Auto-stop after 8 seconds for optimal Whisper processing
       setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          console.log('⏰ Auto-stopping recording after 8 seconds');
           stopRecording();
         }
       }, 8000);
@@ -608,34 +294,54 @@ export default function AiChat() {
       }
       
       utterance.onend = () => {
+        console.log('🎤 TTS ended, checking conversation continuation');
         setIsSpeaking(false);
+        
+        // Continue conversation after speaking
+        if (conversationActive && !isRecording && !isProcessing) {
+          setTimeout(() => {
+            console.log('🎙️ Auto-continuing conversation after TTS');
+            startWhisperRecording();
+          }, 2000);
+        }
+        
         resolve();
       };
       
-      utterance.onstart = () => {
-        console.log('TTS started successfully');
-      };
-      
-      utterance.onend = () => {
-        console.log('TTS finished');
-        setIsSpeaking(false);
-        resolve();
-      };
+      // Backup timeout in case onend doesn't fire
+      setTimeout(() => {
+        if (isSpeaking) {
+          console.log('⏰ TTS backup timeout triggered');
+          setIsSpeaking(false);
+          if (conversationActive && !isRecording && !isProcessing) {
+            startWhisperRecording();
+          }
+          resolve();
+        }
+      }, 8000);
       
       utterance.onerror = (error) => {
-        console.error('TTS error:', error);
+        console.error('Speech synthesis error:', error);
         setIsSpeaking(false);
         resolve();
       };
       
-      console.log('About to start TTS with text:', text.substring(0, 50) + '...');
+      // Cancel any existing speech before starting new one
       speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
     });
   };
 
   const toggleVoiceConversation = () => {
-    // Allow voice conversation on all devices - let user decide
+    if (isMobile) {
+      toast({
+        title: "Гласов разговор не е достъпен",
+        description: "На мобилни устройства използвайте текстовия чат.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (conversationActive) {
       endConversation();
     } else {
@@ -805,22 +511,17 @@ export default function AiChat() {
       {/* Input Area */}
       <div className="border-t border-gray-200 p-4 bg-white">
         {/* Voice Controls */}
-        <div className="mb-4 flex justify-center">
-          <Button
-            onClick={toggleVoiceConversation}
-            variant={voiceButtonState.variant}
-            disabled={voiceButtonState.disabled}
-            className="flex items-center space-x-2"
-          >
-            {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            <span>{voiceButtonState.text}</span>
-          </Button>
-        </div>
-
-        {/* Mobile info */}
-        {mobileDevice && (
-          <div className="text-center mb-4">
-            <p className="text-xs text-gray-500">TTS работи на всички устройства</p>
+        {!isMobile && (
+          <div className="mb-4 flex justify-center">
+            <Button
+              onClick={toggleVoiceConversation}
+              variant={voiceButtonState.variant}
+              disabled={voiceButtonState.disabled}
+              className="flex items-center space-x-2"
+            >
+              {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              <span>{voiceButtonState.text}</span>
+            </Button>
           </div>
         )}
 
@@ -829,7 +530,7 @@ export default function AiChat() {
           <Textarea
             value={currentMessage}
             onChange={(e) => setCurrentMessage(e.target.value)}
-            placeholder={mobileDevice ? "Напишете съобщение..." : "Напишете съобщение или използвайте гласовия асистент..."}
+            placeholder={isMobile ? "Напишете съобщение..." : "Напишете съобщение или използвайте гласовия асистент..."}
             className="flex-1 min-h-[2.5rem] max-h-32 resize-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -846,13 +547,6 @@ export default function AiChat() {
             <Send className="w-4 h-4" />
           </Button>
         </form>
-
-        {/* Mobile Voice Info */}
-        {mobileDevice && (
-          <p className="text-xs text-gray-500 text-center mt-2">
-            Гласовият асистент е достъпен само на десктоп браузъри
-          </p>
-        )}
       </div>
     </div>
   );
