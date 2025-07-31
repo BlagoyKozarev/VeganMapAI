@@ -25,13 +25,16 @@ export const ttsHandler = async (req: Request, res: Response) => {
     // Get the audio buffer
     const buffer = Buffer.from(await response.arrayBuffer());
     
-    // Set proper headers for MP3 audio
+    // Set comprehensive headers for proper MP3 playback
     res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Length', buffer.length);
+    res.setHeader('Content-Disposition', 'inline; filename="speech.mp3"');
+    res.setHeader('Content-Length', buffer.length.toString());
     res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     
     console.log('✅ TTS MP3 generated successfully, size:', buffer.length, 'bytes');
-    res.send(buffer);
+    res.end(buffer);
     
   } catch (error) {
     console.error('❌ TTS error:', error);
