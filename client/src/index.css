@@ -311,3 +311,56 @@
   background-color: var(--vegan-light-green) !important;
   color: var(--vegan-green) !important;
 }
+
+/* Google Maps Style Clustering Animations */
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-3px); 
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* Restaurant Marker Styles */
+.restaurant-marker-single,
+.restaurant-cluster-marker {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.restaurant-marker-single:hover,
+.restaurant-cluster-marker:hover {
+  z-index: 1000 !important;
+}
+
+/* Cluster Popup Styling */
+.cluster-popup .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.cluster-popup .leaflet-popup-content {
+  margin: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.cluster-popup .leaflet-popup-tip {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
