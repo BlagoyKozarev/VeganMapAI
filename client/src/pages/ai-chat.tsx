@@ -288,26 +288,37 @@ export default function AiChat() {
                 source.connect(audioCtx.destination);
                 
                 console.log('🎵 Starting Web Audio API playback');
+                console.log('🎵 Audio buffer duration:', audioBuffer.duration, 'seconds');
                 source.start(0);
                 
                 // Auto-continue conversation after audio ends
                 const handleAudioEnd = () => {
-                  console.log('🔇 Audio playback completed, continuing conversation');
+                  console.log('🔇 WEB AUDIO ENDED - Audio playback completed!');
+                  console.log('📊 Current states before continuation:', { isRecording, isProcessing, conversationActive, mobileDevice });
                   setTimeout(() => {
-                    console.log('📊 Current states:', { isRecording, isProcessing, conversationActive });
-                    if (!isRecording && !isProcessing && !mobileDevice) {
-                      console.log('🎙️ Auto-starting next recording...');
+                    if (!isRecording && !isProcessing) {
+                      console.log('🎙️ AUTO-CONTINUING: Starting next recording...');
                       startWhisperRecording(); // Continue conversation
                     } else {
-                      console.log('🚫 Cannot continue - already recording/processing or mobile device');
+                      console.log('🚫 BLOCKED: Cannot continue - states:', { isRecording, isProcessing });
                     }
                   }, 1500);
                 };
                 
+                // Multiple event binding approaches for maximum compatibility
                 source.addEventListener('ended', handleAudioEnd);
-                
-                // Also try the older onended property as backup
                 source.onended = handleAudioEnd;
+                
+                // Also try timeout as backup (estimated audio duration + buffer)
+                const estimatedDuration = Math.ceil(audioBuffer.duration * 1000) + 500;
+                console.log('⏰ Setting backup timeout for', estimatedDuration, 'ms');
+                setTimeout(() => {
+                  console.log('⏰ BACKUP TIMEOUT: Checking if audio completed');
+                  if (!isRecording && !isProcessing) {
+                    console.log('⏰ BACKUP ACTIVATION: Starting recording via timeout');
+                    startWhisperRecording();
+                  }
+                }, estimatedDuration);
                 
                 return true;
               } catch (webAudioError) {
@@ -326,15 +337,18 @@ export default function AiChat() {
                   console.log('✅ HTML5 audio playback successful');
                   
                   // Add event listener for when HTML5 audio ends
-                  audio.addEventListener('ended', () => {
-                    console.log('🔇 HTML5 audio ended, continuing conversation');
+                  const handleHTML5End = () => {
+                    console.log('🔇 HTML5 AUDIO ENDED - Continuing conversation');
                     setTimeout(() => {
-                      if (!isRecording && !isProcessing && !mobileDevice) {
-                        console.log('🎙️ Auto-starting next recording (HTML5 fallback)...');
+                      if (!isRecording && !isProcessing) {
+                        console.log('🎙️ HTML5 AUTO-CONTINUE: Starting next recording...');
                         startWhisperRecording();
                       }
                     }, 1500);
-                  });
+                  };
+                  
+                  audio.addEventListener('ended', handleHTML5End);
+                  audio.onended = handleHTML5End;
                 })
                 .catch(() => {
                   console.log('📋 All audio methods failed - requiring user click');
