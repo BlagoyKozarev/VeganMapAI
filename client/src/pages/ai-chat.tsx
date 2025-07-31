@@ -248,12 +248,12 @@ export default function AiChat() {
       mediaRecorder.start();
       setIsRecording(true);
       
-      // Auto-stop after 8 seconds for optimal Whisper processing
+      // Auto-stop after 10 seconds for better Bulgarian recognition
       setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           stopRecording();
         }
-      }, 8000);
+      }, 10000);
       
     } catch (error) {
       console.error('Failed to start recording:', error);
