@@ -481,11 +481,18 @@ export default function AiChat() {
   };
 
   const startVoiceConversation = async () => {
+    console.log('🚀 Starting voice conversation...');
+    
     if (!permissionGranted) {
+      console.log('🔐 Permission not granted, requesting...');
       const granted = await requestMicrophonePermission();
-      if (!granted) return;
+      if (!granted) {
+        console.log('❌ Permission denied');
+        return;
+      }
     }
 
+    console.log('✅ Setting conversation active');
     setConversationActive(true);
     setLastActivityTime(Date.now()); // Set initial activity time
     
@@ -510,6 +517,7 @@ export default function AiChat() {
     };
     
     startInactivityCheck();
+    console.log('🎙️ Starting whisper recording...');
     startWhisperRecording();
   };
 
@@ -699,7 +707,10 @@ export default function AiChat() {
         {/* Voice Controls - Available on all devices, restricted for iOS Safari only */}
         <div className="mb-4 flex justify-center space-x-3">
           <Button
-            onClick={toggleVoiceConversation}
+            onClick={() => {
+              console.log('🎤 Voice button onClick triggered!');
+              toggleVoiceConversation();
+            }}
             variant={voiceButtonState.variant}
             disabled={voiceButtonState.disabled}
             className="flex items-center space-x-2"
