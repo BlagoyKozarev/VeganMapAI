@@ -4,8 +4,11 @@
 VeganMapAI is a full-stack web application designed to help users discover vegan-friendly restaurants and food locations. The platform provides personalized restaurant recommendations, vegan scoring, and AI-powered chat assistance. Its business vision includes expanding to the top 20 US cities, prioritizing cost-effective API usage through intelligent caching and strategic data management. The project aims for a seamless user experience, acting as a comprehensive guide for vegan-friendly dining.
 
 ## User Preferences
-Preferred communication style: Simple, everyday language.
-AI Chat Response Style: Brief, clear, direct responses. No task repetition, focus on results only. Maximum 2-3 sentences per response.
+- **Communication Style**: Simple, everyday language with Bulgarian support
+- **AI Chat Response Style**: Brief, clear, direct responses. No task repetition, focus on results only. Maximum 2-3 sentences per response
+- **Development Approach**: Comprehensive testing before deployment, focus on real-world functionality over theoretical solutions
+- **Documentation**: Maintain detailed technical documentation in `replit.md` for continuity across sessions
+- **Git Workflow**: Regular commits with meaningful messages, maintain clean repository structure
 
 ## Recent Changes (January 2025)
 - **Voice Chat with TTS**: Full voice conversation system now working with speech-to-text (Whisper) and text-to-speech functionality. Mobile TTS properly initialized with user gestures, continuous conversation flow implemented.
@@ -14,6 +17,19 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
 - **Clustering System**: Completed leaflet.markercluster integration with blue cluster circles showing restaurant counts and individual green markers displaying vegan scores.
 - **Map Performance**: Optimized restaurant loading and display with proper viewport-based clustering for smooth user experience.
 - **Testing Framework**: Comprehensive Vitest testing suite with 100% success rate (14/14 tests passing). Features unit tests for agent functionality, map initialization, vegan scoring logic, API endpoints, audio files, and end-to-end API testing. Added e2e.test.ts as alternative to Playwright (browser dependencies incompatible with Replit environment). Optimized with mock functions for fast execution and proper authentication handling.
+
+## Git Repository Management
+- **Primary Branch**: main (production-ready code)
+- **Development Strategy**: Direct commits to main with comprehensive testing before each commit
+- **Version Control**: All major features tracked with detailed commit messages in Bulgarian and English
+- **Backup Strategy**: Regular commits after each successful feature implementation
+- **Key Files to Track**: 
+  - `/client/src/` - React frontend components
+  - `/server/` - Express backend and API routes
+  - `/shared/schema.ts` - Database models and types
+  - `replit.md` - Project documentation and preferences
+  - Test files: `*.test.ts` - Comprehensive testing suite
+- **Ignore Patterns**: node_modules, .env files, build artifacts, uploaded files in /uploads/
 
 ## System Architecture
 
