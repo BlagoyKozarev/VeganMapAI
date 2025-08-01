@@ -132,12 +132,7 @@ export default function AiChat() {
       if (isNonsensical) {
         console.log('🚫 Detected nonsensical/repetitive transcription, ignoring');
         // Don't update activity time for nonsensical transcriptions
-        // Continue recording immediately without processing nonsensical input
-        setTimeout(() => {
-          if (conversationActive) {
-            startWhisperRecording();
-          }
-        }, 500);
+        // Don't continue recording - let the inactivity timer handle it
         return;
       }
       
@@ -296,14 +291,9 @@ export default function AiChat() {
         
         // Check if audio has content (not silent)
         if (audioBlob.size < 1500) { 
-          console.log('🔇 Silent recording detected (small file), continuing...');
+          console.log('🔇 Silent recording detected (small file), not updating activity');
           
-          // Continue recording immediately for next attempt
-          setTimeout(() => {
-            if (conversationActive) {
-              startWhisperRecording();
-            }
-          }, 500);
+          // Don't continue recording - let the inactivity timer handle it
           return;
         }
         
@@ -487,6 +477,8 @@ export default function AiChat() {
           console.log('⏹️ 3 seconds of inactivity detected, ending conversation silently');
           endConversation();
         } else if (conversationActive) {
+          // Continue recording if still active and not enough inactivity time
+          startWhisperRecording();
           // Check again in 1 second
           startInactivityCheck();
         }
