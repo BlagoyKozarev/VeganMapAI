@@ -7,6 +7,7 @@ import Map from '@/components/map/Map';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
 import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
+import { MobileAdvancedSearch } from '@/components/mobile/MobileAdvancedSearch';
 import { MobileHeader } from '@/components/mobile/MobileHeaderClean';
 import { useGeolocation } from '@/hooks/useGeolocation';
 
@@ -39,6 +40,7 @@ export default function Home() {
 
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
 
   // Removed position state since we're using bottom footer
   const [searchQuery, setSearchQuery] = useState('');
@@ -229,8 +231,21 @@ export default function Home() {
   };
 
   const handleViewDetails = () => {
-    setShowDropdown(false);
-    setShowRestaurantModal(true);
+    if (selectedRestaurant) {
+      console.log('Opening restaurant modal for:', selectedRestaurant.name);
+      setShowRestaurantModal(true);
+      setShowDropdown(false);
+    }
+  };
+
+  const handleAdvancedSearchOpen = () => {
+    setShowAdvancedSearch(true);
+  };
+
+  const handleApplyAdvancedFilters = (filters: any) => {
+    setMinVeganScore(filters.minVeganScore);
+    setMinGoogleScore(filters.minGoogleScore);
+    console.log('Applied advanced filters:', filters);
   };
 
   const handleCloseDropdown = () => {
@@ -315,6 +330,7 @@ export default function Home() {
         onShowSuggestions={setShowSuggestions}
         searchSuggestions={searchSuggestions}
         onOpenChat={() => setLocation('/ai-chat')}
+        onOpenAdvancedSearch={handleAdvancedSearchOpen}
       />
 
       <div 
@@ -663,6 +679,21 @@ export default function Home() {
           onClose={handleCloseModal}
         />
       )}
+
+      {/* Mobile Advanced Search */}
+      <MobileAdvancedSearch
+        isOpen={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+        onApplyFilters={handleApplyAdvancedFilters}
+        initialFilters={{
+          minVeganScore,
+          minGoogleScore,
+          maxDistance: 10,
+          priceRange: [],
+          cuisineTypes: [],
+          allergies: [],
+        }}
+      />
       </div>
       
 

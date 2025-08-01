@@ -7,9 +7,10 @@ interface MobileHeaderProps {
   onShowSuggestions: (show: boolean) => void;
   searchSuggestions: any[];
   onOpenChat?: () => void;
+  onOpenAdvancedSearch?: () => void;
 }
 
-export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions, onOpenChat }: MobileHeaderProps) {
+export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions, onOpenChat, onOpenAdvancedSearch }: MobileHeaderProps) {
   return (
     <header 
       className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg h-16 z-[99999]"
@@ -116,17 +117,25 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
         </div>
         
         {/* Navigation Icons */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
+          <button 
+            onClick={onOpenAdvancedSearch || (() => console.log('Advanced search not connected'))}
+            className="w-9 h-9 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
+            title="Advanced Search"
+            style={{ touchAction: 'manipulation' }}
+          >
+            <span className="text-white text-sm">⚙️</span>
+          </button>
           <button 
             onClick={onOpenChat || (() => window.location.href = '/ai-chat')}
-            className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
+            className="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
             title="AI Voice Assistant"
             style={{ touchAction: 'manipulation' }}
           >
-            <span className="text-white text-lg">🎤</span>
+            <span className="text-white text-sm">🎤</span>
           </button>
           <a href="/profile">
-            <button className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+            <button className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
               style={{ touchAction: 'manipulation' }}>
               BK
             </button>

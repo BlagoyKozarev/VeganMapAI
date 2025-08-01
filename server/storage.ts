@@ -38,6 +38,7 @@ export interface IStorage {
   getUserProfile(userId: string): Promise<UserProfile | undefined>;
   createUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
   updateUserProfile(userId: string, profile: Partial<InsertUserProfile>): Promise<UserProfile>;
+  upsertUserProfile(profile: InsertUserProfile): Promise<UserProfile>;
   
   // Restaurant operations
   getRestaurant(id: string): Promise<Restaurant | undefined>;
@@ -120,6 +121,26 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userProfiles.userId, userId))
       .returning();
     return updatedProfile;
+  }
+
+  async upsertUserProfile(profile: InsertUserProfile): Promise<UserProfile> {
+    const [upsertedProfile] = await db
+      .insert(userProfiles)
+      .values(profile)
+      .onConflictDoUpdate({
+        target: userProfiles.userId,
+        set: {
+          dietaryStyle: profile.dietaryStyle,
+          allergies: profile.allergies,
+          preferredCuisines: profile.preferredCuisines,
+          priceRange: profile.priceRange,
+          maxDistance: profile.maxDistance,
+          isProfileComplete: profile.isProfileComplete,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return upsertedProfile;
   }
   
   // Restaurant operations
@@ -206,30 +227,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]> {
-    let baseQuery = db.select().from(restaurants);
+    let queryBuilder = db.select().from(restaurants);
     
     if (query) {
-      baseQuery = baseQuery.where(
+      queryBuilder = queryBuilder.where(
         sql`LOWER(${restaurants.name}) LIKE LOWER(${'%' + query + '%'}) OR 
             LOWER(${restaurants.address}) LIKE LOWER(${'%' + query + '%'})`
       );
     }
     
     if (filters?.minVeganScore) {
-      baseQuery = baseQuery.where(sql`${restaurants.veganScore} >= ${filters.minVeganScore}`);
+      queryBuilder = queryBuilder.where(sql`${restaurants.veganScore} >= ${filters.minVeganScore}`);
     }
     
     if (filters?.priceRange && filters.priceRange.length > 0) {
-      baseQuery = baseQuery.where(inArray(restaurants.priceLevel, filters.priceRange));
+      queryBuilder = queryBuilder.where(inArray(restaurants.priceLevel, filters.priceRange));
     }
     
     if (filters?.cuisineTypes && filters.cuisineTypes.length > 0) {
-      baseQuery = baseQuery.where(
+      queryBuilder = queryBuilder.where(
         sql`${restaurants.cuisineTypes} && ${filters.cuisineTypes}`
       );
     }
     
-    return await baseQuery.orderBy(desc(restaurants.veganScore));
+    return await queryBuilder.orderBy(desc(restaurants.veganScore));
   }
   
   // Vegan score operations
