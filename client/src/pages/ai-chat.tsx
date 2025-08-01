@@ -360,120 +360,121 @@ export default function AiChat() {
     }
   };
 
+  // Initialize TTS on first user interaction
+  const initializeTTS = () => {
+    if (!window.speechSynthesis) return;
+    
+    console.log('🎵 Initializing TTS with user gesture...');
+    
+    // Create a silent utterance to initialize the speech synthesis
+    const testUtterance = new SpeechSynthesisUtterance('');
+    testUtterance.volume = 0;
+    speechSynthesis.speak(testUtterance);
+    
+    console.log('✅ TTS initialized with user interaction');
+  };
+
   const speakText = async (text: string): Promise<void> => {
     console.log('🔊 ===== SPEAKTEXT FUNCTION CALLED =====');
     console.log('🔊 Input text:', text.substring(0, 50) + '...');
-    console.log('🔍 Window object check:', {
-      hasSpeechSynthesis: 'speechSynthesis' in window,
-      speechSynthesisType: typeof window.speechSynthesis,
-      hasSpeechSynthesisUtterance: 'SpeechSynthesisUtterance' in window
-    });
     
     if (!window.speechSynthesis) {
-      console.log('❌ SpeechSynthesis not supported in this browser');
+      console.log('❌ SpeechSynthesis not supported');
       return Promise.resolve();
     }
 
-    console.log('✅ SpeechSynthesis is supported, proceeding...');
+    // Initialize TTS first
+    initializeTTS();
 
     return new Promise<void>((resolve) => {
-      console.log('🎵 Creating new SpeechSynthesisUtterance...');
+      console.log('🎵 Creating speech utterance...');
       setIsSpeaking(true);
       
-      // Stop any existing speech
-      console.log('🛑 Canceling any existing speech...');
+      // Cancel any existing speech
       speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.volume = 1.0;
-      utterance.rate = 0.9;
+      utterance.rate = 0.8; // Slower for better mobile compatibility
       utterance.pitch = 1.0;
       
-      // Set language based on text content
+      // Language detection
       const isBulgarian = /[а-яА-Я]/.test(text);
       utterance.lang = isBulgarian ? 'bg-BG' : 'en-US';
       
-      console.log('🌍 Language detection result:', {
-        text: text.substring(0, 20),
-        isBulgarian,
-        detectedLang: utterance.lang
-      });
+      console.log('🌍 Language:', utterance.lang);
+      
+      // Try to find a good voice
+      const voices = speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        const preferredVoice = voices.find(voice => 
+          voice.lang.startsWith(isBulgarian ? 'bg' : 'en')
+        ) || voices[0];
+        
+        utterance.voice = preferredVoice;
+        console.log('🎤 Using voice:', preferredVoice.name);
+      }
       
       utterance.onstart = () => {
-        console.log('🎤 ===== TTS STARTED SUCCESSFULLY =====');
+        console.log('🎤 TTS STARTED');
       };
       
       utterance.onend = () => {
-        console.log('✅ ===== TTS FINISHED SUCCESSFULLY =====');
+        console.log('✅ TTS COMPLETED');
         setIsSpeaking(false);
         resolve();
       };
       
       utterance.onerror = (event) => {
-        console.error('❌ ===== TTS ERROR =====', {
-          error: event.error,
-          event: event
-        });
+        console.error('❌ TTS ERROR:', event.error);
         setIsSpeaking(false);
         resolve();
       };
       
-      console.log('🎯 ===== CALLING speechSynthesis.speak() =====');
+      // Force speech start with multiple fallbacks for mobile
+      console.log('🎯 Starting speech...');
       
-      // Mobile fix: Touch interaction required for speech synthesis
-      if (isMobile) {
-        console.log('📱 Mobile device detected - checking user interaction');
-        
-        // For mobile devices, we need to ensure speech starts from user interaction
-        const startSpeech = () => {
-          console.log('📱 Starting speech on mobile device...');
-          speechSynthesis.speak(utterance);
-        };
-        
-        // Small delay to ensure user interaction context
-        setTimeout(startSpeech, 50);
-      } else {
+      const startSpeech = () => {
         speechSynthesis.speak(utterance);
-      }
-      
-      // Check status immediately after speak call
-      setTimeout(() => {
-        console.log('🔍 Post-speak status check:', {
-          speaking: speechSynthesis.speaking,
-          pending: speechSynthesis.pending,
-          paused: speechSynthesis.paused,
-          voicesCount: speechSynthesis.getVoices().length
-        });
         
-        // If not speaking, try to resume
-        if (!speechSynthesis.speaking && speechSynthesis.paused) {
-          console.log('🔄 Speech paused, attempting to resume...');
-          speechSynthesis.resume();
-        }
-      }, 100);
+        // Mobile-specific fixes
+        setTimeout(() => {
+          if (!speechSynthesis.speaking && speechSynthesis.paused) {
+            console.log('🔄 Resuming paused speech...');
+            speechSynthesis.resume();
+          }
+        }, 100);
+        
+        setTimeout(() => {
+          console.log('🔍 Speech status:', {
+            speaking: speechSynthesis.speaking,
+            pending: speechSynthesis.pending,
+            paused: speechSynthesis.paused
+          });
+        }, 500);
+      };
+      
+      // Start immediately
+      startSpeech();
       
       // Backup timeout
       setTimeout(() => {
-        console.log('⏰ TTS timeout check - isSpeaking:', isSpeaking);
         if (isSpeaking) {
-          console.log('⏰ ===== TTS TIMEOUT - FORCING COMPLETION =====');
+          console.log('⏰ TTS timeout');
           setIsSpeaking(false);
           resolve();
         }
-      }, 10000);
+      }, 8000);
     });
   };
 
   const toggleVoiceConversation = () => {
     console.log('🎤 Voice button clicked!');
-    console.log('🔍 User Agent:', navigator.userAgent);
     
-    // Check if device supports necessary APIs
-    console.log('🔍 Checking MediaDevices API support:', {
-      hasNavigator: 'navigator' in window,
-      hasMediaDevices: 'mediaDevices' in navigator,
-      hasGetUserMedia: navigator.mediaDevices && 'getUserMedia' in navigator.mediaDevices
-    });
+    // Initialize TTS on user interaction
+    if (window.speechSynthesis) {
+      initializeTTS();
+    }
     
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.log('❌ MediaDevices API not supported');
@@ -484,8 +485,6 @@ export default function AiChat() {
       });
       return;
     }
-
-    console.log('✅ MediaDevices API supported, proceeding...');
 
     if (conversationActive) {
       console.log('🛑 Ending conversation...');
