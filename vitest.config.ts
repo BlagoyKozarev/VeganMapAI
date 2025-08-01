@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    timeout: 10000, // 10 секунди timeout за API тестове
   },
   resolve: {
     alias: {
