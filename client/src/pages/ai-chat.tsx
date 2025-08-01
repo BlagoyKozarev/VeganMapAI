@@ -34,10 +34,16 @@ export default function AiChat() {
   // Mobile detection with proper logic
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
   
+  // Check if device supports speech recognition
+  const supportsSpeechRecognition = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+  
   console.log('🔍 Device detection:', { 
     userAgent: navigator.userAgent, 
     isMobile, 
-    windowWidth: window.innerWidth 
+    windowWidth: window.innerWidth,
+    supportsSpeechRecognition,
+    hasMediaDevices: 'mediaDevices' in navigator,
+    hasGetUserMedia: navigator.mediaDevices && 'getUserMedia' in navigator.mediaDevices
   });
   
   // Debug conversation state
@@ -440,6 +446,18 @@ export default function AiChat() {
   };
 
   const toggleVoiceConversation = () => {
+    console.log('🎤 Voice button clicked!');
+    
+    // Check if device supports necessary APIs
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast({
+        title: "Микрофон не е достъпен",
+        description: "Вашето устройство не поддържа запис на звук.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Check if this is iOS Safari where speech recognition doesn't work reliably
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
@@ -454,8 +472,10 @@ export default function AiChat() {
     }
 
     if (conversationActive) {
+      console.log('🛑 Ending conversation...');
       endConversation();
     } else {
+      console.log('🎙️ Starting voice conversation...');
       startVoiceConversation();
     }
   };
