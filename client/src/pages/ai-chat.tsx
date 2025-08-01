@@ -172,18 +172,18 @@ export default function AiChat() {
         voices: speechSynthesis ? speechSynthesis.getVoices().length : 0
       });
       
-      // Force TTS call for testing
-      console.log('🎯 About to call speakText with reply:', data.reply);
+      // FORCE TTS TEST - Direct call
+      console.log('🎯 FORCE TTS TEST - About to call speakText with reply:', data.reply);
+      console.log('🔍 speakText function exists:', typeof speakText);
+      console.log('🔍 conversationActive state:', conversationActive);
       
-      try {
-        console.log('🔊 Calling speakText function...');
-        await speakText(data.reply);
-        console.log('✅ TTS completed successfully');
-      } catch (error) {
-        console.error('❌ TTS failed with error:', error);
-      }
+      // Direct call without conditions
+      console.log('🔊 CALLING speakText DIRECTLY...');
+      speakText(data.reply)
+        .then(() => console.log('✅ TTS Promise resolved'))
+        .catch(error => console.error('❌ TTS Promise rejected:', error));
       
-      console.log('🔄 TTS process finished, continuing conversation...');
+      console.log('🔄 TTS call initiated, continuing...');
       
       // TODO: Интегрирай GPT helper когато е необходимо
       
@@ -361,18 +361,27 @@ export default function AiChat() {
   };
 
   const speakText = async (text: string): Promise<void> => {
-    console.log('🔊 speakText called with text:', text.substring(0, 50) + '...');
+    console.log('🔊 ===== SPEAKTEXT FUNCTION CALLED =====');
+    console.log('🔊 Input text:', text.substring(0, 50) + '...');
+    console.log('🔍 Window object check:', {
+      hasSpeechSynthesis: 'speechSynthesis' in window,
+      speechSynthesisType: typeof window.speechSynthesis,
+      hasSpeechSynthesisUtterance: 'SpeechSynthesisUtterance' in window
+    });
     
     if (!window.speechSynthesis) {
-      console.log('❌ SpeechSynthesis not supported');
+      console.log('❌ SpeechSynthesis not supported in this browser');
       return Promise.resolve();
     }
 
+    console.log('✅ SpeechSynthesis is supported, proceeding...');
+
     return new Promise<void>((resolve) => {
-      console.log('🎵 Creating speech utterance...');
+      console.log('🎵 Creating new SpeechSynthesisUtterance...');
       setIsSpeaking(true);
       
       // Stop any existing speech
+      console.log('🛑 Canceling any existing speech...');
       speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(text);
@@ -384,31 +393,48 @@ export default function AiChat() {
       const isBulgarian = /[а-яА-Я]/.test(text);
       utterance.lang = isBulgarian ? 'bg-BG' : 'en-US';
       
-      console.log('🌍 Language detected:', isBulgarian ? 'Bulgarian' : 'English');
+      console.log('🌍 Language detection result:', {
+        text: text.substring(0, 20),
+        isBulgarian,
+        detectedLang: utterance.lang
+      });
       
       utterance.onstart = () => {
-        console.log('🎤 TTS started successfully');
+        console.log('🎤 ===== TTS STARTED SUCCESSFULLY =====');
       };
       
       utterance.onend = () => {
-        console.log('✅ TTS finished successfully');
+        console.log('✅ ===== TTS FINISHED SUCCESSFULLY =====');
         setIsSpeaking(false);
         resolve();
       };
       
       utterance.onerror = (event) => {
-        console.error('❌ TTS error:', event.error);
+        console.error('❌ ===== TTS ERROR =====', {
+          error: event.error,
+          event: event
+        });
         setIsSpeaking(false);
         resolve();
       };
       
-      console.log('🎯 Starting speech synthesis...');
+      console.log('🎯 ===== CALLING speechSynthesis.speak() =====');
       speechSynthesis.speak(utterance);
+      
+      // Check status immediately after speak call
+      setTimeout(() => {
+        console.log('🔍 Post-speak status check:', {
+          speaking: speechSynthesis.speaking,
+          pending: speechSynthesis.pending,
+          paused: speechSynthesis.paused
+        });
+      }, 100);
       
       // Backup timeout
       setTimeout(() => {
+        console.log('⏰ TTS timeout check - isSpeaking:', isSpeaking);
         if (isSpeaking) {
-          console.log('⏰ TTS timeout - forcing completion');
+          console.log('⏰ ===== TTS TIMEOUT - FORCING COMPLETION =====');
           setIsSpeaking(false);
           resolve();
         }
