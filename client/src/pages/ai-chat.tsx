@@ -171,12 +171,18 @@ export default function AiChat() {
         voices: speechSynthesis ? speechSynthesis.getVoices().length : 0
       });
       
+      // Force TTS call for testing
+      console.log('🎯 About to call speakText with reply:', data.reply);
+      
       try {
+        console.log('🔊 Calling speakText function...');
         await speakText(data.reply);
         console.log('✅ TTS completed successfully');
       } catch (error) {
-        console.error('❌ TTS failed:', error);
+        console.error('❌ TTS failed with error:', error);
       }
+      
+      console.log('🔄 TTS process finished, continuing conversation...');
       
       // Reset activity time on successful conversation
       setLastActivityTime(Date.now());
