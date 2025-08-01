@@ -16,7 +16,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **GPT Helper Tool**: Created agent-gpt-helper.ts utility for complex debugging scenarios using OpenAI API integration.
 - **Clustering System**: Completed leaflet.markercluster integration with blue cluster circles showing restaurant counts and individual green markers displaying vegan scores.
 - **Map Performance**: Optimized restaurant loading and display with proper viewport-based clustering for smooth user experience.
-- **Testing Framework**: Comprehensive Vitest testing suite with 100% success rate (14/14 tests passing). Features unit tests for agent functionality, map initialization, vegan scoring logic, API endpoints, audio files, and end-to-end API testing. Added e2e.test.ts as alternative to Playwright (browser dependencies incompatible with Replit environment). Optimized with mock functions for fast execution and proper authentication handling.
+- **Testing Framework**: Comprehensive Vitest testing suite with 100% success rate (14/14 tests passing). Features unit tests for agent functionality, map initialization, vegan scoring logic, API endpoints, audio files, and end-to-end API testing. Added e2e.test.ts as alternative to Playwright (browser dependencies incompatible with Replit environment). Optimized with mock functions for fast execution and proper authentication handling. Complete testing documentation available in TESTING-INSTRUCTIONS.md.
 
 ## Git Repository Management
 - **Replit Git Integration**: Използва built-in Git функционалността на Replit
