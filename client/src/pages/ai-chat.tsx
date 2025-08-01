@@ -24,7 +24,7 @@ export default function AiChat() {
   const [conversationActive, setConversationActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const [inactivityCount, setInactivityCount] = useState(0);
+  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -130,24 +130,20 @@ export default function AiChat() {
       );
       
       if (isNonsensical) {
-        console.log('🚫 Detected nonsensical/repetitive transcription, treating as silence');
-        const newCount = inactivityCount + 1;
-        setInactivityCount(newCount);
-        
-        if (newCount >= 3) {
-          console.log('⏹️ Too many nonsensical recordings, ending conversation silently');
-          endConversation();
-          return;
-        }
-        
+        console.log('🚫 Detected nonsensical/repetitive transcription, ignoring');
+        // Don't update activity time for nonsensical transcriptions
         // Continue recording immediately without processing nonsensical input
         setTimeout(() => {
           if (conversationActive) {
             startWhisperRecording();
           }
-        }, 500); // Faster retry for nonsensical transcriptions
+        }, 500);
         return;
       }
+      
+      // Valid transcription - update last activity time
+      setLastActivityTime(Date.now());
+      console.log('✅ Valid user input detected, activity time updated');
       
       // Add user message
       const userMessage: ChatMessage = {
@@ -172,8 +168,8 @@ export default function AiChat() {
       await speakText(data.reply);
       console.log('✅ TTS completed, checking continuation');
       
-      // Reset inactivity count on successful conversation
-      setInactivityCount(0);
+      // Reset activity time on successful conversation
+      setLastActivityTime(Date.now());
       
       // Continue conversation after speaking with timeout check
       setTimeout(() => {
@@ -298,26 +294,16 @@ export default function AiChat() {
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         
-        // Check if audio has content (not silent) - more lenient detection
-        if (audioBlob.size < 1500) { // Lower threshold to be less aggressive
-          console.log('🔇 Silent recording detected (small file), incrementing inactivity count');
-          const newCount = inactivityCount + 1;
-          setInactivityCount(newCount);
-          
-          // Stop conversation after 3 silent recordings to allow more tolerance
-          if (newCount >= 3) {
-            console.log('⏹️ Too many silent recordings, ending conversation silently');
-            endConversation();
-            stream.getTracks().forEach(track => track.stop());
-            return;
-          }
+        // Check if audio has content (not silent)
+        if (audioBlob.size < 1500) { 
+          console.log('🔇 Silent recording detected (small file), continuing...');
           
           // Continue recording immediately for next attempt
           setTimeout(() => {
             if (conversationActive) {
               startWhisperRecording();
             }
-          }, 500); // Faster retry for silent recordings
+          }, 500);
           return;
         }
         
@@ -325,14 +311,7 @@ export default function AiChat() {
         try {
           await voiceChatMutation.mutateAsync(audioBlob);
         } catch (error) {
-          console.log('🔇 Error processing audio, incrementing inactivity count');
-          const newCount = inactivityCount + 1;
-          setInactivityCount(newCount);
-          
-          if (newCount >= 3) {
-            console.log('⏹️ Too many failed recordings, ending conversation silently');
-            endConversation();
-          }
+          console.log('🔇 Error processing audio, continuing...');
         } finally {
           setIsProcessing(false);
         }
@@ -483,19 +462,38 @@ export default function AiChat() {
     if (conversationActive) {
       endConversation();
     } else {
-      startConversation();
+      startVoiceConversation();
     }
   };
 
-  const startConversation = () => {
-    setConversationActive(true);
-    setInactivityCount(0);
-    
-    // Clear any existing timeout
-    if (inactivityTimeoutRef.current) {
-      clearTimeout(inactivityTimeoutRef.current);
+  const startVoiceConversation = async () => {
+    if (!permissionGranted) {
+      const granted = await requestMicrophonePermission();
+      if (!granted) return;
     }
+
+    setConversationActive(true);
+    setLastActivityTime(Date.now()); // Set initial activity time
     
+    // Start inactivity timeout - end conversation after 3 seconds of no valid activity
+    const startInactivityCheck = () => {
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
+      }
+      
+      inactivityTimeoutRef.current = setTimeout(() => {
+        const timeSinceLastActivity = Date.now() - lastActivityTime;
+        if (timeSinceLastActivity >= 3000 && conversationActive) { // 3 seconds
+          console.log('⏹️ 3 seconds of inactivity detected, ending conversation silently');
+          endConversation();
+        } else if (conversationActive) {
+          // Check again in 1 second
+          startInactivityCheck();
+        }
+      }, 1000);
+    };
+    
+    startInactivityCheck();
     startWhisperRecording();
   };
 
@@ -504,7 +502,6 @@ export default function AiChat() {
     setIsRecording(false);
     setIsProcessing(false);
     setIsSpeaking(false);
-    setInactivityCount(0);
     
     // Clear inactivity timeout
     if (inactivityTimeoutRef.current) {
