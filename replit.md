@@ -38,6 +38,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
   - Test files: `*.test.ts` - Comprehensive testing suite
 - **Ignore Patterns**: node_modules, .env files, build artifacts, uploaded files in /uploads/
 - **Important**: AI agent не може да изпълнява Git команди директно. Използвай Replit UI или Shell tab.
+- **Complete Guide**: Пълна Git документация с testing integration в GIT-COMPLETE-GUIDE.md
 
 ## System Architecture
 
