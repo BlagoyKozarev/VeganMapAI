@@ -449,23 +449,15 @@ export default function AiChat() {
     console.log('🎤 Voice button clicked!');
     console.log('🔍 User Agent:', navigator.userAgent);
     
-    // Check if this is iOS Safari where speech recognition doesn't work reliably
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-    
-    console.log('🔍 Device check:', { isIOS, isSafari, shouldBlock: isIOS && isSafari });
-    
-    if (isIOS && isSafari) {
-      toast({
-        title: "Гласов разговор не е достъпен",
-        description: "На iOS Safari използвайте текстовия чат.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     // Check if device supports necessary APIs
+    console.log('🔍 Checking MediaDevices API support:', {
+      hasNavigator: 'navigator' in window,
+      hasMediaDevices: 'mediaDevices' in navigator,
+      hasGetUserMedia: navigator.mediaDevices && 'getUserMedia' in navigator.mediaDevices
+    });
+    
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.log('❌ MediaDevices API not supported');
       toast({
         title: "Микрофон не е достъпен",
         description: "Вашето устройство не поддържа запис на звук.",
@@ -473,6 +465,8 @@ export default function AiChat() {
       });
       return;
     }
+
+    console.log('✅ MediaDevices API supported, proceeding...');
 
     if (conversationActive) {
       console.log('🛑 Ending conversation...');
