@@ -190,27 +190,7 @@ export default function AiChat() {
       // Reset activity time on successful conversation
       setLastActivityTime(Date.now());
       
-      // Continue conversation after speaking with timeout check
-      setTimeout(() => {
-        console.log('⏰ Timeout check - conversationActive:', conversationActive, 'isSpeaking:', isSpeaking);
-        
-        // Force conversation to remain active after successful response
-        if (!conversationActive) {
-          console.log('🔄 Reactivating conversation after successful response');
-          setConversationActive(true);
-        }
-        
-        if (!isSpeaking) {
-          console.log('🎙️ Starting next recording after TTS timeout');
-          
-          // Clear any existing timeout - conversation continues indefinitely
-          if (inactivityTimeoutRef.current) {
-            clearTimeout(inactivityTimeoutRef.current);
-          }
-          
-          startWhisperRecording();
-        }
-      }, 2000); // 2 seconds pause between responses as requested
+      // Note: Conversation continuation is now handled in TTS onend callback
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
@@ -422,6 +402,18 @@ export default function AiChat() {
       utterance.onend = () => {
         console.log('✅ TTS COMPLETED');
         setIsSpeaking(false);
+        
+        // Continue conversation after TTS finishes
+        if (conversationActive) {
+          console.log('🔄 TTS finished, continuing conversation...');
+          setTimeout(() => {
+            if (conversationActive && !isRecording) {
+              console.log('🎙️ Starting next recording after TTS completion');
+              startWhisperRecording();
+            }
+          }, 500); // Short delay after TTS
+        }
+        
         resolve();
       };
       
