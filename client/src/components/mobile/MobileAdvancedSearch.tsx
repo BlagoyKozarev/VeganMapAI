@@ -264,7 +264,7 @@ export function MobileAdvancedSearch({
             Алергии и диетични ограничения
           </Label>
           
-          {/* Standard allergies */}
+          {/* All allergies including custom ones */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             {ALLERGY_OPTIONS.map((allergy) => (
               <div key={allergy} className="flex items-center space-x-2">
@@ -278,6 +278,32 @@ export function MobileAdvancedSearch({
                 </Label>
               </div>
             ))}
+            
+            {/* Custom allergies that aren't in standard list */}
+            {filters.allergies
+              .filter(allergy => !ALLERGY_OPTIONS.includes(allergy))
+              .map((customAllergy) => (
+                <div key={customAllergy} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`custom-allergy-${customAllergy}`}
+                    checked={true}
+                    onCheckedChange={(checked) => {
+                      if (!checked) {
+                        handleRemoveAllergy(customAllergy);
+                      }
+                    }}
+                  />
+                  <Label htmlFor={`custom-allergy-${customAllergy}`} className="text-sm text-purple-700 font-medium">
+                    {customAllergy}
+                  </Label>
+                  <button
+                    onClick={() => handleRemoveAllergy(customAllergy)}
+                    className="ml-1 text-red-500 hover:text-red-700 text-xs"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
           </div>
 
           {/* Custom allergy input */}
@@ -301,30 +327,7 @@ export function MobileAdvancedSearch({
             </div>
           </div>
 
-          {/* Selected custom allergies */}
-          {filters.allergies.filter(a => !ALLERGY_OPTIONS.includes(a)).length > 0 && (
-            <div className="mt-3">
-              <Label className="text-xs text-gray-600 mb-2 block">Твоите алергии:</Label>
-              <div className="flex flex-wrap gap-2">
-                {filters.allergies
-                  .filter(a => !ALLERGY_OPTIONS.includes(a))
-                  .map((allergy) => (
-                    <div
-                      key={allergy}
-                      className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs flex items-center"
-                    >
-                      <span>{allergy}</span>
-                      <button
-                        onClick={() => handleRemoveAllergy(allergy)}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Reset Button */}
