@@ -419,15 +419,37 @@ export default function AiChat() {
       };
       
       console.log('🎯 ===== CALLING speechSynthesis.speak() =====');
-      speechSynthesis.speak(utterance);
+      
+      // Mobile fix: Touch interaction required for speech synthesis
+      if (isMobile) {
+        console.log('📱 Mobile device detected - checking user interaction');
+        
+        // For mobile devices, we need to ensure speech starts from user interaction
+        const startSpeech = () => {
+          console.log('📱 Starting speech on mobile device...');
+          speechSynthesis.speak(utterance);
+        };
+        
+        // Small delay to ensure user interaction context
+        setTimeout(startSpeech, 50);
+      } else {
+        speechSynthesis.speak(utterance);
+      }
       
       // Check status immediately after speak call
       setTimeout(() => {
         console.log('🔍 Post-speak status check:', {
           speaking: speechSynthesis.speaking,
           pending: speechSynthesis.pending,
-          paused: speechSynthesis.paused
+          paused: speechSynthesis.paused,
+          voicesCount: speechSynthesis.getVoices().length
         });
+        
+        // If not speaking, try to resume
+        if (!speechSynthesis.speaking && speechSynthesis.paused) {
+          console.log('🔄 Speech paused, attempting to resume...');
+          speechSynthesis.resume();
+        }
       }, 100);
       
       // Backup timeout
