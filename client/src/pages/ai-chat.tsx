@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -517,6 +517,31 @@ export default function AiChat() {
     speechSynthesis.cancel();
   };
 
+  // Voice button state logic
+  const voiceButtonState = useMemo(() => {
+    if (isProcessing || isSpeaking) {
+      return {
+        variant: 'secondary' as const,
+        disabled: true,
+        text: isProcessing ? 'Обработвам...' : 'Говоря...'
+      };
+    }
+    
+    if (conversationActive) {
+      return {
+        variant: 'destructive' as const,
+        disabled: false,
+        text: isRecording ? 'Записвам...' : 'Спри разговор'
+      };
+    }
+    
+    return {
+      variant: 'default' as const,
+      disabled: false,
+      text: 'Започни разговор'
+    };
+  }, [conversationActive, isRecording, isProcessing, isSpeaking]);
+
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim()) return;
@@ -539,15 +564,6 @@ export default function AiChat() {
     "Най-добри веган места",
     "Обясни оценката подробно"
   ];
-
-  const getVoiceButtonState = () => {
-    if (isProcessing) return { text: "Обработка...", variant: "secondary" as const, disabled: true };
-    if (isRecording) return { text: "Записвам...", variant: "destructive" as const, disabled: false };
-    if (conversationActive) return { text: "Спри разговора", variant: "outline" as const, disabled: false };
-    return { text: "Започни гласов разговор", variant: "default" as const, disabled: false };
-  };
-
-  const voiceButtonState = getVoiceButtonState();
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
