@@ -161,11 +161,14 @@ export default function AiChat() {
           
           inactivityTimeoutRef.current = setTimeout(() => {
             console.log('⏰ Auto-stopping conversation due to inactivity after successful response');
-            toast({
-              title: "Разговорът завърши",
-              description: "Гласовият разговор спря заради липса на активност.",
-            });
-            endConversation();
+            // Only end conversation if it's still active (avoid double notifications)
+            if (conversationActive) {
+              toast({
+                title: "Разговорът завърши",
+                description: "Гласовият разговор спря заради липса на активност.",
+              });
+              endConversation();
+            }
           }, 10000); // 10 seconds after each response
           
           startWhisperRecording();
@@ -282,11 +285,13 @@ export default function AiChat() {
           // Stop conversation after 2 silent recordings for faster response
           if (newCount >= 2) {
             console.log('⏹️ Too many silent recordings, ending conversation');
-            toast({
-              title: "Разговорът завърши",
-              description: "Гласовият разговор спря заради липса на активност.",
-            });
-            endConversation();
+            if (conversationActive) {
+              toast({
+                title: "Разговорът завърши",
+                description: "Гласовият разговор спря заради липса на активност.",
+              });
+              endConversation();
+            }
             stream.getTracks().forEach(track => track.stop());
             return;
           }
@@ -302,7 +307,9 @@ export default function AiChat() {
           
           if (newCount >= 2) {
             console.log('⏹️ Too many failed recordings, ending conversation');
-            endConversation();
+            if (conversationActive) {
+              endConversation();
+            }
           }
         } finally {
           setIsProcessing(false);
