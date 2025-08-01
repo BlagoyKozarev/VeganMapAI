@@ -19,6 +19,13 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Testing Framework**: Comprehensive Vitest testing suite with 100% success rate (14/14 tests passing). Features unit tests for agent functionality, map initialization, vegan scoring logic, API endpoints, audio files, and end-to-end API testing. Added e2e.test.ts as alternative to Playwright (browser dependencies incompatible with Replit environment). Optimized with mock functions for fast execution and proper authentication handling.
 
 ## Git Repository Management
+- **Replit Git Integration**: Използва built-in Git функционалността на Replit
+- **Manual Operations**: За Git команди използвай Replit Git tab или Shell tab с команди като:
+  ```bash
+  git add .
+  git commit -m "Съобщение за commit"
+  git push origin main
+  ```
 - **Primary Branch**: main (production-ready code)
 - **Development Strategy**: Direct commits to main with comprehensive testing before each commit
 - **Version Control**: All major features tracked with detailed commit messages in Bulgarian and English
@@ -30,6 +37,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
   - `replit.md` - Project documentation and preferences
   - Test files: `*.test.ts` - Comprehensive testing suite
 - **Ignore Patterns**: node_modules, .env files, build artifacts, uploaded files in /uploads/
+- **Important**: AI agent не може да изпълнява Git команди директно. Използвай Replit UI или Shell tab.
 
 ## System Architecture
 
