@@ -352,134 +352,58 @@ export default function AiChat() {
   };
 
   const speakText = async (text: string): Promise<void> => {
-    console.log('🔊 speakText called with:', text);
-    console.log('🎯 Current states:', { isSpeaking, conversationActive, isRecording, isProcessing });
+    console.log('🔊 speakText called with text:', text.substring(0, 50) + '...');
     
-    return new Promise((resolve) => {
-      if (!('speechSynthesis' in window)) {
-        console.log('❌ speechSynthesis not supported');
-        resolve();
-        return;
-      }
+    if (!window.speechSynthesis) {
+      console.log('❌ SpeechSynthesis not supported');
+      return Promise.resolve();
+    }
 
-      console.log('🎙️ Setting speaking state to true');
+    return new Promise<void>((resolve) => {
+      console.log('🎵 Creating speech utterance...');
       setIsSpeaking(true);
       
-      const utterance = new SpeechSynthesisUtterance(text);
+      // Stop any existing speech
+      speechSynthesis.cancel();
       
-      // Enhanced language detection - check for Bulgarian characters
-      const isBulgarian = /[а-яА-Я]/.test(text);
-      utterance.lang = isBulgarian ? "bg-BG" : "en-US";
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.volume = 1.0;
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
       
-      console.log('🔍 Language detection:', { isBulgarian, lang: utterance.lang });
+      // Set language based on text content
+      const isBulgarian = /[а-яА-Я]/.test(text);
+      utterance.lang = isBulgarian ? 'bg-BG' : 'en-US';
       
-      // Try to find appropriate voice based on detected language
-      const voices = speechSynthesis.getVoices();
-      console.log('🎵 Available voices:', voices.length);
-      let preferredVoice;
-      
-      if (isBulgarian) {
-        preferredVoice = voices.find(voice => 
-          voice.lang.startsWith('bg') || voice.lang.includes('BG')
-        );
-      } else {
-        preferredVoice = voices.find(voice => 
-          voice.lang.startsWith('en') && voice.lang.includes('US')
-        ) || voices.find(voice => voice.lang.startsWith('en'));
-      }
-      
-      if (preferredVoice) {
-        console.log('✅ Using voice:', preferredVoice.name);
-        utterance.voice = preferredVoice;
-      } else {
-        console.log('⚠️ No preferred voice found, using default');
-      }
-      
-      utterance.onend = () => {
-        console.log('🎤 TTS onend event fired');
-        setIsSpeaking(false);
-        resolve();
-      };
+      console.log('🌍 Language detected:', isBulgarian ? 'Bulgarian' : 'English');
       
       utterance.onstart = () => {
-        console.log('▶️ TTS started speaking');
+        console.log('🎤 TTS started successfully');
       };
       
-      utterance.onboundary = (event) => {
-        console.log('🔤 TTS boundary event:', event.name, event.charIndex);
-      };
-      
-      utterance.onerror = (error) => {
-        console.error('❌ Speech synthesis error:', error);
+      utterance.onend = () => {
+        console.log('✅ TTS finished successfully');
         setIsSpeaking(false);
         resolve();
       };
       
-      // Check if speech synthesis is ready
-      console.log('🎵 speechSynthesis initial state:', {
-        speaking: speechSynthesis.speaking,
-        pending: speechSynthesis.pending,
-        paused: speechSynthesis.paused,
-        voicesLength: speechSynthesis.getVoices().length
-      });
-      
-      // Cancel any existing speech before starting new one
-      console.log('🛑 Canceling existing speech');
-      speechSynthesis.cancel();
-      
-      // Wait for voices to be loaded if necessary
-      const startSpeech = () => {
-        console.log('🎵 Starting speech synthesis...');
-        console.log('🔊 Utterance properties:', {
-          text: utterance.text.substring(0, 50) + '...',
-          lang: utterance.lang,
-          voice: utterance.voice?.name || 'default',
-          rate: utterance.rate,
-          pitch: utterance.pitch,
-          volume: utterance.volume
-        });
-        
-        speechSynthesis.speak(utterance);
-        
-        // Check if it actually started
-        setTimeout(() => {
-          console.log('🔍 After speak() - speechSynthesis state:', {
-            speaking: speechSynthesis.speaking,
-            pending: speechSynthesis.pending,
-            paused: speechSynthesis.paused
-          });
-          
-          // If not speaking after 1 second, force resolve
-          if (!speechSynthesis.speaking && !speechSynthesis.pending) {
-            console.log('⚠️ Speech did not start, forcing completion');
-            setIsSpeaking(false);
-            resolve();
-          }
-        }, 1000);
+      utterance.onerror = (event) => {
+        console.error('❌ TTS error:', event.error);
+        setIsSpeaking(false);
+        resolve();
       };
       
-      // Check if voices are loaded
-      if (speechSynthesis.getVoices().length === 0) {
-        console.log('⏳ Waiting for voices to load...');
-        speechSynthesis.addEventListener('voiceschanged', () => {
-          console.log('🔄 Voices loaded, starting speech');
-          startSpeech();
-        }, { once: true });
-      } else {
-        console.log('✅ Voices already loaded, starting immediately');
-        setTimeout(startSpeech, 100);
-      }
+      console.log('🎯 Starting speech synthesis...');
+      speechSynthesis.speak(utterance);
       
-      // Backup timeout in case onend doesn't fire
+      // Backup timeout
       setTimeout(() => {
         if (isSpeaking) {
-          console.log('⏰ TTS backup timeout triggered');
+          console.log('⏰ TTS timeout - forcing completion');
           setIsSpeaking(false);
           resolve();
         }
-      }, 8000);
+      }, 10000);
     });
   };
 
