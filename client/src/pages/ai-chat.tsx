@@ -165,9 +165,18 @@ export default function AiChat() {
       // Always speak the response during voice conversation
       console.log('🔊 Starting TTS for response:', data.reply);
       console.log('🎯 Before TTS - conversationActive:', conversationActive);
+      console.log('🔍 SpeechSynthesis support check:', {
+        hasSpeechSynthesis: 'speechSynthesis' in window,
+        hasUtterance: 'SpeechSynthesisUtterance' in window,
+        voices: speechSynthesis ? speechSynthesis.getVoices().length : 0
+      });
       
-      await speakText(data.reply);
-      console.log('✅ TTS completed, checking continuation');
+      try {
+        await speakText(data.reply);
+        console.log('✅ TTS completed successfully');
+      } catch (error) {
+        console.error('❌ TTS failed:', error);
+      }
       
       // Reset activity time on successful conversation
       setLastActivityTime(Date.now());
