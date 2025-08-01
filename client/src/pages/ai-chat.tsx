@@ -115,6 +115,40 @@ export default function AiChat() {
       console.log('🎉 Voice chat success data:', data);
       console.log('🔍 Current conversation state:', { conversationActive, isSpeaking, isRecording, isProcessing });
       
+      // Filter out nonsensical or repetitive transcriptions from background noise
+      const transcribedText = data.text.toLowerCase().trim();
+      const repetitivePatterns = [
+        'благодаря ви, че гледахте',
+        'абонирайте се',
+        'видеоклип',
+        'канал',
+        'нови видео'
+      ];
+      
+      const isNonsensical = repetitivePatterns.some(pattern => 
+        transcribedText.includes(pattern)
+      );
+      
+      if (isNonsensical) {
+        console.log('🚫 Detected nonsensical/repetitive transcription, treating as silence');
+        const newCount = inactivityCount + 1;
+        setInactivityCount(newCount);
+        
+        if (newCount >= 2) {
+          console.log('⏹️ Too many nonsensical recordings, ending conversation silently');
+          endConversation();
+          return;
+        }
+        
+        // Continue recording without processing nonsensical input
+        setTimeout(() => {
+          if (conversationActive) {
+            startWhisperRecording();
+          }
+        }, 1000);
+        return;
+      }
+      
       // Add user message
       const userMessage: ChatMessage = {
         role: 'user',
@@ -264,19 +298,27 @@ export default function AiChat() {
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         
-        // Check if audio has content (not silent)
-        if (audioBlob.size < 1000) { // Very small file likely means silence
-          console.log('🔇 Silent recording detected, incrementing inactivity count');
+        // Check if audio has content (not silent) - improved detection
+        if (audioBlob.size < 2000) { // Increased threshold for better silence detection
+          console.log('🔇 Silent recording detected (small file), incrementing inactivity count');
           const newCount = inactivityCount + 1;
           setInactivityCount(newCount);
           
-          // Stop conversation after 3 silent recordings without notification
-          if (newCount >= 3) {
+          // Stop conversation after 2 silent recordings without notification
+          if (newCount >= 2) {
             console.log('⏹️ Too many silent recordings, ending conversation silently');
             endConversation();
             stream.getTracks().forEach(track => track.stop());
             return;
           }
+          
+          // Continue recording for next attempt without processing
+          setTimeout(() => {
+            if (conversationActive) {
+              startWhisperRecording();
+            }
+          }, 1000);
+          return;
         }
         
         setIsProcessing(true);
