@@ -418,19 +418,29 @@ export default function AiChat() {
       };
       
       // Check if speech synthesis is ready
-      console.log('🎵 speechSynthesis state:', {
+      console.log('🎵 speechSynthesis initial state:', {
         speaking: speechSynthesis.speaking,
         pending: speechSynthesis.pending,
-        paused: speechSynthesis.paused
+        paused: speechSynthesis.paused,
+        voicesLength: speechSynthesis.getVoices().length
       });
       
       // Cancel any existing speech before starting new one
       console.log('🛑 Canceling existing speech');
       speechSynthesis.cancel();
       
-      // Small delay to ensure cancellation is processed
-      setTimeout(() => {
-        console.log('🎵 Starting speech synthesis after delay');
+      // Wait for voices to be loaded if necessary
+      const startSpeech = () => {
+        console.log('🎵 Starting speech synthesis...');
+        console.log('🔊 Utterance properties:', {
+          text: utterance.text.substring(0, 50) + '...',
+          lang: utterance.lang,
+          voice: utterance.voice?.name || 'default',
+          rate: utterance.rate,
+          pitch: utterance.pitch,
+          volume: utterance.volume
+        });
+        
         speechSynthesis.speak(utterance);
         
         // Check if it actually started
@@ -440,8 +450,27 @@ export default function AiChat() {
             pending: speechSynthesis.pending,
             paused: speechSynthesis.paused
           });
-        }, 100);
-      }, 100);
+          
+          // If not speaking after 1 second, force resolve
+          if (!speechSynthesis.speaking && !speechSynthesis.pending) {
+            console.log('⚠️ Speech did not start, forcing completion');
+            setIsSpeaking(false);
+            resolve();
+          }
+        }, 1000);
+      };
+      
+      // Check if voices are loaded
+      if (speechSynthesis.getVoices().length === 0) {
+        console.log('⏳ Waiting for voices to load...');
+        speechSynthesis.addEventListener('voiceschanged', () => {
+          console.log('🔄 Voices loaded, starting speech');
+          startSpeech();
+        }, { once: true });
+      } else {
+        console.log('✅ Voices already loaded, starting immediately');
+        setTimeout(startSpeech, 100);
+      }
       
       // Backup timeout in case onend doesn't fire
       setTimeout(() => {
