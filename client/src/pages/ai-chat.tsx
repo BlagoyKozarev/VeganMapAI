@@ -154,22 +154,10 @@ export default function AiChat() {
         if (!isSpeaking) {
           console.log('🎙️ Starting next recording after TTS timeout');
           
-          // Reset timeout on successful interaction
+          // Clear any existing timeout - conversation continues indefinitely
           if (inactivityTimeoutRef.current) {
             clearTimeout(inactivityTimeoutRef.current);
           }
-          
-          inactivityTimeoutRef.current = setTimeout(() => {
-            console.log('⏰ Auto-stopping conversation due to inactivity after successful response');
-            // Only end conversation if it's still active (avoid double notifications)
-            if (conversationActive) {
-              toast({
-                title: "Разговорът завърши",
-                description: "Гласовият разговор спря заради липса на активност.",
-              });
-              endConversation();
-            }
-          }, 10000); // 10 seconds after each response
           
           startWhisperRecording();
         }
@@ -469,7 +457,7 @@ export default function AiChat() {
     setConversationActive(true);
     setInactivityCount(0);
     
-    // Don't set timeout at start - it will be set after first response
+    // Clear any existing timeout
     if (inactivityTimeoutRef.current) {
       clearTimeout(inactivityTimeoutRef.current);
     }
