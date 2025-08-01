@@ -144,10 +144,17 @@ export default function AiChat() {
       // Continue conversation after speaking with timeout check
       setTimeout(() => {
         console.log('⏰ Timeout check - conversationActive:', conversationActive, 'isSpeaking:', isSpeaking);
-        if (conversationActive && !isSpeaking) {
+        
+        // Force conversation to remain active after successful response
+        if (!conversationActive) {
+          console.log('🔄 Reactivating conversation after successful response');
+          setConversationActive(true);
+        }
+        
+        if (!isSpeaking) {
           console.log('🎙️ Starting next recording after TTS timeout');
           
-          // Reset timeout on successful interaction - now inside active conversation check
+          // Reset timeout on successful interaction
           if (inactivityTimeoutRef.current) {
             clearTimeout(inactivityTimeoutRef.current);
           }
