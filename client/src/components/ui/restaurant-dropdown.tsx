@@ -1,7 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Navigation, Eye, Star, Utensils, X } from 'lucide-react';
+import { MapPin, Navigation, Eye, Star, Utensils, X, Heart } from 'lucide-react';
 import type { Restaurant } from '@shared/schema';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface RestaurantDropdownProps {
   restaurant: Restaurant;
@@ -16,8 +20,63 @@ export function RestaurantDropdown({
   onNavigate, 
   onViewDetails 
 }: RestaurantDropdownProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
   const googleRating = restaurant.rating ? parseFloat(restaurant.rating) : 0;
+
+  // Check if restaurant is favorited
+  const { data: isFavorite = false } = useQuery({
+    queryKey: ['/api/favorites/check', restaurant.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const response = await fetch(`/api/favorites/check/${restaurant.id}`);
+      if (!response.ok) return false;
+      const data = await response.json();
+      return data.isFavorite;
+    },
+    enabled: !!user,
+  });
+
+  // Add/remove favorite mutation
+  const favoriteMutation = useMutation({
+    mutationFn: async (action: 'add' | 'remove') => {
+      if (action === 'add') {
+        return apiRequest(`/api/favorites`, 'POST', { restaurantId: restaurant.id });
+      } else {
+        return apiRequest(`/api/favorites/${restaurant.id}`, 'DELETE');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/favorites/check', restaurant.id] });
+      toast({
+        title: isFavorite ? "Премахнато от любими" : "Добавено в любими",
+        description: `${restaurant.name} беше ${isFavorite ? 'премахнат от' : 'добавен в'} любимите ти ресторанти`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Грешка",
+        description: "Възникна проблем с добавянето в любими",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFavoriteToggle = () => {
+    if (!user) {
+      toast({
+        title: "Трябва да влезете",
+        description: "Влезте в профила си за да добавяте любими ресторанти",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    favoriteMutation.mutate(isFavorite ? 'remove' : 'add');
+  };
 
   const getVeganScoreColor = (score: number) => {
     if (score >= 8.5) return 'bg-green-600';
@@ -88,24 +147,38 @@ export function RestaurantDropdown({
           </div>
         </div>
 
-        {/* Action Buttons - Mobile Optimized */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Action Buttons - Mobile Optimized with Favorites */}
+        <div className="grid grid-cols-3 gap-2">
           <Button 
             onClick={onNavigate}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-lg flex items-center justify-center font-semibold text-base touch-manipulation"
-            size="lg"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-3 rounded-lg flex items-center justify-center font-semibold text-sm touch-manipulation"
+            size="sm"
           >
-            <Navigation className="h-5 w-5 mr-2" />
+            <Navigation className="h-4 w-4 mr-1" />
             Навигирай
           </Button>
           
           <Button 
             onClick={onViewDetails}
-            className="bg-green-600 hover:bg-green-700 text-white py-4 px-4 rounded-lg flex items-center justify-center font-semibold text-base touch-manipulation"
-            size="lg"
+            className="bg-green-600 hover:bg-green-700 text-white py-3 px-3 rounded-lg flex items-center justify-center font-semibold text-sm touch-manipulation"
+            size="sm"
           >
-            <Eye className="h-5 w-5 mr-2" />
+            <Eye className="h-4 w-4 mr-1" />
             Разгледай
+          </Button>
+
+          <Button 
+            onClick={handleFavoriteToggle}
+            disabled={favoriteMutation.isPending}
+            className={`${
+              isFavorite 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-gray-600 hover:bg-gray-700'
+            } text-white py-3 px-3 rounded-lg flex items-center justify-center font-semibold text-sm touch-manipulation`}
+            size="sm"
+          >
+            <Heart className={`h-4 w-4 mr-1 ${isFavorite ? 'fill-current' : ''}`} />
+            Любими
           </Button>
         </div>
       </div>
