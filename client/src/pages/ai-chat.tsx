@@ -713,19 +713,15 @@ export default function AiChat() {
       <div className="border-t border-gray-200 p-4 bg-white">
         {/* Voice Controls - Available on all devices, restricted for iOS Safari only */}
         <div className="mb-4 flex justify-center space-x-3">
-          <Button
+          <button
+            onTouchStart={(e) => {
+              console.log('🎤 Voice button TOUCH START triggered!');
+            }}
             onTouchEnd={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('🎤 Voice button TOUCH triggered!');
+              console.log('🎤 Voice button TOUCH END triggered!');
               console.log('Button state:', voiceButtonState);
-              console.log('Current conversation state:', {
-                conversationActive,
-                isRecording,
-                isProcessing,
-                isSpeaking,
-                permissionGranted
-              });
               toggleVoiceConversation();
             }}
             onClick={(e) => {
@@ -733,23 +729,29 @@ export default function AiChat() {
               e.stopPropagation();
               console.log('🎤 Voice button CLICK triggered!');
               console.log('Button state:', voiceButtonState);
-              console.log('Current conversation state:', {
-                conversationActive,
-                isRecording,
-                isProcessing,
-                isSpeaking,
-                permissionGranted
-              });
               toggleVoiceConversation();
             }}
-            variant={voiceButtonState.variant}
+            onPointerDown={(e) => {
+              console.log('🎤 Voice button POINTER DOWN triggered!');
+            }}
             disabled={voiceButtonState.disabled}
-            className="flex items-center space-x-2 cursor-pointer"
+            className={`
+              flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-colors
+              ${voiceButtonState.variant === 'destructive' 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : voiceButtonState.variant === 'secondary'
+                ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
+                : voiceButtonState.variant === 'outline'
+                ? 'border border-gray-300 bg-white hover:bg-gray-50 text-gray-900'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+              }
+              ${voiceButtonState.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95'}
+            `}
             type="button"
           >
             {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             <span>{voiceButtonState.text}</span>
-          </Button>
+          </button>
         </div>
 
         {/* Text Input */}
