@@ -49,11 +49,10 @@ export default function ProfileSetup() {
 
   const createProfileMutation = useMutation({
     mutationFn: async (data: ProfileData) => {
-      const response = await apiRequest('POST', '/api/profile', {
+      return await apiRequest('/api/profile', 'POST', {
         ...data,
         maxDistance: 2000, // Default 2km
       });
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });

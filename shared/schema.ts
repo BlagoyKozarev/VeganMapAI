@@ -149,7 +149,6 @@ export const scoringWeights = pgTable("scoring_weights", {
 // Insert schemas
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
   id: true,
-  userId: true, // Excluded because it's set server-side
   createdAt: true,
   updatedAt: true,
 });
