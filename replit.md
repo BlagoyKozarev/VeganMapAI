@@ -17,6 +17,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Clustering System**: Completed leaflet.markercluster integration with blue cluster circles showing restaurant counts and individual green markers displaying vegan scores.
 - **Map Performance**: Optimized restaurant loading and display with proper viewport-based clustering for smooth user experience.
 - **Testing Framework**: Comprehensive Vitest testing suite with 100% success rate (14/14 tests passing). Features unit tests for agent functionality, map initialization, vegan scoring logic, API endpoints, audio files, and end-to-end API testing. Added e2e.test.ts as alternative to Playwright (browser dependencies incompatible with Replit environment). Optimized with mock functions for fast execution and proper authentication handling. Complete testing documentation available in TESTING-INSTRUCTIONS.md.
+- **Database Fixes (Feb 1, 2025)**: Resolved user_profiles table constraint issues by adding unique constraint on user_id, removing duplicate records, and fixing Profile Setup API call format. Custom allergies now display properly with checkbox visualization and checkmarks.
 
 ## Git Repository Management
 - **Replit Git Integration**: Използва built-in Git функционалността на Replit
@@ -48,7 +49,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Maps**: Leaflet for interactive map functionality with Google Maps style interface and professional clustering using `leaflet.markercluster`.
 - **State Management**: TanStack Query for server state.
 - **Routing**: Wouter for client-side routing.
-- **Mobile-First**: Responsive design, PWA functionality with manifest and service worker for offline capabilities and mobile app installation.
+- **Mobile-First**: Responsive design, PWA functionality with manifest and service worker for offline capabilities and mobile app installation. Complete mobile Advanced Search with multi-select filters and custom allergies support.
 - **User Interface**: Features a clean header, streamlined search bar with autocomplete, intelligent map display based on viewport, and a comprehensive vegan score legend.
 
 ### Backend Architecture
@@ -67,6 +68,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
     - **Voice Assistant**: Integrated with OpenAI Whisper for superior speech-to-text and GPT-4o for natural language understanding, offering end-to-end voice conversations with Bulgarian language support and fully functional text-to-speech (TTS). Features intelligent silence detection that ends conversations after 3 seconds of real user inactivity, filters out nonsensical background transcriptions, continuous conversation flow, and mobile-optimized TTS with proper user gesture initialization.
     - **Cost Optimization**: Geo-hash based caching system for Google Places API calls, reducing operational costs. Local storage for restaurant details and periodic refresh for photo calls.
     - **Favorites System**: Allows users to save favorite restaurants with full CRUD operations.
+    - **Profile Setup System**: Complete multi-step profile setup with dietary preferences, allergies, cuisine preferences, and price range selection. Features custom allergies input, checkbox visualization with checkmarks, and database constraint handling.
 
 ## External Dependencies
 
