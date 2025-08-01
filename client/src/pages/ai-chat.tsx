@@ -134,7 +134,7 @@ export default function AiChat() {
         const newCount = inactivityCount + 1;
         setInactivityCount(newCount);
         
-        if (newCount >= 2) {
+        if (newCount >= 3) {
           console.log('⏹️ Too many nonsensical recordings, ending conversation silently');
           endConversation();
           return;
@@ -195,7 +195,7 @@ export default function AiChat() {
           
           startWhisperRecording();
         }
-      }, 1000); // Reduced pause between responses
+      }, 2000); // 2 seconds pause between responses as requested
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
@@ -298,14 +298,14 @@ export default function AiChat() {
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         
-        // Check if audio has content (not silent) - improved detection
-        if (audioBlob.size < 2000) { // Increased threshold for better silence detection
+        // Check if audio has content (not silent) - more lenient detection
+        if (audioBlob.size < 1500) { // Lower threshold to be less aggressive
           console.log('🔇 Silent recording detected (small file), incrementing inactivity count');
           const newCount = inactivityCount + 1;
           setInactivityCount(newCount);
           
-          // Stop conversation after 2 silent recordings without notification
-          if (newCount >= 2) {
+          // Stop conversation after 3 silent recordings to allow more tolerance
+          if (newCount >= 3) {
             console.log('⏹️ Too many silent recordings, ending conversation silently');
             endConversation();
             stream.getTracks().forEach(track => track.stop());
@@ -343,12 +343,12 @@ export default function AiChat() {
       mediaRecorder.start();
       setIsRecording(true);
       
-      // Auto-stop after 3 seconds for faster response
+      // Auto-stop after 5 seconds to allow proper speaking time
       setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           stopRecording();
         }
-      }, 3000); // Reduced from 8000ms to 3000ms
+      }, 5000); // Increased to allow 2 seconds silence detection
       
     } catch (error) {
       console.error('Failed to start recording:', error);
