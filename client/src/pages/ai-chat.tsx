@@ -140,12 +140,12 @@ export default function AiChat() {
           return;
         }
         
-        // Continue recording without processing nonsensical input
+        // Continue recording immediately without processing nonsensical input
         setTimeout(() => {
           if (conversationActive) {
             startWhisperRecording();
           }
-        }, 1000);
+        }, 500); // Faster retry for nonsensical transcriptions
         return;
       }
       
@@ -195,7 +195,7 @@ export default function AiChat() {
           
           startWhisperRecording();
         }
-      }, 2000);
+      }, 1000); // Reduced pause between responses
       
       queryClient.invalidateQueries({ queryKey: ['/api/chat/history'] });
     },
@@ -312,12 +312,12 @@ export default function AiChat() {
             return;
           }
           
-          // Continue recording for next attempt without processing
+          // Continue recording immediately for next attempt
           setTimeout(() => {
             if (conversationActive) {
               startWhisperRecording();
             }
-          }, 1000);
+          }, 500); // Faster retry for silent recordings
           return;
         }
         
@@ -343,12 +343,12 @@ export default function AiChat() {
       mediaRecorder.start();
       setIsRecording(true);
       
-      // Auto-stop after 8 seconds for optimal Whisper processing
+      // Auto-stop after 3 seconds for faster response
       setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           stopRecording();
         }
-      }, 8000);
+      }, 3000); // Reduced from 8000ms to 3000ms
       
     } catch (error) {
       console.error('Failed to start recording:', error);
