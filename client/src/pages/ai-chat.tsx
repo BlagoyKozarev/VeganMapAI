@@ -270,16 +270,10 @@ export default function AiChat() {
           const newCount = inactivityCount + 1;
           setInactivityCount(newCount);
           
-          // Stop conversation after 2 silent recordings for faster response
-          if (newCount >= 2) {
-            console.log('⏹️ Too many silent recordings, ending conversation');
-            if (conversationActive) {
-              toast({
-                title: "Разговорът завърши",
-                description: "Гласовият разговор спря заради липса на активност.",
-              });
-              endConversation();
-            }
+          // Stop conversation after 3 silent recordings without notification
+          if (newCount >= 3) {
+            console.log('⏹️ Too many silent recordings, ending conversation silently');
+            endConversation();
             stream.getTracks().forEach(track => track.stop());
             return;
           }
@@ -293,11 +287,9 @@ export default function AiChat() {
           const newCount = inactivityCount + 1;
           setInactivityCount(newCount);
           
-          if (newCount >= 2) {
-            console.log('⏹️ Too many failed recordings, ending conversation');
-            if (conversationActive) {
-              endConversation();
-            }
+          if (newCount >= 3) {
+            console.log('⏹️ Too many failed recordings, ending conversation silently');
+            endConversation();
           }
         } finally {
           setIsProcessing(false);
