@@ -547,6 +547,13 @@ export default function AiChat() {
 
   // Voice button state logic
   const voiceButtonState = useMemo(() => {
+    console.log('🔄 Voice button state recalculated:', {
+      isProcessing,
+      isRecording,
+      conversationActive,
+      isSpeaking
+    });
+    
     if (isProcessing || isSpeaking) {
       return {
         variant: 'secondary' as const,
@@ -707,10 +714,24 @@ export default function AiChat() {
         {/* Voice Controls - Available on all devices, restricted for iOS Safari only */}
         <div className="mb-4 flex justify-center space-x-3">
           <Button
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('🎤 Voice button TOUCH triggered!');
+              console.log('Button state:', voiceButtonState);
+              console.log('Current conversation state:', {
+                conversationActive,
+                isRecording,
+                isProcessing,
+                isSpeaking,
+                permissionGranted
+              });
+              toggleVoiceConversation();
+            }}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('🎤 Voice button onClick triggered!');
+              console.log('🎤 Voice button CLICK triggered!');
               console.log('Button state:', voiceButtonState);
               console.log('Current conversation state:', {
                 conversationActive,
