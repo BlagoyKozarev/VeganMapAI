@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Mic, MicOff, Send, Trash2, ArrowLeft } from 'lucide-react';
+// import { requestGPTHelp } from '../../../agent-gpt-helper';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -183,6 +184,8 @@ export default function AiChat() {
       }
       
       console.log('🔄 TTS process finished, continuing conversation...');
+      
+      // TODO: Интегрирай GPT helper когато е необходимо
       
       // Reset activity time on successful conversation
       setLastActivityTime(Date.now());
