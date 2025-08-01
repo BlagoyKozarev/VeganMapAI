@@ -707,13 +707,24 @@ export default function AiChat() {
         {/* Voice Controls - Available on all devices, restricted for iOS Safari only */}
         <div className="mb-4 flex justify-center space-x-3">
           <Button
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               console.log('🎤 Voice button onClick triggered!');
+              console.log('Button state:', voiceButtonState);
+              console.log('Current conversation state:', {
+                conversationActive,
+                isRecording,
+                isProcessing,
+                isSpeaking,
+                permissionGranted
+              });
               toggleVoiceConversation();
             }}
             variant={voiceButtonState.variant}
             disabled={voiceButtonState.disabled}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 cursor-pointer"
+            type="button"
           >
             {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
             <span>{voiceButtonState.text}</span>
