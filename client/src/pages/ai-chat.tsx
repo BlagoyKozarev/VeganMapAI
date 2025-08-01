@@ -748,8 +748,6 @@ export default function AiChat() {
                 ? 'bg-red-500 hover:bg-red-600 text-white' 
                 : voiceButtonState.variant === 'secondary'
                 ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
-                : voiceButtonState.variant === 'outline'
-                ? 'border border-gray-300 bg-white hover:bg-gray-50 text-gray-900'
                 : 'bg-blue-500 hover:bg-blue-600 text-white'
               }
               ${voiceButtonState.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95'}
