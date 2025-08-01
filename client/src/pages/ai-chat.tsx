@@ -31,8 +31,8 @@ export default function AiChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Mobile detection - temporarily disabled for testing
-  const isMobile = false; // /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  // Mobile detection with proper logic
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
   
   console.log('🔍 Device detection:', { 
     userAgent: navigator.userAgent, 
@@ -440,10 +440,14 @@ export default function AiChat() {
   };
 
   const toggleVoiceConversation = () => {
-    if (isMobile) {
+    // Check if this is iOS Safari where speech recognition doesn't work reliably
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    
+    if (isIOS && isSafari) {
       toast({
         title: "Гласов разговор не е достъпен",
-        description: "На мобилни устройства използвайте текстовия чат.",
+        description: "На iOS Safari използвайте текстовия чат.",
         variant: "destructive",
       });
       return;
@@ -656,20 +660,18 @@ export default function AiChat() {
 
       {/* Input Area */}
       <div className="border-t border-gray-200 p-4 bg-white">
-        {/* Voice Controls */}
-        {!isMobile && (
-          <div className="mb-4 flex justify-center space-x-3">
-            <Button
-              onClick={toggleVoiceConversation}
-              variant={voiceButtonState.variant}
-              disabled={voiceButtonState.disabled}
-              className="flex items-center space-x-2"
-            >
-              {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              <span>{voiceButtonState.text}</span>
-            </Button>
-          </div>
-        )}
+        {/* Voice Controls - Available on all devices, restricted for iOS Safari only */}
+        <div className="mb-4 flex justify-center space-x-3">
+          <Button
+            onClick={toggleVoiceConversation}
+            variant={voiceButtonState.variant}
+            disabled={voiceButtonState.disabled}
+            className="flex items-center space-x-2"
+          >
+            {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            <span>{voiceButtonState.text}</span>
+          </Button>
+        </div>
 
         {/* Text Input */}
         <form onSubmit={handleTextSubmit} className="flex space-x-2">
