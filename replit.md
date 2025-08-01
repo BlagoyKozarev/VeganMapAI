@@ -7,6 +7,11 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 Preferred communication style: Simple, everyday language.
 AI Chat Response Style: Brief, clear, direct responses. No task repetition, focus on results only. Maximum 2-3 sentences per response.
 
+## Recent Changes (January 2025)
+- **Voice Chat Optimization**: Perfect 3-second silence detection implemented. System now properly detects real user inactivity and ends conversations naturally without continuing after nonsensical background transcriptions.
+- **Clustering System**: Completed leaflet.markercluster integration with blue cluster circles showing restaurant counts and individual green markers displaying vegan scores.
+- **Map Performance**: Optimized restaurant loading and display with proper viewport-based clustering for smooth user experience.
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -31,7 +36,7 @@ AI Chat Response Style: Brief, clear, direct responses. No task repetition, focu
         - **ReviewAgent**: Analyzes reviews.
         - **ProfileAgent**: Manages user preferences and personalization.
         - **AnalyticsAgent**: Tracks user behavior.
-    - **Voice Assistant**: Integrated with OpenAI Whisper for superior speech-to-text and GPT-4o for natural language understanding, offering end-to-end voice conversations with Bulgarian language support and automatic text-to-speech (TTS). Includes robust error handling and mobile fallback to text input.
+    - **Voice Assistant**: Integrated with OpenAI Whisper for superior speech-to-text and GPT-4o for natural language understanding, offering end-to-end voice conversations with Bulgarian language support and automatic text-to-speech (TTS). Features intelligent silence detection that ends conversations after 3 seconds of real user inactivity, filters out nonsensical background transcriptions, and includes mobile fallback to text input.
     - **Cost Optimization**: Geo-hash based caching system for Google Places API calls, reducing operational costs. Local storage for restaurant details and periodic refresh for photo calls.
     - **Favorites System**: Allows users to save favorite restaurants with full CRUD operations.
 
