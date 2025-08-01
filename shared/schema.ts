@@ -47,7 +47,7 @@ export const priceRangeEnum = pgEnum('price_range', ['$', '$$', '$$$', '$$$$']);
 // User profiles for dietary preferences and settings
 export const userProfiles = pgTable("user_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().unique().references(() => users.id, { onDelete: 'cascade' }),
   dietaryStyle: dietaryStyleEnum("dietary_style").notNull().default('vegan'),
   allergies: text("allergies").array(),
   preferredCuisines: text("preferred_cuisines").array(),
