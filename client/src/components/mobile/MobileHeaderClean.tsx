@@ -8,9 +8,10 @@ interface MobileHeaderProps {
   searchSuggestions: any[];
   onOpenChat?: () => void;
   onOpenAdvancedSearch?: () => void;
+  onOpenFilter?: () => void;
 }
 
-export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions, onOpenChat, onOpenAdvancedSearch }: MobileHeaderProps) {
+export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions, onOpenChat, onOpenAdvancedSearch, onOpenFilter }: MobileHeaderProps) {
   return (
     <header 
       className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg h-16 z-[99999]"
@@ -118,6 +119,14 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
         
         {/* Navigation Icons */}
         <div className="flex items-center space-x-1">
+          <button 
+            onClick={onOpenFilter || (() => console.log('Filter not connected'))}
+            className="w-9 h-9 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
+            title="Filter"
+            style={{ touchAction: 'manipulation' }}
+          >
+            <span className="text-white text-sm">🔧</span>
+          </button>
           <button 
             onClick={onOpenAdvancedSearch || (() => console.log('Advanced search not connected'))}
             className="w-9 h-9 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
