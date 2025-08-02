@@ -1,3 +1,44 @@
+// Load environment variables FIRST - before any other imports
+import { config } from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+
+// Configure dotenv with explicit path
+const envPath = path.join(process.cwd(), '.env');
+const envExists = fs.existsSync(envPath);
+
+if (envExists) {
+  console.log('📁 Loading environment from .env file:', envPath);
+  config({ path: envPath });
+} else {
+  console.log('🔐 Using environment variables from system/secrets');
+  // In Replit or production, env vars might be set via secrets/system
+}
+
+// Debug environment variables (only in development)
+if (process.env.NODE_ENV === 'development') {
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  console.log('OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+  console.log('GOOGLE_MAPS_API_KEY exists:', !!process.env.GOOGLE_MAPS_API_KEY);
+}
+
+// Validate required environment variables
+function validateEnvironment() {
+  const required = ['DATABASE_URL', 'OPENAI_API_KEY', 'GOOGLE_MAPS_API_KEY'];
+  const missing = required.filter(key => !process.env[key]);
+  
+  if (missing.length > 0) {
+    console.error('❌ Missing environment variables:', missing);
+    console.error('Please ensure .env file contains all required variables');
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+  console.log('✅ All required environment variables loaded successfully');
+}
+
+// Validate before other imports that might use env vars
+validateEnvironment();
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
