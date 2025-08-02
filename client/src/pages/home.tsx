@@ -41,7 +41,6 @@ export default function Home() {
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [showFilter, setShowFilter] = useState(false);
 
   // Removed position state since we're using bottom footer
   const [searchQuery, setSearchQuery] = useState('');
@@ -332,7 +331,6 @@ export default function Home() {
         searchSuggestions={searchSuggestions}
         onOpenChat={() => setLocation('/ai-chat')}
         onOpenAdvancedSearch={handleAdvancedSearchOpen}
-        onOpenFilter={() => setShowFilter(true)}
       />
 
       <div 
@@ -529,14 +527,60 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mobile Filter Button - Bottom Left */}
+            {/* Mobile Filter Controls - Bottom Left */}
             <div className="absolute bottom-6 left-4 z-[999]">
-              <MobileFilterDrawer
-                minVeganScore={minVeganScore}
-                minGoogleScore={minGoogleScore}
-                onVeganScoreChange={setMinVeganScore}
-                onGoogleScoreChange={setMinGoogleScore}
-              />
+              <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 transition-all duration-300 hover:shadow-xl">
+                <div className="flex items-center mb-2">
+                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                    <span className="text-blue-600 text-xs">🎚️</span>
+                  </div>
+                  <h3 className="text-xs font-bold text-gray-800">Filters</h3>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 mb-1 block">
+                      Min Vegan Score: {minVeganScore}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="0.5"
+                      value={minVeganScore}
+                      onChange={(e) => setMinVeganScore(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer"
+                      style={{ touchAction: 'manipulation' }}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>0</span>
+                      <span>5</span>
+                      <span>10</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-700 mb-1 block">
+                      Min Google Score: {minGoogleScore}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="5"
+                      step="0.1"
+                      value={minGoogleScore}
+                      onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer"
+                      style={{ touchAction: 'manipulation' }}
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>0</span>
+                      <span>2.5</span>
+                      <span>5</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </>
@@ -697,85 +741,7 @@ export default function Home() {
         }}
       />
 
-      {/* Mobile Filter Modal */}
-      {showFilter && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[10000]" onClick={() => setShowFilter(false)}>
-          <div 
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl p-6 max-h-[60vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                <span className="mr-2">🔧</span>
-                Filters
-              </h3>
-              <button
-                onClick={() => setShowFilter(false)}
-                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
-              >
-                <span className="text-gray-500 text-lg">✕</span>
-              </button>
-            </div>
 
-            <div className="space-y-6">
-              {/* Vegan Score Filter */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-3 block">
-                  Minimum Vegan Score: {minVeganScore}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="0.5"
-                  value={minVeganScore}
-                  onChange={(e) => setMinVeganScore(parseFloat(e.target.value))}
-                  className="w-full h-4 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-sm text-gray-500 mt-2">
-                  <span>0 - Poor</span>
-                  <span>5 - Fair</span>
-                  <span>10 - Excellent</span>
-                </div>
-              </div>
-
-              {/* Google Score Filter */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-3 block">
-                  Minimum Google Rating: {minGoogleScore}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="5"
-                  step="0.1"
-                  value={minGoogleScore}
-                  onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
-                  className="w-full h-4 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-sm text-gray-500 mt-2">
-                  <span>0</span>
-                  <span>2.5</span>
-                  <span>5 - Excellent</span>
-                </div>
-              </div>
-
-              {/* Reset Button */}
-              <div className="pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    setMinVeganScore(0);
-                    setMinGoogleScore(0);
-                  }}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-xl transition-colors font-medium"
-                >
-                  Reset Filters
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       </div>
       
 
