@@ -18,6 +18,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Map Performance**: Optimized restaurant loading and display with proper viewport-based clustering for smooth user experience.
 - **Testing Framework**: Comprehensive Vitest testing suite with 100% success rate (14/14 tests passing). Features unit tests for agent functionality, map initialization, vegan scoring logic, API endpoints, audio files, and end-to-end API testing. Added e2e.test.ts as alternative to Playwright (browser dependencies incompatible with Replit environment). Optimized with mock functions for fast execution and proper authentication handling. Complete testing documentation available in TESTING-INSTRUCTIONS.md.
 - **Database Fixes (Feb 1, 2025)**: Resolved user_profiles table constraint issues by adding unique constraint on user_id, removing duplicate records, and fixing Profile Setup API call format. Custom allergies now display properly with checkbox visualization and checkmarks.
+- **Mobile Filter Panel (Feb 2, 2025)**: Implemented unified filter interface for both desktop and mobile versions. Desktop maintains filter panel in right-bottom corner. Mobile features same filter controls positioned right-side below vegan legend (top-72) to avoid overlap with browser address bar. Removed filter button from mobile header for cleaner design. Both versions include Min Vegan Score (0-10) and Min Google Score (0-5) sliders with proper touch controls.
 
 ## Git Repository Management
 - **Replit Git Integration**: Използва built-in Git функционалността на Replit
