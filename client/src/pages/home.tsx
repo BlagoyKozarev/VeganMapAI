@@ -527,11 +527,11 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mobile Filter Controls - Bottom Left */}
-            <div className="absolute bottom-6 left-4 z-[999]">
-              <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 transition-all duration-300 hover:shadow-xl">
+            {/* Mobile Filter Controls - Top Right under Legend */}
+            <div className="absolute top-56 right-4 z-[998]">
+              <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 transition-all duration-300 hover:shadow-xl">
                 <div className="flex items-center mb-2">
-                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                  <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center mr-2">
                     <span className="text-blue-600 text-xs">🎚️</span>
                   </div>
                   <h3 className="text-xs font-bold text-gray-800">Filters</h3>
@@ -636,68 +636,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Enhanced Filter Controls - Desktop Only */}
-      <div className="hidden sm:block fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 transition-all duration-300 hover:shadow-xl" 
-           style={{ 
-             zIndex: showDropdown ? 1 : 998,
-             opacity: showDropdown ? 0.7 : 1,
-             transform: showDropdown ? 'translateY(10px)' : 'translateY(0)'
-           }}>
-        <div className="flex items-center mb-2">
-          <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-            <span className="text-blue-600 text-xs">🎚️</span>
-          </div>
-          <h3 className="text-xs font-opensans font-bold text-gray-800">Filters</h3>
-        </div>
-        
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">
-              Min Vegan Score: {minVeganScore}
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="10"
-              step="0.5"
-              value={minVeganScore}
-              onChange={(e) => setMinVeganScore(parseFloat(e.target.value))}
-              className="w-full h-2 bg-gradient-to-r from-red-200 via-yellow-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
-              style={{
-                background: `linear-gradient(to right, #fecaca 0%, #fde68a 50%, #bbf7d0 100%)`
-              }}
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0</span>
-              <span>5</span>
-              <span>10</span>
-            </div>
-          </div>
 
-          <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">
-              Min Google Score: {minGoogleScore}
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="0.1"
-              value={minGoogleScore}
-              onChange={(e) => setMinGoogleScore(parseFloat(e.target.value))}
-              className="w-full h-2 bg-gradient-to-r from-red-200 to-green-200 rounded-lg appearance-none cursor-pointer slider"
-              style={{
-                background: `linear-gradient(to right, #fecaca 0%, #bbf7d0 100%)`
-              }}
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0</span>
-              <span>2.5</span>
-              <span>5</span>
-            </div>
-          </div>
-        </div>
-      </div>
 
 
 
