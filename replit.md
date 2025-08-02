@@ -20,11 +20,14 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Database Fixes (Feb 1, 2025)**: Resolved user_profiles table constraint issues by adding unique constraint on user_id, removing duplicate records, and fixing Profile Setup API call format. Custom allergies now display properly with checkbox visualization and checkmarks.
 - **Mobile Filter Panel (Feb 2, 2025)**: Implemented unified filter interface for both desktop and mobile versions. Desktop maintains filter panel in right-bottom corner. Mobile features same filter controls positioned right-side below vegan legend (top-72) to avoid overlap with browser address bar. Removed filter button from mobile header for cleaner design. Both versions include Min Vegan Score (0-10) and Min Google Score (0-5) sliders with proper touch controls.
 - **Production Builds (Feb 2, 2025)**: Created comprehensive deployment packages: VeganMapAI-Static-Build.zip (220KB) for static hosting and VeganMapAI-Complete-Package.zip (286KB) with full frontend/backend/documentation. Includes complete setup guides, API documentation, environment configuration instructions, and deployment options for Netlify, Vercel, Railway, and Replit Deployments.
+- **Environment Variables Fix (Feb 2, 2025)**: Resolved critical deployment issue where DATABASE_URL wasn't loading from .env file. Added dotenv package, configured proper environment loading in server/index.ts before all imports, created .env.example template, and added validation for required variables. Fix ensures compatibility with Replit secrets, local development, and Hostinger VPS deployment.
+- **Project Cleanup (Feb 2, 2025)**: Removed test-results/, archived clustering files, and temporary test scripts to streamline repository. Cleaned up Git workflow with lock file resolution instructions.
 
 ## Git Repository Management
 - **Replit Git Integration**: Използва built-in Git функционалността на Replit
 - **Manual Operations**: За Git команди използвай Replit Git tab или Shell tab с команди като:
   ```bash
+  rm -f .git/index.lock  # Почисти lock файл ако е нужно
   git add .
   git commit -m "Съобщение за commit"
   git push origin main
@@ -92,3 +95,4 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **ESLint**: For code quality.
 - **Vite**: Fast development server and optimized builds.
 - **tsx**: TypeScript execution for backend development.
+- **dotenv**: Environment variable management for production deployments.
