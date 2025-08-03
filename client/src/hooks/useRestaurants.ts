@@ -12,7 +12,6 @@ export function useNearbyRestaurants(location: GeolocationPosition | null, radiu
         lng: location.lng.toString(),
         radius: (radius || 2).toString()
       });
-      );
       const response = await apiRequest('GET', `/api/restaurants/nearby?${params}`);
       const data = await response.json();
       return data;

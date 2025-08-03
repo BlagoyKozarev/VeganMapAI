@@ -268,7 +268,6 @@ export default function AiChat() {
     speechSynthesis.speak(testUtterance);
   };
   const speakText = async (text: string): Promise<void> => {
-     + '...');
     if (!window.speechSynthesis) {
       return Promise.resolve();
     }

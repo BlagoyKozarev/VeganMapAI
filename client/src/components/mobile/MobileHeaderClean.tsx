@@ -113,7 +113,7 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
         {/* Navigation Icons */}
         <div className="flex items-center space-x-1">
           <button 
-            onClick={onOpenAdvancedSearch || (() => )}
+            onClick={onOpenAdvancedSearch || (() => {})}
             className="w-9 h-9 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
             title="Advanced Search"
             style={{ touchAction: 'manipulation' }}
