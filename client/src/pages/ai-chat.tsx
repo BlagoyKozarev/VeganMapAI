@@ -121,15 +121,14 @@ export default function AiChat() {
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, userMessage, assistantMessage]);
-      // Always speak the response during voice conversation
-      .length : 0
-      });
-      // FORCE TTS TEST - Direct call
-      // Direct call without conditions
+      // Speak the AI response
       speakText(data.reply)
-        .then(() => )
-        .catch(error => );
-      // TODO: Интегрирай GPT helper когато е необходимо
+        .then(() => {
+          // TTS completed successfully
+        })
+        .catch(error => {
+          console.error('TTS error:', error);
+        });
       // Reset activity time on successful conversation
       setLastActivityTime(Date.now());
       // Note: Conversation continuation is now handled in TTS onend callback
@@ -225,7 +224,7 @@ export default function AiChat() {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         // Check if audio has content (not silent)
         if (audioBlob.size < 1500) { 
-          , not updating activity');
+          // Audio too small, likely silent
           // Don't continue recording - let the inactivity timer handle it
           return;
         }
