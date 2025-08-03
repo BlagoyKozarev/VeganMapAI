@@ -8,26 +8,21 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calculator, MapPin } from 'lucide-react';
 import { Link } from 'wouter';
-
 interface ScoreCalculationResponse {
   message: string;
   processed: number;
   total: number;
   remaining: number;
 }
-
 export default function AdminScoringPage() {
   const { toast } = useToast();
   const [results, setResults] = useState<ScoreCalculationResponse | null>(null);
-
   // Sofia coordinates
   const sofiaLocation = {
     lat: 42.6977,
     lng: 23.3219
   };
-
   const expandedRadius = 4; // 4km radius with diverse search types including bars, seafood, steakhouses
-
   const calculateScoresMutation = useMutation({
     mutationFn: async (): Promise<ScoreCalculationResponse> => {
       const response = await fetch('/api/restaurants/calculate-all-scores', {
@@ -47,7 +42,6 @@ export default function AdminScoringPage() {
       });
     },
     onError: (error) => {
-      console.error('Scoring error:', error);
       toast({
         title: "Scoring Failed",
         description: "Failed to calculate vegan scores. Check console for details.",
@@ -55,7 +49,6 @@ export default function AdminScoringPage() {
       });
     },
   });
-
   const populateRestaurantsMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch('/api/restaurants/populate', {
@@ -77,7 +70,6 @@ export default function AdminScoringPage() {
       });
     },
     onError: (error) => {
-      console.error('Population error:', error);
       toast({
         title: "Population Failed", 
         description: "Failed to load restaurants from Google Places",
@@ -85,11 +77,9 @@ export default function AdminScoringPage() {
       });
     },
   });
-
   const progressPercentage = results 
     ? Math.round((results.processed / results.total) * 100)
     : 0;
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
@@ -115,7 +105,6 @@ export default function AdminScoringPage() {
           </div>
         </div>
       </div>
-
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Location Info */}
         <Card>
@@ -142,7 +131,6 @@ export default function AdminScoringPage() {
             </div>
           </CardContent>
         </Card>
-
         {/* Controls */}
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
@@ -167,7 +155,6 @@ export default function AdminScoringPage() {
               </Button>
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -193,7 +180,6 @@ export default function AdminScoringPage() {
             </CardContent>
           </Card>
         </div>
-
         {/* Results */}
         {results && (
           <Card>
@@ -224,7 +210,6 @@ export default function AdminScoringPage() {
                   <div className="text-sm text-gray-500">Remaining</div>
                 </div>
               </div>
-              
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Progress</span>
@@ -232,13 +217,11 @@ export default function AdminScoringPage() {
                 </div>
                 <Progress value={progressPercentage} className="w-full" />
               </div>
-
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   {results.message}
                 </p>
               </div>
-
               {results.remaining > 0 && (
                 <Button
                   onClick={() => calculateScoresMutation.mutate()}
@@ -252,7 +235,6 @@ export default function AdminScoringPage() {
             </CardContent>
           </Card>
         )}
-
         {/* Instructions */}
         <Card>
           <CardHeader>
@@ -281,7 +263,6 @@ export default function AdminScoringPage() {
                 </ul>
               </div>
             </div>
-            
             <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <p className="text-sm text-blue-700 dark:text-blue-300">
                 <strong>Note:</strong> Scoring uses GPT-4o for intelligent analysis. 

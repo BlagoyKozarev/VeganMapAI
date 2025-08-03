@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-
 import Map from '@/components/map/Map';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
@@ -10,7 +9,6 @@ import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
 import { MobileAdvancedSearch } from '@/components/mobile/MobileAdvancedSearch';
 import { MobileHeader } from '@/components/mobile/MobileHeaderClean';
 import { useGeolocation } from '@/hooks/useGeolocation';
-
 interface Restaurant {
   id: string;
   name: string;
@@ -32,16 +30,13 @@ interface Restaurant {
   createdAt: Date | null;
   updatedAt: Date | null;
 }
-
 export default function Home() {
   const [, setLocation] = useLocation();
   const { position, loading, error, getCurrentPosition } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-
   // Removed position state since we're using bottom footer
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredRestaurants, setFilteredRestaurants] = useState<any[]>([]);
@@ -50,45 +45,33 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 1024);
   const [minVeganScore, setMinVeganScore] = useState(0);
   const [minGoogleScore, setMinGoogleScore] = useState(0);
-  
   // Check URL parameters for custom location and restaurant selection
   const urlParams = new URLSearchParams(window.location.search);
   const customLat = urlParams.get('lat');
   const customLng = urlParams.get('lng');
   const restaurantId = urlParams.get('restaurant');
-  
   // Use custom location if provided, otherwise use geolocation
   const currentPosition = customLat && customLng ? 
     { lat: parseFloat(customLat), lng: parseFloat(customLng) } : 
     position;
-
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
     queryKey: ['/api/restaurants/all-available'],
     queryFn: async () => {
-      console.log('Fetching all available restaurants with AI scores');
       const response = await fetch('/api/restaurants/all-available');
       if (!response.ok) throw new Error('Failed to fetch restaurants');
-      
       const data = await response.json();
-      console.log('Received restaurant data:', data);
       return data;
     },
   });
-
-  // Log restaurants data once when loaded and handle restaurant selection from URL
+  // Handle restaurant selection from URL
   useEffect(() => {
     if (restaurants.length > 0) {
-      console.log('Home component - restaurants count:', restaurants.length);
-      console.log('Sample restaurant scores:', restaurants.slice(0, 10).map((r: Restaurant) => ({ name: r.name, score: r.veganScore })));
-      
       // Handle restaurant selection from URL parameter
       if (restaurantId) {
         const targetRestaurant = restaurants.find((r: Restaurant) => r.id === restaurantId);
         if (targetRestaurant) {
-          console.log('Auto-selecting restaurant from URL:', targetRestaurant.name);
           setSelectedRestaurant(targetRestaurant);
           setShowDropdown(true);
-          
           // Clear the URL parameter to avoid re-triggering
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.delete('restaurant');
@@ -97,7 +80,6 @@ export default function Home() {
       }
     }
   }, [restaurants.length, restaurantId]); // Stable dependency
-
   // Filter restaurants based on search query and scores - memoized to prevent loops
   useEffect(() => {
     if (!restaurants.length) {
@@ -106,9 +88,7 @@ export default function Home() {
       }
       return;
     }
-
     let filtered = restaurants;
-    
     // Apply search filter
     if (searchQuery.trim()) {
       filtered = filtered.filter((restaurant: any) =>
@@ -116,39 +96,32 @@ export default function Home() {
         restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
     // Apply vegan score filter
     filtered = filtered.filter((restaurant: any) => {
       const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
       return veganScore >= minVeganScore;
     });
-    
     // Apply Google score filter
     filtered = filtered.filter((restaurant: any) => {
       const googleScore = restaurant.rating ? parseFloat(restaurant.rating) : 0;
       return googleScore >= minGoogleScore;
     });
-    
     // Only update if actually different to prevent loops
     if (JSON.stringify(filtered) !== JSON.stringify(filteredRestaurants)) {
       setFilteredRestaurants(filtered);
-      console.log('Showing', filtered.length, 'restaurants');
     }
   }, [restaurants.length, searchQuery, minVeganScore, minGoogleScore]); // Use length instead of full array
-
   // Generate search suggestions separately to avoid complex dependencies
   useEffect(() => {
     if (!restaurants.length) {
       setSearchSuggestions([]);
       return;
     }
-
     if (!searchQuery.trim()) {
       setSearchSuggestions([]);
       setShowSuggestions(false);
       return;
     }
-    
     // Generate suggestions - top 5 matching restaurants
     const suggestions = restaurants
       .filter((restaurant: any) =>
@@ -163,7 +136,6 @@ export default function Home() {
         veganScore: restaurant.veganScore,
         type: 'restaurant'
       }));
-    
     // Add cuisine suggestions
     const cuisineSuggestions = Array.from(
       new Set(
@@ -181,11 +153,9 @@ export default function Home() {
       name: (cuisine as string).replace(/_/g, ' ').toLowerCase(),
       type: 'cuisine'
     }));
-    
     setSearchSuggestions([...suggestions, ...cuisineSuggestions]);
     setShowSuggestions(searchQuery.length > 1);
   }, [restaurants.length, searchQuery]); // Only essential dependencies
-
   const handleSuggestionClick = (suggestion: any) => {
     if (suggestion.type === 'restaurant') {
       setSearchQuery(suggestion.name);
@@ -194,26 +164,18 @@ export default function Home() {
     }
     setShowSuggestions(false);
   };
-
   const handleCurrentLocation = () => {
     // Get fresh location data
     getCurrentPosition();
   };
-
   const handleRestaurantClick = (restaurant: any, event?: any) => {
-    console.log('Restaurant clicked:', restaurant.name);
     setSelectedRestaurant(restaurant);
     setShowDropdown(true);
-    console.log('Setting selectedRestaurant and showDropdown to true');
   };
-
   const handleNavigate = () => {
     if (selectedRestaurant) {
       // Enhanced mobile-compatible navigation
       const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedRestaurant.latitude},${selectedRestaurant.longitude}&travelmode=walking`;
-      
-      console.log('Opening navigation to:', url);
-      
       // Try multiple methods for mobile compatibility
       try {
         const opened = window.open(url, '_blank');
@@ -222,59 +184,41 @@ export default function Home() {
           window.location.href = url;
         }
       } catch (error) {
-        console.log('Popup blocked, using direct navigation');
         window.location.href = url;
       }
-      
       setShowDropdown(false);
     }
   };
-
   const handleViewDetails = () => {
     if (selectedRestaurant) {
-      console.log('Opening restaurant modal for:', selectedRestaurant.name);
       setShowRestaurantModal(true);
       setShowDropdown(false);
     }
   };
-
   const handleAdvancedSearchOpen = () => {
     setShowAdvancedSearch(true);
   };
-
   const handleApplyAdvancedFilters = (filters: any) => {
     setMinVeganScore(filters.minVeganScore);
     setMinGoogleScore(filters.minGoogleScore);
-    console.log('Applied advanced filters:', filters);
   };
-
   const handleCloseDropdown = () => {
     setShowDropdown(false);
   };
-
   const handleCloseModal = () => {
     setShowRestaurantModal(false);
     setSelectedRestaurant(null);
   };
-
   // Mobile detection
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024;
-      console.log('Mobile check:', mobile, 'width:', window.innerWidth);
-      console.log('Header should be visible:', mobile);
       setIsMobile(mobile);
     };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-
-
-
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -293,7 +237,6 @@ export default function Home() {
       </div>
     );
   }
-
   if (!position && error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
@@ -319,7 +262,6 @@ export default function Home() {
       </div>
     );
   }
-
   return (
     <>
       {/* MOBILE HEADER */}
@@ -332,14 +274,10 @@ export default function Home() {
         onOpenChat={() => setLocation('/ai-chat')}
         onOpenAdvancedSearch={handleAdvancedSearchOpen}
       />
-
       <div 
         className="h-screen relative bg-gray-50"
         style={{ paddingTop: isMobile ? '64px' : '0px' }}
       >
-
-
-      
       {/* Enhanced Google Maps Style Header - Desktop Only */}
       <div 
         className="hidden lg:block fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-lg backdrop-blur-sm h-16" 
@@ -353,7 +291,6 @@ export default function Home() {
           >
             <i className="fas fa-bars text-gray-600 text-lg"></i>
           </Button>
-          
           {/* Search Bar - Enhanced Google Maps Style */}
           <div className="flex-1 relative max-w-2xl">
             <div className="bg-white border border-gray-300 rounded-full shadow-sm flex items-center px-4 py-2.5 hover:shadow-lg transition-all duration-200 focus-within:shadow-lg focus-within:border-blue-400">
@@ -379,7 +316,6 @@ export default function Home() {
                 </button>
               )}
             </div>
-            
             {/* Enhanced Search Suggestions Dropdown */}
             {showSuggestions && searchSuggestions.length > 0 && (
               <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-2xl shadow-2xl mt-2 max-h-80 overflow-y-auto backdrop-blur-sm" style={{ zIndex: 1002 }}>
@@ -421,7 +357,6 @@ export default function Home() {
               </div>
             )}
           </div>
-          
           {/* Enhanced Right Icons */}
           <div className="flex items-center ml-2 sm:ml-3 space-x-1 sm:space-x-2">
             <a href="/admin" className="hidden sm:block">
@@ -459,7 +394,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       {/* Simple Map Container */}
       <div className="w-full h-full relative">
         <Map
@@ -471,7 +405,6 @@ export default function Home() {
           }}
           loading={restaurantsLoading}
         />
-        
         {/* Mobile Panels */}
         {isMobile && (
           <>
@@ -489,7 +422,6 @@ export default function Home() {
                 </div>
                 <h3 className="text-xs font-bold text-gray-800">Vegan Guide</h3>
               </div>
-              
               <div className="space-y-1">
                 <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
                   <div className="w-2 h-2 bg-green-600 rounded-full mr-2"></div>
@@ -512,7 +444,6 @@ export default function Home() {
                   <span className="text-gray-700">&lt;5.5 Poor</span>
                 </div>
               </div>
-
               {/* Mobile Location Button */}
               <div className="mt-3 pt-2 border-t border-gray-100">
                 <Button
@@ -526,7 +457,6 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-
             {/* Mobile Filter Controls - Top Right under Legend */}
             <div className="absolute top-72 right-4 z-[998]">
               <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 transition-all duration-300 hover:shadow-xl">
@@ -536,7 +466,6 @@ export default function Home() {
                   </div>
                   <h3 className="text-xs font-bold text-gray-800">Filters</h3>
                 </div>
-                
                 <div className="space-y-3">
                   <div>
                     <label className="text-xs font-medium text-gray-700 mb-1 block">
@@ -558,7 +487,6 @@ export default function Home() {
                       <span>10</span>
                     </div>
                   </div>
-
                   <div>
                     <label className="text-xs font-medium text-gray-700 mb-1 block">
                       Min Google Score: {minGoogleScore}
@@ -582,11 +510,9 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
           </>
         )}
       </div>
-
       {/* Enhanced Vegan Score Legend - Desktop Only */}
       <div className="hidden sm:block fixed top-20 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 transition-all duration-300 hover:shadow-xl" 
            style={{ 
@@ -599,7 +525,6 @@ export default function Home() {
           </div>
           <h3 className="text-xs font-opensans font-bold text-gray-800">Vegan Guide</h3>
         </div>
-        
         <div className="space-y-1">
           <div className="flex items-center text-xs hover:bg-green-50 rounded px-1 py-0.5 transition-colors">
             <div className="w-2.5 h-2.5 bg-green-600 rounded-full mr-2"></div>
@@ -622,7 +547,6 @@ export default function Home() {
             <span className="text-gray-700 font-medium">&lt;5.5 Poor</span>
           </div>
         </div>
-        
         {/* Compact Location Button */}
         <div className="mt-3 pt-2 border-t border-gray-100">
           <Button
@@ -635,7 +559,6 @@ export default function Home() {
           </Button>
         </div>
       </div>
-
       {/* Enhanced Filter Controls - Desktop Only */}
       <div className="hidden sm:block fixed bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-52 transition-all duration-300 hover:shadow-xl" 
            style={{ 
@@ -649,7 +572,6 @@ export default function Home() {
           </div>
           <h3 className="text-xs font-opensans font-bold text-gray-800">Filters</h3>
         </div>
-        
         <div className="space-y-3">
           <div>
             <label className="text-xs font-medium text-gray-700 mb-1 block">
@@ -673,7 +595,6 @@ export default function Home() {
               <span>10</span>
             </div>
           </div>
-
           <div>
             <label className="text-xs font-medium text-gray-700 mb-1 block">
               Min Google Score: {minGoogleScore}
@@ -698,15 +619,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-
-
-
-
-
-
-
-
       {/* Restaurant Dropdown */}
       {selectedRestaurant && showDropdown && (
         <RestaurantDropdown
@@ -716,7 +628,6 @@ export default function Home() {
           onViewDetails={handleViewDetails}
         />
       )}
-
       {/* Restaurant Modal */}
       {selectedRestaurant && (
         <RestaurantModal 
@@ -725,7 +636,6 @@ export default function Home() {
           onClose={handleCloseModal}
         />
       )}
-
       {/* Mobile Advanced Search */}
       <MobileAdvancedSearch
         isOpen={showAdvancedSearch}
@@ -740,11 +650,7 @@ export default function Home() {
           allergies: [],
         }}
       />
-
-
       </div>
-      
-
     </>
   );
 }

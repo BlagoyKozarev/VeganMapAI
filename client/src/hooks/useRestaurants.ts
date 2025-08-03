@@ -2,30 +2,25 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Restaurant, SearchFilters, GeolocationPosition } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-
 export function useNearbyRestaurants(location: GeolocationPosition | null, radius?: number) {
   return useQuery({
     queryKey: ['/api/restaurants/nearby', location?.lat, location?.lng, radius],
     queryFn: async () => {
       if (!location) return [];
-      
       const params = new URLSearchParams({
         lat: location.lat.toString(),
         lng: location.lng.toString(),
         radius: (radius || 2).toString()
       });
-      
-      console.log('Fetching restaurants with params:', params.toString());
+      );
       const response = await apiRequest('GET', `/api/restaurants/nearby?${params}`);
       const data = await response.json();
-      console.log('Received restaurant data:', data);
       return data;
     },
     enabled: !!location,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
-
 export function useRestaurant(id: string) {
   return useQuery({
     queryKey: ['/api/restaurants', id],
@@ -33,7 +28,6 @@ export function useRestaurant(id: string) {
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
-
 export function useSearchRestaurants() {
   return useMutation({
     mutationFn: async ({
@@ -48,7 +42,6 @@ export function useSearchRestaurants() {
       limit?: number;
     }) => {
       const params = new URLSearchParams();
-      
       if (query) params.append('q', query);
       if (location) {
         params.append('lat', location.lat.toString());
@@ -59,13 +52,11 @@ export function useSearchRestaurants() {
       if (filters?.priceRange) params.append('priceRange', filters.priceRange.join(','));
       if (filters?.cuisineTypes) params.append('cuisineTypes', filters.cuisineTypes.join(','));
       if (limit) params.append('limit', limit.toString());
-
       const response = await apiRequest('GET', `/api/search/restaurants?${params}`);
       return response.json();
     },
   });
 }
-
 export function useSearchSuggestions() {
   return useMutation({
     mutationFn: async ({
@@ -77,22 +68,18 @@ export function useSearchSuggestions() {
     }) => {
       const params = new URLSearchParams();
       params.append('q', query);
-      
       if (location) {
         params.append('lat', location.lat.toString());
         params.append('lng', location.lng.toString());
       }
-
       const response = await apiRequest('GET', `/api/search/suggestions?${params}`);
       return response.json();
     },
   });
 }
-
 export function useFavoriteRestaurant() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
     mutationFn: async (restaurantId: string) => {
       const response = await apiRequest('POST', '/api/favorites', { restaurantId });
@@ -114,11 +101,9 @@ export function useFavoriteRestaurant() {
     },
   });
 }
-
 export function useUnfavoriteRestaurant() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
     mutationFn: async (restaurantId: string) => {
       const response = await apiRequest('DELETE', `/api/favorites/${restaurantId}`);
@@ -140,14 +125,12 @@ export function useUnfavoriteRestaurant() {
     },
   });
 }
-
 export function useFavorites() {
   return useQuery({
     queryKey: ['/api/favorites'],
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
-
 export function useRecommendations(location: GeolocationPosition | null, limit?: number) {
   return useQuery({
     queryKey: ['/api/recommendations', location?.lat, location?.lng, limit],
@@ -155,11 +138,9 @@ export function useRecommendations(location: GeolocationPosition | null, limit?:
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
-
 export function useAddVisit() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-
   return useMutation({
     mutationFn: async ({
       restaurantId,

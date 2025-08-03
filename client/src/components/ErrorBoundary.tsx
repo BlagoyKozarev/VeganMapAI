@@ -1,30 +1,23 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
-
 interface Props {
   children: React.ReactNode;
 }
-
 interface State {
   hasError: boolean;
   error: Error | null;
 }
-
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
   }
-
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
-
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
   }
-
   render() {
     if (this.state.hasError) {
       return (
@@ -68,7 +61,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
         </div>
       );
     }
-
     return this.props.children;
   }
 }

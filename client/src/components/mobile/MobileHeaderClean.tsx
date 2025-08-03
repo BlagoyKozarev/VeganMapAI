@@ -1,5 +1,4 @@
 import React from 'react';
-
 interface MobileHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -9,7 +8,6 @@ interface MobileHeaderProps {
   onOpenChat?: () => void;
   onOpenAdvancedSearch?: () => void;
 }
-
 export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions, onOpenChat, onOpenAdvancedSearch }: MobileHeaderProps) {
   return (
     <header 
@@ -46,7 +44,6 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
               </button>
             )}
           </div>
-          
           {/* Search Suggestions */}
           {showSuggestions && searchSuggestions.length > 0 && (
             <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-80 overflow-y-auto z-[100000]">
@@ -80,7 +77,6 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
                   </div>
                 </div>
               ))}
-              
               {/* Cuisines */}
               {searchSuggestions.filter(s => s.type === 'cuisine').slice(0, 5).map((cuisine, index) => (
                 <div
@@ -104,7 +100,6 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
                   </div>
                 </div>
               ))}
-              
               {/* No results message */}
               {searchSuggestions.length === 0 && (
                 <div className="p-4 text-center text-gray-500">
@@ -115,11 +110,10 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
             </div>
           )}
         </div>
-        
         {/* Navigation Icons */}
         <div className="flex items-center space-x-1">
           <button 
-            onClick={onOpenAdvancedSearch || (() => console.log('Advanced search not connected'))}
+            onClick={onOpenAdvancedSearch || (() => )}
             className="w-9 h-9 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
             title="Advanced Search"
             style={{ touchAction: 'manipulation' }}

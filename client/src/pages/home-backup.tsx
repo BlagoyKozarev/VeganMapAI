@@ -9,33 +9,26 @@ import TabNavigation from '@/components/layout/TabNavigation';
 import { Button } from '@/components/ui/button';
 import type { Restaurant } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
-
 export default function Home() {
   const [, setLocation] = useLocation();
   const { position, error, loading, getCurrentPosition } = useGeolocation();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const { toast } = useToast();
-
   const { 
     data: restaurants = [], 
     isLoading: restaurantsLoading,
     error: restaurantsError 
   } = useNearbyRestaurants(position, 2);
-
   // Debug logging
   useEffect(() => {
-    console.log('Home component - restaurants count:', restaurants.length);
     if (restaurants.length > 0) {
-      console.log('Sample restaurant scores:', restaurants.map((r: any) => ({ name: r.name, score: r.veganScore })));
+       => ({ name: r.name, score: r.veganScore })));
     }
   }, [restaurants]);
-
   // Debug action menu state
   useEffect(() => {
-    console.log('Action menu state changed:', { showActionMenu, selectedRestaurant: selectedRestaurant?.name });
   }, [showActionMenu, selectedRestaurant]);
-
   useEffect(() => {
     if (error) {
       toast({
@@ -45,7 +38,6 @@ export default function Home() {
       });
     }
   }, [error, toast]);
-
   useEffect(() => {
     if (restaurantsError) {
       toast({
@@ -55,20 +47,14 @@ export default function Home() {
       });
     }
   }, [restaurantsError, toast]);
-
   const handleRestaurantClick = (restaurant: Restaurant) => {
-    console.log('Restaurant clicked:', restaurant.name);
-    console.log('Setting selectedRestaurant and showActionMenu to true');
     setSelectedRestaurant(restaurant);
     setShowActionMenu(true);
-    console.log('State after setting:', { showActionMenu: true, selectedRestaurant: restaurant?.name });
   };
-
   const handleCloseActionMenu = () => {
     setShowActionMenu(false);
     setSelectedRestaurant(null);
   };
-
   const handleCurrentLocation = async () => {
     try {
       await getCurrentPosition();
@@ -80,7 +66,6 @@ export default function Home() {
       // Error already handled in useGeolocation
     }
   };
-
   if (loading && !position) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -93,7 +78,6 @@ export default function Home() {
       </div>
     );
   }
-
   if (!position && error) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-4">
@@ -116,7 +100,6 @@ export default function Home() {
       </div>
     );
   }
-
   return (
     <div className="h-screen relative bg-gray-50">
       {/* Google Maps Style Header */}
@@ -129,7 +112,6 @@ export default function Home() {
           >
             <i className="fas fa-bars text-gray-600 text-lg"></i>
           </Button>
-          
           {/* Search Bar - Google Maps Style */}
           <div className="flex-1 relative">
             <div className="bg-white border border-gray-300 rounded-lg shadow-sm flex items-center px-4 py-3 hover:shadow-md transition-shadow">
@@ -142,7 +124,6 @@ export default function Home() {
               />
             </div>
           </div>
-          
           {/* Right Icons */}
           <div className="flex items-center ml-3 space-x-2">
             <Button 
@@ -166,7 +147,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       {/* Map Container */}
       <div className="absolute inset-0 pt-16">
         <Map
@@ -176,7 +156,6 @@ export default function Home() {
           loading={restaurantsLoading}
         />
       </div>
-
       {/* Vegan Score Legend - Top Right */}
       <div className="absolute top-20 right-4 z-40 bg-white border border-gray-300 rounded-lg shadow-md p-3 max-w-xs">
         <h3 className="text-sm font-opensans font-semibold text-gray-700 mb-2">Vegan Score</h3>
@@ -207,7 +186,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       {/* Google Maps Style Controls - Bottom Right */}
       <div className="absolute bottom-32 right-4 z-40 flex flex-col space-y-2">
         {/* Zoom Controls */}
@@ -225,7 +203,6 @@ export default function Home() {
             <i className="fas fa-minus text-lg"></i>
           </Button>
         </div>
-        
         {/* My Location Button */}
         <Button
           onClick={handleCurrentLocation}
@@ -235,9 +212,6 @@ export default function Home() {
           <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-crosshairs'} text-lg`}></i>
         </Button>
       </div>
-
-
-
       {/* Action Menu */}
       {showActionMenu && selectedRestaurant && (
         <ActionMenu
@@ -245,7 +219,6 @@ export default function Home() {
           onClose={handleCloseActionMenu}
         />
       )}
-
       {/* Bottom Tab Navigation */}
       <TabNavigation currentTab="map" />
     </div>

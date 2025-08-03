@@ -203,7 +203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         query as string || '',
         userLocation,
         filters,
-        userProfile
+        filters.limit
       );
 
       // Track search action
@@ -351,25 +351,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (scoreResult) {
         await storage.upsertVeganScoreBreakdown({
           restaurantId: id,
-          menuVariety: scoreResult.breakdown.menuVariety,
-          ingredientClarity: scoreResult.breakdown.ingredientClarity,
-          staffKnowledge: scoreResult.breakdown.staffKnowledge,
-          crossContamination: scoreResult.breakdown.crossContamination,
-          nutritionalInfo: scoreResult.breakdown.nutritionalInfo,
-          allergenManagement: scoreResult.breakdown.allergenManagement,
-          overallScore: scoreResult.score
+          menuVariety: scoreResult.breakdown.menuVariety.toString(),
+          ingredientClarity: scoreResult.breakdown.ingredientClarity.toString(),
+          staffKnowledge: scoreResult.breakdown.staffKnowledge.toString(),
+          crossContamination: scoreResult.breakdown.crossContamination.toString(),
+          nutritionalInfo: scoreResult.breakdown.nutritionalInfo.toString(),
+          allergenManagement: scoreResult.breakdown.allergenManagement.toString(),
+          overallScore: scoreResult.overallScore
         });
 
         // Update restaurant with new score
         await storage.updateRestaurant(id, {
-          veganScore: scoreResult.score.toString()
+          veganScore: scoreResult.overallScore.toString()
         });
       }
 
-      res.json(scoreResult);
-    } catch (error) {
+      res.json(scoreResult || { overallScore: 0, breakdown: {}, confidence: 0, reasoning: "Failed to calculate score" });
+    } catch (error: any) {
       console.error("Error calculating vegan score:", error);
-      res.status(500).json({ message: "Failed to calculate vegan score" });
+      res.status(500).json({ message: "Failed to calculate vegan score", error: error.message });
     }
   });
 
@@ -381,13 +381,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let restaurants;
       if (scoreStatus === 'unscored') {
-        restaurants = await storage.getUnscoredRestaurants(parseInt(limit as string), offset);
+        // Get unscored restaurants
+        const allRestaurants = await storage.getAllRestaurants();
+        restaurants = allRestaurants.filter(r => !r.veganScore || parseFloat(r.veganScore) < 1)
+          .slice(offset, offset + parseInt(limit as string));
       } else {
-        restaurants = await storage.getAllRestaurants(parseInt(limit as string), offset);
+        const allRestaurants = await storage.getAllRestaurants();
+        restaurants = allRestaurants.slice(offset, offset + parseInt(limit as string));
       }
       
-      const totalCount = await storage.getRestaurantCount();
-      const scoredCount = await storage.getScoredRestaurantCount();
+      const allRestaurants = await storage.getAllRestaurants();
+      const totalCount = allRestaurants.length;
+      const scoredCount = allRestaurants.filter(r => r.veganScore && parseFloat(r.veganScore) >= 1).length;
       
       res.json({
         restaurants,
@@ -437,22 +442,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (scoreResult) {
               await storage.upsertVeganScoreBreakdown({
                 restaurantId: id,
-                menuVariety: scoreResult.breakdown.menuVariety,
-                ingredientClarity: scoreResult.breakdown.ingredientClarity,
-                staffKnowledge: scoreResult.breakdown.staffKnowledge,
-                crossContamination: scoreResult.breakdown.crossContamination,
-                nutritionalInfo: scoreResult.breakdown.nutritionalInfo,
-                allergenManagement: scoreResult.breakdown.allergenManagement,
-                overallScore: scoreResult.score
+                menuVariety: scoreResult.breakdown.menuVariety.toString(),
+                ingredientClarity: scoreResult.breakdown.ingredientClarity.toString(),
+                staffKnowledge: scoreResult.breakdown.staffKnowledge.toString(),
+                crossContamination: scoreResult.breakdown.crossContamination.toString(),
+                nutritionalInfo: scoreResult.breakdown.nutritionalInfo.toString(),
+                allergenManagement: scoreResult.breakdown.allergenManagement.toString(),
+                overallScore: scoreResult.overallScore
               });
 
               await storage.updateRestaurant(id, {
-                veganScore: scoreResult.score.toString()
+                veganScore: scoreResult.overallScore.toString()
               });
             }
 
-            return { id, success: true, score: scoreResult?.score };
-          } catch (error) {
+            return { id, success: true, score: scoreResult?.overallScore };
+          } catch (error: any) {
             console.error(`Error scoring restaurant ${id}:`, error);
             return { id, success: false, error: error.message };
           }

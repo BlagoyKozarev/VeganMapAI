@@ -3,16 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Restaurant } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
-
 interface ActionMenuProps {
   restaurant: Restaurant;
   onClose: () => void;
 }
-
 export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-
   // Prevent body scroll when menu is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -20,18 +17,15 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
       document.body.style.overflow = 'unset';
     };
   }, []);
-
   const handleViewDetails = () => {
     setLocation(`/restaurant/${restaurant.id}`);
     onClose();
   };
-
   const handleNavigate = () => {
     const query = encodeURIComponent(`${restaurant.name}, ${restaurant.address}`);
     window.open(`https://www.google.com/maps/search/${query}`, '_blank');
     onClose();
   };
-
   const handleReserve = () => {
     if (restaurant.website) {
       window.open(restaurant.website, '_blank');
@@ -44,7 +38,6 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
     }
     onClose();
   };
-
   const handleOrder = () => {
     // This would typically open a delivery platform or restaurant's online ordering
     toast({
@@ -53,7 +46,6 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
     });
     onClose();
   };
-
   const handleFavorite = () => {
     toast({
       title: 'Added to Favorites',
@@ -61,11 +53,7 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
     });
     onClose();
   };
-
   const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
-
-  console.log('ActionMenu rendering for restaurant:', restaurant.name);
-  
   return (
     <div 
       className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-end justify-center p-0"
@@ -93,7 +81,6 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
       >
         {/* Drag handle */}
         <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-        
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center mr-4">
@@ -114,7 +101,6 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
             <span className="text-gray-600 text-xl">×</span>
           </button>
         </div>
-        
         <div className="space-y-4 pb-4">
           <Button 
             onClick={handleViewDetails}
@@ -144,7 +130,6 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
           </Button>
         </div>
       </div>
-      
       <style>{`
         @keyframes slideUp {
           from {

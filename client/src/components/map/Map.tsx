@@ -5,7 +5,6 @@ import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import type { Restaurant } from '@shared/schema';
-
 // Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,7 +12,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
-
 interface MapProps {
   center: [number, number];
   restaurants: Restaurant[];
@@ -21,18 +19,13 @@ interface MapProps {
   onLocationChange?: (center: [number, number]) => void;
   loading?: boolean;
 }
-
 export default function Map({ center, restaurants, onRestaurantClick, loading }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerClusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
-
   // Initialize map once with better mobile support
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
-
-    console.log('Initializing map with center:', center);
-    
     const map = L.map(mapRef.current, {
       center: center,
       zoom: 15,
@@ -49,12 +42,10 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       maxBoundsViscosity: 0.0,
       renderer: L.canvas({ tolerance: 15 })
     });
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '',
       maxZoom: 19,
     }).addTo(map);
-
     // Add user location marker
     const userIcon = L.divIcon({
       className: 'user-location-marker',
@@ -67,9 +58,7 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       iconSize: [20, 20],
       iconAnchor: [10, 10],
     });
-
     L.marker(center, { icon: userIcon }).addTo(map);
-    
     // Create marker cluster group
     const markerClusterGroup = (L as any).markerClusterGroup({
       chunkedLoading: true,
@@ -83,7 +72,6 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       iconCreateFunction: function(cluster: any) {
         const childCount = cluster.getChildCount();
         let className = 'marker-cluster marker-cluster-';
-        
         if (childCount < 5) {
           className += 'small';
         } else if (childCount < 10) {
@@ -91,7 +79,6 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
         } else {
           className += 'large';
         }
-        
         return new L.DivIcon({
           html: '<div><span>' + childCount + '</span></div>',
           className: className,
@@ -99,11 +86,9 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
         });
       }
     });
-    
     markerClusterGroupRef.current = markerClusterGroup;
     map.addLayer(markerClusterGroup);
     mapInstanceRef.current = map;
-
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -114,29 +99,19 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
       }
     };
   }, []);
-
   // Update restaurant markers using markercluster
   const updateRestaurantMarkers = () => {
     if (!mapInstanceRef.current || !markerClusterGroupRef.current || !restaurants.length) return;
-
     const markerClusterGroup = markerClusterGroupRef.current;
-    
     // Clear existing markers
     markerClusterGroup.clearLayers();
-
-    console.log(`Adding ${restaurants.length} restaurants to cluster`);
-
     restaurants.forEach((restaurant) => {
       const lat = parseFloat(restaurant.latitude);
       const lng = parseFloat(restaurant.longitude);
-      
       if (isNaN(lat) || isNaN(lng)) return;
-      
       const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
-      
       // Create green restaurant marker with vegan score
       const displayScore = veganScore > 0 ? veganScore.toFixed(1) : '?';
-      
       const restaurantIcon = L.divIcon({
         className: 'restaurant-marker-leaflet',
         html: `
@@ -167,28 +142,22 @@ export default function Map({ center, restaurants, onRestaurantClick, loading }:
         iconSize: [24, 24],
         iconAnchor: [12, 12],
       });
-
       const marker = L.marker([lat, lng], { 
         icon: restaurantIcon,
         riseOnHover: true
       });
-
       marker.on('click', (e) => {
-        console.log('Map marker clicked:', restaurant.name);
         onRestaurantClick(restaurant, e);
       });
-
       markerClusterGroup.addLayer(marker);
     });
   };
-
   // Update markers when restaurants data changes
   useEffect(() => {
     if (restaurants.length > 0) {
       updateRestaurantMarkers();
     }
   }, [restaurants]);
-
   return (
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full map-container" />

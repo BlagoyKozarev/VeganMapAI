@@ -233,21 +233,21 @@ export class DatabaseStorage implements IStorage {
       queryBuilder = queryBuilder.where(
         sql`LOWER(${restaurants.name}) LIKE LOWER(${'%' + query + '%'}) OR 
             LOWER(${restaurants.address}) LIKE LOWER(${'%' + query + '%'})`
-      );
+      ) as any;
     }
     
     if (filters?.minVeganScore) {
-      queryBuilder = queryBuilder.where(sql`${restaurants.veganScore} >= ${filters.minVeganScore}`);
+      queryBuilder = queryBuilder.where(sql`${restaurants.veganScore} >= ${filters.minVeganScore}`) as any;
     }
     
     if (filters?.priceRange && filters.priceRange.length > 0) {
-      queryBuilder = queryBuilder.where(inArray(restaurants.priceLevel, filters.priceRange));
+      queryBuilder = queryBuilder.where(inArray(restaurants.priceLevel, filters.priceRange)) as any;
     }
     
     if (filters?.cuisineTypes && filters.cuisineTypes.length > 0) {
       queryBuilder = queryBuilder.where(
         sql`${restaurants.cuisineTypes} && ${filters.cuisineTypes}`
-      );
+      ) as any;
     }
     
     return await queryBuilder.orderBy(desc(restaurants.veganScore));
