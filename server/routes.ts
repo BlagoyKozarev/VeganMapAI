@@ -189,7 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filters = {
         minVeganScore: minScore ? parseFloat(minScore as string) : undefined,
         maxDistance: maxDistance ? parseFloat(maxDistance as string) : undefined,
-        priceRange: priceRange as string,
+        priceRange: priceRange ? [priceRange as string] : undefined,
         cuisineTypes: cuisineTypes ? (cuisineTypes as string).split(',') : undefined,
         limit: limit ? parseInt(limit as string) : undefined
       };

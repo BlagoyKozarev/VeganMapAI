@@ -9,6 +9,7 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import ProfileSetup from "@/pages/profile-setup";
 import Search from "@/pages/search";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import RestaurantDetail from "@/pages/restaurant-detail";
 import Profile from "@/pages/profile";
@@ -66,12 +67,14 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
