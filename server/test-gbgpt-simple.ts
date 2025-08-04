@@ -34,7 +34,8 @@ export async function testGBGPTConnection() {
     return { success: true, data };
     
   } catch (error) {
-    console.error('❌ GBGPT Test Failed:', error.message);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('❌ GBGPT Test Failed:', errorMessage);
+    return { success: false, error: errorMessage };
   }
 }
