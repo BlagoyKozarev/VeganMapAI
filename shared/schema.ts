@@ -76,6 +76,7 @@ export const restaurants = pgTable("restaurants", {
   reviewCount: integer("review_count").default(0),
   veganScore: decimal("vegan_score", { precision: 3, scale: 2 }),
   isVerified: boolean("is_verified").default(false),
+  geoHash: varchar("geo_hash"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -636,6 +636,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // OpenAI TTS endpoint
   app.post('/api/tts', isAuthenticated, ttsHandler);
 
+  // Google Maps Optimization Routes
+  app.get('/api/maps/cost-report', isAuthenticated, async (req: any, res) => {
+    try {
+      const { getCostReport, isEmergencyMode } = await import('./services/googleMapsService');
+      const report = getCostReport();
+      res.json({
+        ...report,
+        emergencyMode: isEmergencyMode()
+      });
+    } catch (error: any) {
+      console.error('Error getting cost report:', error);
+      res.status(500).json({ message: 'Failed to get cost report', error: error.message });
+    }
+  });
+
+  app.get('/api/maps/restaurants-viewport', async (req: any, res) => {
+    try {
+      const { north, south, east, west, maxResults = '100' } = req.query;
+      
+      if (!north || !south || !east || !west) {
+        return res.status(400).json({ message: 'Missing viewport bounds' });
+      }
+      
+      const bounds = {
+        north: parseFloat(north as string),
+        south: parseFloat(south as string),
+        east: parseFloat(east as string),
+        west: parseFloat(west as string)
+      };
+      
+      const { getRestaurantsInViewport } = await import('./services/googleMapsService');
+      const restaurants = await getRestaurantsInViewport(bounds, parseInt(maxResults as string));
+      
+      res.json(restaurants);
+    } catch (error: any) {
+      console.error('Error getting viewport restaurants:', error);
+      res.status(500).json({ message: 'Failed to get restaurants', error: error.message });
+    }
+  });
+
+  app.post('/api/maps/bulk-populate-us', isAuthenticated, async (req: any, res) => {
+    try {
+      // Only allow admin users to run bulk population
+      const userEmail = req.user?.email || '';
+      if (!userEmail.includes('@veganmapai.com') && !userEmail.includes('@raicommerce.net')) {
+        return res.status(403).json({ message: 'Unauthorized - admin only' });
+      }
+      
+      const { bulkPopulateUSRestaurants } = await import('./services/googleMapsService');
+      
+      // Start bulk population in background
+      bulkPopulateUSRestaurants().catch(console.error);
+      
+      res.json({ 
+        message: 'Bulk population started in background. This will take several hours.',
+        warning: 'Monitor /api/maps/cost-report for progress and costs'
+      });
+    } catch (error: any) {
+      console.error('Error starting bulk population:', error);
+      res.status(500).json({ message: 'Failed to start bulk population', error: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
