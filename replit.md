@@ -51,6 +51,13 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Recent Commits**: Regular documentation updates, deployment fixes, code quality improvements
 - **Deployment Branch**: Production deployments use main branch after successful build verification
 
+## GBGPT Integration Status (Feb 4, 2025)
+- **GBGPT Discovery**: Found GBGPT running on Gradio/FastAPI framework at https://3b450695e391.ngrok-free.app
+- **Authentication**: Uses Basic Auth (Raicommerce:R@icommerce23) but requires additional Gradio session handling
+- **API Structure**: Not OpenAI-compatible - uses Gradio's `/api/{api_name}` pattern instead of standard LLM endpoints
+- **Current Status**: Integration postponed - needs Gradio-specific implementation
+- **Fallback**: Continuing with OpenAI API for restaurant scoring until GBGPT provides standard API endpoints
+
 ## System Architecture
 
 ### Frontend Architecture
