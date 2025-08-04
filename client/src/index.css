@@ -118,6 +118,36 @@
 }
 
 @layer utilities {
+  /* Safe area padding for mobile devices */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  /* Prevent iOS zoom on input focus */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+  
+  /* Touch-friendly tap highlights */
+  .touch-manipulation {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Mobile-optimized scrolling */
+  .overflow-scrolling-touch {
+    -webkit-overflow-scrolling: touch;
+  }
+  
   .bg-vegan-green {
     background-color: var(--vegan-green);
   }

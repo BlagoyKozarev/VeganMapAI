@@ -169,7 +169,7 @@ export default function Home() {
     getCurrentPosition();
   };
   const handleRestaurantClick = (restaurant: any, event?: any) => {
-    setSelectedRestaurant(restaurant);
+    setSelectedRestaurant({ ...restaurant, geoHash: restaurant.geoHash || null });
     setShowDropdown(true);
   };
   const handleNavigate = () => {

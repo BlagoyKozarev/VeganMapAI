@@ -16,14 +16,14 @@ export default function TabNavigation({ currentTab }: TabNavigationProps) {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30">
-      <div className="flex items-center justify-around py-3">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 pb-safe">
+      <div className="flex items-center justify-around py-1">
         {tabs.map((tab) => (
           <Button
             key={tab.id}
             variant="ghost"
             onClick={() => setLocation(tab.path)}
-            className={`flex flex-col items-center py-2 px-4 transition-colors ${
+            className={`flex flex-col items-center py-3 px-2 transition-colors min-h-[64px] min-w-[64px] flex-1 ${
               currentTab === tab.id
                 ? 'text-vegan-green'
                 : 'text-neutral-gray hover:text-vegan-green'
