@@ -1,5 +1,6 @@
 import { Client } from '@googlemaps/google-maps-services-js';
 import OpenAI from 'openai';
+import { AI_CONFIG } from '../config/aiConfig';
 
 const googleMapsClient = new Client();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -135,6 +136,32 @@ export class ScoreAgent {
    * Use AI to analyze vegan-friendliness
    */
   private async analyzeVeganFriendliness(restaurantData: any): Promise<VeganScoreResult> {
+    // Try GBGPT first if enabled
+    if (AI_CONFIG.GBGPT_ENABLED && AI_CONFIG.GBGPT_ENDPOINT) {
+      try {
+        console.log('🔄 Using GBGPT for scoring...');
+        return await this.scoreWithGBGPT(restaurantData);
+      } catch (error) {
+        console.warn('⚠️ GBGPT failed, falling back to OpenAI:', error instanceof Error ? error.message : String(error));
+      }
+    }
+    
+    // Fallback to OpenAI (existing logic)
+    return await this.scoreWithOpenAI(restaurantData);
+  }
+
+  /**
+   * Score restaurant using GBGPT
+   */
+  private async scoreWithGBGPT(restaurantData: any): Promise<VeganScoreResult> {
+    // TODO: Ще се имплементира когато имаме ngrok URL
+    throw new Error('GBGPT endpoint not configured');
+  }
+
+  /**
+   * Score restaurant using OpenAI
+   */
+  private async scoreWithOpenAI(restaurantData: any): Promise<VeganScoreResult> {
     const reviewText = restaurantData.reviews.length > 0 
       ? restaurantData.reviews.map((review: any, index: number) => 
           `${index + 1}. "${review.text}" (Rating: ${review.rating}/5)`
