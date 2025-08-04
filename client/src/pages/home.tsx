@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import Map from '@/components/map/Map';
+import OptimizedLeafletMap from '@/components/map/OptimizedLeafletMap';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
 import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
@@ -396,14 +396,22 @@ export default function Home() {
       </div>
       {/* Simple Map Container */}
       <div className="w-full h-full relative">
-        <Map
+        <OptimizedLeafletMap
           center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
-          restaurants={filteredRestaurants}
-          onRestaurantClick={handleRestaurantClick}
-          onLocationChange={() => {
-            // Map center is managed internally by Leaflet
+          restaurants={filteredRestaurants.map(r => ({
+            ...r,
+            latitude: parseFloat(r.latitude),
+            longitude: parseFloat(r.longitude),
+            veganScore: r.veganScore || '0'
+          }))}
+          onRestaurantClick={(restaurant) => {
+            // Convert back to original format for compatibility
+            const originalRestaurant = filteredRestaurants.find(r => r.id === restaurant.id);
+            if (originalRestaurant) {
+              handleRestaurantClick(originalRestaurant);
+            }
           }}
-          loading={restaurantsLoading}
+          searchQuery={searchQuery}
         />
         {/* Mobile Panels */}
         {isMobile && (
