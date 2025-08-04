@@ -56,7 +56,8 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Authentication**: Uses Basic Auth (Raicommerce:R@icommerce23) but requires additional Gradio session handling
 - **API Structure**: Not OpenAI-compatible - uses Gradio's `/api/{api_name}` pattern instead of standard LLM endpoints
 - **Current Status**: Integration postponed - needs Gradio-specific implementation
-- **Fallback**: Continuing with OpenAI API for restaurant scoring until GBGPT provides standard API endpoints
+- **Decision**: Credentials saved for future use, continuing with OpenAI API for now
+- **Future Plan**: Will integrate GBGPT when more time and users available
 
 ## System Architecture
 
