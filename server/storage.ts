@@ -7,6 +7,8 @@ import {
   userVisits,
   chatSessions,
   userAnalytics,
+  voiceUsage,
+  voiceSessions,
   type User,
   type UpsertUser,
   type UserProfile,
@@ -23,6 +25,10 @@ import {
   type InsertChatSession,
   type UserAnalytics,
   type InsertUserAnalytics,
+  type VoiceUsage,
+  type InsertVoiceUsage,
+  type VoiceSession,
+  type InsertVoiceSession,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, sql, inArray } from "drizzle-orm";
@@ -71,6 +77,14 @@ export interface IStorage {
   // Analytics operations
   addUserAnalytics(analytics: InsertUserAnalytics): Promise<UserAnalytics>;
   getUserAnalytics(userId: string, limit?: number): Promise<UserAnalytics[]>;
+  
+  // Voice usage operations
+  getVoiceUsageForToday(userId: string): Promise<VoiceUsage | undefined>;
+  createVoiceUsage(usage: InsertVoiceUsage): Promise<VoiceUsage>;
+  updateVoiceUsage(id: string, usage: Partial<InsertVoiceUsage>): Promise<VoiceUsage>;
+  createVoiceSession(session: InsertVoiceSession): Promise<VoiceSession>;
+  updateVoiceSession(id: string, session: Partial<InsertVoiceSession>): Promise<VoiceSession>;
+  getActiveVoiceSession(userId: string): Promise<VoiceSession | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -397,6 +411,65 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userAnalytics.userId, userId))
       .orderBy(desc(userAnalytics.timestamp))
       .limit(limit);
+  }
+  
+  // Voice usage operations
+  async getVoiceUsageForToday(userId: string): Promise<VoiceUsage | undefined> {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const [usage] = await db
+      .select()
+      .from(voiceUsage)
+      .where(and(
+        eq(voiceUsage.userId, userId),
+        eq(voiceUsage.date, today)
+      ));
+    return usage;
+  }
+  
+  async createVoiceUsage(usage: InsertVoiceUsage): Promise<VoiceUsage> {
+    const [created] = await db
+      .insert(voiceUsage)
+      .values(usage)
+      .returning();
+    return created;
+  }
+  
+  async updateVoiceUsage(id: string, usage: Partial<InsertVoiceUsage>): Promise<VoiceUsage> {
+    const [updated] = await db
+      .update(voiceUsage)
+      .set({ ...usage, updatedAt: new Date() })
+      .where(eq(voiceUsage.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async createVoiceSession(session: InsertVoiceSession): Promise<VoiceSession> {
+    const [created] = await db
+      .insert(voiceSessions)
+      .values(session)
+      .returning();
+    return created;
+  }
+  
+  async updateVoiceSession(id: string, session: Partial<InsertVoiceSession>): Promise<VoiceSession> {
+    const [updated] = await db
+      .update(voiceSessions)
+      .set(session)
+      .where(eq(voiceSessions.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async getActiveVoiceSession(userId: string): Promise<VoiceSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(voiceSessions)
+      .where(and(
+        eq(voiceSessions.userId, userId),
+        sql`${voiceSessions.endTime} IS NULL`
+      ))
+      .orderBy(desc(voiceSessions.startTime));
+    return session;
   }
 }
 

@@ -1,21 +1,110 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Square } from 'lucide-react';
+import { Mic, MicOff, Square, AlertTriangle } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { VOICE_SESSION_LIMITS } from '@shared/voice-limits';
+import type { VoiceLimitStatus } from '@shared/voice-limits';
+
 interface VoiceAssistantProps {
   onTranscription?: (text: string) => void;
   onResponse?: (response: string) => void;
 }
+
 export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAssistantProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastTranscription, setLastTranscription] = useState('');
   const [lastResponse, setLastResponse] = useState('');
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [voiceLimits, setVoiceLimits] = useState<VoiceLimitStatus | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const sessionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  // Check voice limits on mount
+  useEffect(() => {
+    checkVoiceLimits();
+  }, []);
+
+  // Check for warnings during active session
+  useEffect(() => {
+    if (currentSessionId && isRecording) {
+      const warningInterval = setInterval(async () => {
+        try {
+          const response = await fetch('/api/voice/warning-status', {
+            credentials: 'include'
+          });
+          const data = await response.json();
+          if (data.shouldWarn && !showLimitWarning) {
+            setShowLimitWarning(true);
+            await fetch('/api/voice/mark-warning-shown', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionId: currentSessionId }),
+              credentials: 'include'
+            });
+          }
+        } catch (error) {
+          console.error('Error checking warning status:', error);
+        }
+      }, 5000); // Check every 5 seconds
+
+      return () => clearInterval(warningInterval);
+    }
+  }, [currentSessionId, isRecording, showLimitWarning]);
+
+  const checkVoiceLimits = async () => {
+    try {
+      const response = await fetch('/api/voice/limits', {
+        credentials: 'include'
+      });
+      const limits = await response.json();
+      setVoiceLimits(limits);
+    } catch (error) {
+      console.error('Error checking voice limits:', error);
+    }
+  };
+
+  const startVoiceSession = async () => {
+    try {
+      const response = await fetch('/api/voice/start-session', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      setCurrentSessionId(data.sessionId);
+      return data.sessionId;
+    } catch (error: any) {
+      toast({
+        title: "Лимит достигнат",
+        description: error.message || "Не можете да използвате гласовия асистент в момента.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const endVoiceSession = async (sessionId: string, endReason?: string) => {
+    try {
+      await fetch('/api/voice/end-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, endReason }),
+        credentials: 'include'
+      });
+      setCurrentSessionId(null);
+      setShowLimitWarning(false);
+      // Refresh limits after session ends
+      await checkVoiceLimits();
+    } catch (error) {
+      console.error('Error ending voice session:', error);
+    }
+  };
+
   const requestMicrophonePermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -33,10 +122,35 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
     }
   };
   const startRecording = async () => {
+    // Check voice limits first
+    if (voiceLimits && !voiceLimits.canUseVoice) {
+      if (voiceLimits.cooldownEndsAt) {
+        const cooldownTime = new Date(voiceLimits.cooldownEndsAt);
+        const minutesLeft = Math.ceil((cooldownTime.getTime() - Date.now()) / 1000 / 60);
+        toast({
+          title: "Изчакайте малко",
+          description: `Можете да използвате гласовия асистент отново след ${minutesLeft} минути.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Дневен лимит достигнат",
+          description: "Вашият дневен лимит за гласов асистент е изчерпан. Опитайте отново утре.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
     if (!permissionGranted) {
       const granted = await requestMicrophonePermission();
       if (!granted) return;
     }
+
+    // Start voice session
+    const sessionId = await startVoiceSession();
+    if (!sessionId) return;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -61,16 +175,30 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
         await processAudio(audioBlob);
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
+        // End voice session
+        if (currentSessionId) {
+          await endVoiceSession(currentSessionId, 'user_ended');
+        }
       };
       mediaRecorder.start();
       setIsRecording(true);
-      // Auto-stop after 8 seconds for optimal Whisper processing
-      setTimeout(() => {
+      
+      // Set up auto-stop based on remaining session time
+      const maxRecordingTime = Math.min(
+        8000, // 8 seconds for optimal Whisper processing
+        (voiceLimits?.remainingSessionMinutes || 8) * 60 * 1000
+      );
+      
+      sessionTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           stopRecording();
         }
-      }, 8000);
+      }, maxRecordingTime);
     } catch (error) {
+      // Clean up session on error
+      if (sessionId) {
+        await endVoiceSession(sessionId, 'error');
+      }
       toast({
         title: "Грешка при записването",
         description: "Не може да се достъпи микрофонът. Проверете настройките.",
@@ -82,6 +210,10 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+    }
+    if (sessionTimerRef.current) {
+      clearTimeout(sessionTimerRef.current);
+      sessionTimerRef.current = null;
     }
   };
   const processAudio = async (audioBlob: Blob) => {
@@ -146,9 +278,46 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
   const ButtonIcon = buttonState.icon;
   return (
     <div className="flex flex-col items-center space-y-4 p-4">
+      {/* Voice limits information */}
+      {voiceLimits && (
+        <div className="w-full max-w-md space-y-2">
+          <div className="text-center text-sm text-muted-foreground">
+            <span className="font-medium">
+              {voiceLimits.userType === 'PAID' ? 'Платен план' : 'Безплатен план'}
+            </span>
+            {voiceLimits.canUseVoice && (
+              <span className="ml-2">
+                • Оставащо време: {Math.floor(voiceLimits.remainingDailyMinutes)} мин днес
+              </span>
+            )}
+          </div>
+          
+          {showLimitWarning && (
+            <Alert className="bg-orange-50 dark:bg-orange-900/20 border-orange-200">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-800 dark:text-orange-200">
+                Приближавате лимита си! Оставащо време за сесия: {Math.ceil(voiceLimits.remainingSessionMinutes)} минути
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {voiceLimits.cooldownEndsAt && (
+            <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200">
+              <AlertDescription className="text-blue-800 dark:text-blue-200">
+                Можете да използвате гласовия асистент отново след {' '}
+                {new Date(voiceLimits.cooldownEndsAt).toLocaleTimeString('bg-BG', { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      )}
+
       <Button
         onClick={isRecording ? stopRecording : startRecording}
-        disabled={isProcessing}
+        disabled={isProcessing || (voiceLimits ? !voiceLimits.canUseVoice : false)}
         variant={buttonState.variant}
         size="lg"
         className="flex items-center space-x-2 px-6 py-3"
@@ -156,6 +325,7 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
         <ButtonIcon className="w-5 h-5" />
         <span>{buttonState.text}</span>
       </Button>
+      
       {lastTranscription && (
         <div className="w-full max-w-md space-y-2">
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -174,9 +344,15 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
           )}
         </div>
       )}
+      
       <div className="text-xs text-muted-foreground text-center max-w-xs">
         Натиснете бутона и говорете до 8 секунди. 
         Асистентът ще отговори на български език.
+        {voiceLimits && voiceLimits.userType === 'FREE' && (
+          <div className="mt-1">
+            Безплатен план: {voiceLimits.remainingDailyMinutes}/{VOICE_SESSION_LIMITS.FREE_USERS.dailyMinutes} мин на ден
+          </div>
+        )}
       </div>
     </div>
   );

@@ -146,6 +146,33 @@ export const scoringWeights = pgTable("scoring_weights", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// Voice usage tracking
+export const voiceUsage = pgTable("voice_usage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  date: varchar("date").notNull(), // YYYY-MM-DD format
+  totalMinutes: decimal("total_minutes", { precision: 5, scale: 2 }).notNull().default("0.00"),
+  sessionCount: integer("session_count").notNull().default(0),
+  lastSessionStart: timestamp("last_session_start"),
+  lastSessionEnd: timestamp("last_session_end"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Voice session details
+export const voiceSessions = pgTable("voice_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  voiceUsageId: varchar("voice_usage_id").notNull().references(() => voiceUsage.id, { onDelete: 'cascade' }),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  durationMinutes: decimal("duration_minutes", { precision: 5, scale: 2 }),
+  userType: varchar("user_type").notNull().default('FREE'), // FREE or PAID
+  wasWarningShown: boolean("was_warning_shown").notNull().default(false),
+  endReason: varchar("end_reason"), // 'user_ended', 'limit_reached', 'error', 'fallback_to_text'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
   id: true,
@@ -190,6 +217,17 @@ export const insertScoringWeightsSchema = createInsertSchema(scoringWeights).omi
   updatedAt: true,
 });
 
+export const insertVoiceUsageSchema = createInsertSchema(voiceUsage).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertVoiceSessionSchema = createInsertSchema(voiceSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -202,6 +240,8 @@ export type UserVisit = typeof userVisits.$inferSelect;
 export type ChatSession = typeof chatSessions.$inferSelect;
 export type UserAnalytics = typeof userAnalytics.$inferSelect;
 export type ScoringWeights = typeof scoringWeights.$inferSelect;
+export type VoiceUsage = typeof voiceUsage.$inferSelect;
+export type VoiceSession = typeof voiceSessions.$inferSelect;
 
 // Insert types
 export type InsertRestaurant = z.infer<typeof insertRestaurantSchema>;
@@ -212,6 +252,8 @@ export type InsertUserVisit = z.infer<typeof insertUserVisitSchema>;
 export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
 export type InsertUserAnalytics = z.infer<typeof insertUserAnalyticsSchema>;
 export type InsertScoringWeights = z.infer<typeof insertScoringWeightsSchema>;
+export type InsertVoiceUsage = z.infer<typeof insertVoiceUsageSchema>;
+export type InsertVoiceSession = z.infer<typeof insertVoiceSessionSchema>;
 
 // Additional types for frontend
 export interface SearchFilters {

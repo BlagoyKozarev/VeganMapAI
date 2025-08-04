@@ -357,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           crossContamination: scoreResult.breakdown.crossContamination.toString(),
           nutritionalInfo: scoreResult.breakdown.nutritionalInfo.toString(),
           allergenManagement: scoreResult.breakdown.allergenManagement.toString(),
-          overallScore: scoreResult.overallScore
+          overallScore: scoreResult.overallScore.toString()
         });
 
         // Update restaurant with new score
@@ -448,7 +448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 crossContamination: scoreResult.breakdown.crossContamination.toString(),
                 nutritionalInfo: scoreResult.breakdown.nutritionalInfo.toString(),
                 allergenManagement: scoreResult.breakdown.allergenManagement.toString(),
-                overallScore: scoreResult.overallScore
+                overallScore: scoreResult.overallScore.toString()
               });
 
               await storage.updateRestaurant(id, {
@@ -484,6 +484,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in batch scoring:", error);
       res.status(500).json({ message: "Failed to process batch scoring" });
+    }
+  });
+
+  // Voice usage endpoints
+  app.get('/api/voice/limits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { voiceUsageService } = await import('./services/voiceUsageService');
+      const limits = await voiceUsageService.checkVoiceLimits(userId);
+      res.json(limits);
+    } catch (error) {
+      console.error("Error checking voice limits:", error);
+      res.status(500).json({ message: "Failed to check voice limits" });
+    }
+  });
+
+  app.post('/api/voice/start-session', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { voiceUsageService } = await import('./services/voiceUsageService');
+      const sessionId = await voiceUsageService.startVoiceSession(userId);
+      res.json({ sessionId });
+    } catch (error: any) {
+      console.error("Error starting voice session:", error);
+      res.status(400).json({ message: error.message || "Failed to start voice session" });
+    }
+  });
+
+  app.post('/api/voice/end-session', isAuthenticated, async (req: any, res) => {
+    try {
+      const { sessionId, endReason } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ message: "Session ID is required" });
+      }
+      
+      const { voiceUsageService } = await import('./services/voiceUsageService');
+      await voiceUsageService.endVoiceSession(sessionId, endReason);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error ending voice session:", error);
+      res.status(500).json({ message: "Failed to end voice session" });
+    }
+  });
+
+  app.get('/api/voice/warning-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { voiceUsageService } = await import('./services/voiceUsageService');
+      const shouldWarn = await voiceUsageService.shouldShowWarning(userId);
+      res.json({ shouldWarn });
+    } catch (error) {
+      console.error("Error checking warning status:", error);
+      res.status(500).json({ message: "Failed to check warning status" });
+    }
+  });
+
+  app.post('/api/voice/mark-warning-shown', isAuthenticated, async (req: any, res) => {
+    try {
+      const { sessionId } = req.body;
+      if (!sessionId) {
+        return res.status(400).json({ message: "Session ID is required" });
+      }
+      
+      const { voiceUsageService } = await import('./services/voiceUsageService');
+      await voiceUsageService.markWarningShown(sessionId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking warning shown:", error);
+      res.status(500).json({ message: "Failed to mark warning shown" });
     }
   });
 
