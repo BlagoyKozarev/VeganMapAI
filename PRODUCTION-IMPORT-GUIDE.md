@@ -1,56 +1,126 @@
-# 📥 Production Database Import Guide
+# 📚 VeganMapAI Production Database Import Guide
 
-## Current Status
-- **Development DB**: 408 restaurants ✅
-- **Production DB**: 0 restaurants ❌
-- **Export File**: `restaurants-export.json` (ready) ✅
+## Overview
+This guide helps you import 408 restaurants and 201 vegan scores into your production PostgreSQL database.
 
-## Why I Can't Import Directly
-I'm running in the development environment and cannot access your production database directly for security reasons. You need to run the import yourself with the production credentials.
+## Prerequisites
+- Access to production DATABASE_URL
+- PostgreSQL client (`psql`) installed
+- Fixed SQL file: `production-import-fixed.sql`
 
-## Option 1: Quick Shell Script (Recommended)
-Run this command in the Shell:
+## Import Methods
+
+### Method 1: Automated Script (Recommended)
 ```bash
-./import-to-production.sh
+./production-import-psql.sh
 ```
-The script will:
-1. Ask for your production DATABASE_URL
-2. Show what will be imported
-3. Run the import to production
 
-## Option 2: Manual Import Command
-1. Get your production DATABASE_URL:
-   - Go to **Deployments** tab
-   - Click your deployment
-   - Go to **Environment Variables**
-   - Copy the `DATABASE_URL`
+This script will:
+1. Validate your DATABASE_URL
+2. Test database connection
+3. Check existing data
+4. Run the import
+5. Verify results
 
-2. Run in Shell:
+### Method 2: Direct psql Command
 ```bash
-NODE_ENV=production DATABASE_URL="paste-your-url-here" tsx import-restaurants.ts
+# Using environment variable
+psql $DATABASE_URL -f production-import-fixed.sql
+
+# Or with direct URL
+psql 'postgresql://user:pass@host/db?sslmode=require' -f production-import-fixed.sql
 ```
 
-## Option 3: Database Pane (Visual)
-1. Open **Database** pane (left sidebar)
-2. Switch to **Production** database
-3. Use the import feature
-4. Select `restaurants-export.json`
+### Method 3: Manual via Neon Dashboard
+1. Go to https://console.neon.tech
+2. Open your production database
+3. Navigate to SQL Editor
+4. Copy contents of `production-import-fixed.sql`
+5. Paste and execute
 
-## What Happens After Import
-- Map will show 354 restaurants immediately
-- All vegan scores will be active
-- Users can browse without login
-- Site will work properly
+## Database URL Format
+```
+postgresql://[user]:[password]@[host]:[port]/[database]?sslmode=require
+```
 
-## Verification
-After import, check:
+Example:
+```
+postgresql://neondb_owner:npg_ABC123@ep-name.region.aws.neon.tech/neondb?sslmode=require
+```
+
+## Finding Your Production DATABASE_URL
+
+### Option 1: Replit Deployments
+1. Open Deployments tab
+2. Click on your deployment
+3. Go to Environment Variables
+4. Copy DATABASE_URL value
+
+### Option 2: Neon Dashboard
+1. Login to console.neon.tech
+2. Select your project
+3. Go to Connection Details
+4. Copy connection string
+
+### Option 3: Ask Support
+Email support@replit.com if you cannot find your production DATABASE_URL
+
+## Verification Queries
+
+After import, verify your data:
+
 ```bash
-curl https://vegan-map-ai-bkozarev.replit.app/api/restaurants/public/map-data
-```
-Should show: `"count": 354` (not 0)
+# Count restaurants
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM restaurants;"
+# Expected: 408
 
-## Need Help?
-The production DATABASE_URL looks like:
+# Count vegan scores
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM vegan_score_breakdown;"
+# Expected: 201
+
+# Check sample data
+psql $DATABASE_URL -c "SELECT name, vegan_score FROM restaurants LIMIT 5;"
 ```
-postgresql://username:password@host.neon.tech/database_name
-```
+
+## Troubleshooting
+
+### Connection Errors
+- Verify DATABASE_URL format
+- Check network connectivity
+- Ensure SSL mode is set (`?sslmode=require`)
+
+### Import Errors
+- Check for SQL syntax errors
+- Verify table structure matches
+- Look for constraint violations
+
+### Data Mismatch
+- Run DELETE statements first to clear old data
+- Check for duplicate key errors
+- Verify source data integrity
+
+## Error Messages
+
+| Error | Solution |
+|-------|----------|
+| `psql: command not found` | Install PostgreSQL client |
+| `FATAL: password authentication failed` | Check DATABASE_URL credentials |
+| `SSL connection is required` | Add `?sslmode=require` to URL |
+| `duplicate key value` | Clear existing data first |
+| `relation does not exist` | Database schema not initialized |
+
+## Next Steps
+
+After successful import:
+1. Visit your production site
+2. Verify map shows restaurants
+3. Test search functionality
+4. Check vegan scores display
+
+## Support
+
+If you encounter issues:
+1. Check error logs
+2. Verify DATABASE_URL
+3. Contact support@replit.com
+4. Post on ask.replit.com
