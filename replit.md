@@ -38,7 +38,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 ### Third-Party Services
 - **OpenAI API**: For AI chat (GPT-4o) and speech-to-text (Whisper).
 - **Google Maps API**: For restaurant data and location services.
-- **Neon Database**: PostgreSQL hosting.
+- **Replit PostgreSQL**: Built-in database hosting with 408 pre-loaded restaurants (as of August 5, 2025).
 
 ### Key Libraries
 - **Database**: Drizzle ORM.

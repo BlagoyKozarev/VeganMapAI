@@ -2,7 +2,6 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
-import { getProductionDatabaseUrl } from './production-db-fix.js';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -12,7 +11,5 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Use the fixed DATABASE_URL for production
-const databaseUrl = getProductionDatabaseUrl();
-export const pool = new Pool({ connectionString: databaseUrl });
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
