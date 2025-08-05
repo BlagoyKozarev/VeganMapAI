@@ -15,7 +15,8 @@ export async function initializeDatabase() {
       const exportPath = path.join(process.cwd(), 'restaurants-export.json');
       
       if (fs.existsSync(exportPath)) {
-        const data = JSON.parse(fs.readFileSync(exportPath, 'utf-8'));
+        const fileContent = JSON.parse(fs.readFileSync(exportPath, 'utf-8'));
+        const data = fileContent.restaurants || fileContent; // Handle wrapped data
         console.log(`📥 Loading ${data.length} restaurants...`);
         
         // Insert in batches to avoid timeout
