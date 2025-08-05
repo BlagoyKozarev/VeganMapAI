@@ -55,12 +55,13 @@ export default function Home() {
     { lat: parseFloat(customLat), lng: parseFloat(customLng) } : 
     position;
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
-    queryKey: ['/api/restaurants/all-available'],
+    queryKey: ['/api/restaurants/public/map-data'],
     queryFn: async () => {
-      const response = await fetch('/api/restaurants/all-available');
+      const response = await fetch('/api/restaurants/public/map-data');
       if (!response.ok) throw new Error('Failed to fetch restaurants');
       const data = await response.json();
-      return data;
+      // Handle both direct array response and wrapped response
+      return data.restaurants || data;
     },
   });
   // Handle restaurant selection from URL

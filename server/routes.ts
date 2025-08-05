@@ -126,6 +126,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PUBLIC endpoint for map data (no authentication required)
+  app.get('/api/restaurants/public/map-data', async (req, res) => {
+    try {
+      console.log('Public map data request received');
+      
+      // Get all restaurants with scores for public viewing
+      const restaurants = await storage.getAllRestaurantsWithScores();
+      
+      // Return limited data for public access (essential fields only)
+      const publicData = restaurants.map(restaurant => ({
+        id: restaurant.id,
+        name: restaurant.name,
+        latitude: restaurant.latitude,
+        longitude: restaurant.longitude,
+        veganScore: restaurant.veganScore,
+        cuisineTypes: restaurant.cuisineTypes,
+        rating: restaurant.rating,
+        priceLevel: restaurant.priceLevel,
+        address: restaurant.address
+      }));
+      
+      console.log(`Returning ${publicData.length} restaurants for public map view`);
+      
+      res.json({
+        success: true,
+        restaurants: publicData,
+        count: publicData.length,
+        public: true
+      });
+      
+    } catch (error) {
+      console.error('Public map data error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch restaurant data',
+        restaurants: []
+      });
+    }
+  });
+
   app.get('/api/restaurants/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
