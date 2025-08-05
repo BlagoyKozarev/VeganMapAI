@@ -11,6 +11,8 @@ import { MobileHeader } from '@/components/mobile/MobileHeaderClean';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { FilterModal } from '@/components/filters/FilterModal';
 import { FilterOptions } from '@/components/filters/RestaurantFilters';
+import { AISearchModal } from '@/components/ai/AISearchModal';
+import { Bot } from 'lucide-react';
 interface Restaurant {
   id: string;
   name: string;
@@ -53,6 +55,8 @@ export default function Home() {
     priceLevel: 'all',
     maxDistance: 10
   });
+  const [showAISearch, setShowAISearch] = useState(false);
+  const [aiHighlightedRestaurants, setAiHighlightedRestaurants] = useState<Set<number>>(new Set());
   // Check URL parameters for custom location and restaurant selection
   const urlParams = new URLSearchParams(window.location.search);
   const customLat = urlParams.get('lat');
@@ -258,6 +262,25 @@ export default function Home() {
   const handleCloseDropdown = () => {
     setShowDropdown(false);
   };
+
+  const handleAISearchResults = (results: any[]) => {
+    // Highlight AI-suggested restaurants
+    const highlightedIds = new Set(results.map(r => r.id));
+    setAiHighlightedRestaurants(highlightedIds);
+    
+    // Clear search to show all restaurants with highlights
+    setSearchQuery('');
+    
+    // Optionally zoom to show all AI results
+    if (results.length > 0) {
+      // Calculate bounds for all AI results
+      const bounds: [[number, number], [number, number]] = [
+        [Math.min(...results.map(r => parseFloat(r.latitude))), Math.min(...results.map(r => parseFloat(r.longitude)))],
+        [Math.max(...results.map(r => parseFloat(r.latitude))), Math.max(...results.map(r => parseFloat(r.longitude)))]
+      ];
+      // This will be handled by the map component if it supports bounds
+    }
+  };
   const handleCloseModal = () => {
     setShowRestaurantModal(false);
     setSelectedRestaurant(null);
@@ -412,6 +435,16 @@ export default function Home() {
           </div>
           {/* Enhanced Right Icons */}
           <div className="flex items-center ml-2 sm:ml-3 space-x-1 sm:space-x-2">
+            {/* AI Search Button - Desktop */}
+            <Button
+              onClick={() => setShowAISearch(true)}
+              variant="outline"
+              className="hidden sm:flex bg-white hover:bg-gray-50 border-gray-300 text-gray-700 font-medium shadow-sm hover:shadow-md transition-all duration-200 mr-2"
+            >
+              <Bot className="w-4 h-4 mr-2" />
+              AI Search
+            </Button>
+            
             {/* Filter Button - Desktop */}
             <div className="relative hidden sm:block mr-2">
               <FilterModal
@@ -732,6 +765,26 @@ export default function Home() {
           />
         </div>
       )}
+      
+      {/* Mobile AI Search Button */}
+      {isMobile && (
+        <div className="fixed bottom-40 right-4 z-[999]">
+          <Button
+            onClick={() => setShowAISearch(true)}
+            className="w-14 h-14 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center active:scale-95"
+            style={{ touchAction: 'manipulation' }}
+          >
+            <Bot className="w-6 h-6 text-white" />
+          </Button>
+        </div>
+      )}
+      
+      {/* AI Search Modal */}
+      <AISearchModal
+        isOpen={showAISearch}
+        onClose={() => setShowAISearch(false)}
+        onSearchResults={handleAISearchResults}
+      />
       </div>
     </>
   );

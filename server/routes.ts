@@ -24,6 +24,7 @@ import { ttsHandler } from "./api/tts";
 
 import { insertUserProfileSchema, insertUserFavoriteSchema, insertUserVisitSchema } from "@shared/schema";
 import { z } from "zod";
+import { searchRestaurantsWithAI } from "./services/aiSearch";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -223,6 +224,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error.message,
         stack: error.stack
       });
+    }
+  });
+
+  // AI Search endpoint
+  app.post("/api/ai-search", async (req, res) => {
+    try {
+      const { query } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        res.status(400).json({ message: "Query is required" });
+        return;
+      }
+
+      // Get all restaurants for AI analysis
+      const allRestaurants = await storage.getAllRestaurants();
+      
+      // Perform AI search
+      const result = await searchRestaurantsWithAI(query, allRestaurants);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("AI search error:", error);
+      res.status(500).json({ message: error instanceof Error ? error.message : "AI search failed" });
     }
   });
 

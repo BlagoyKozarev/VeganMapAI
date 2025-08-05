@@ -50,6 +50,7 @@ interface OptimizedLeafletMapProps {
   center?: [number, number];
   zoom?: number;
   className?: string;
+  highlightedRestaurants?: Set<number>;
 }
 
 export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
@@ -59,7 +60,8 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
   searchQuery = '',
   center = [42.6977, 23.3219], // Sofia default
   zoom = 12,
-  className = ''
+  className = '',
+  highlightedRestaurants = new Set()
 }) => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -238,10 +240,11 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     
     restaurantsToShow.forEach(restaurant => {
       const score = parseFloat(restaurant.veganScore) || 0;
-      const scoreColor = getScoreColor(score);
+      const isHighlighted = highlightedRestaurants.has(parseInt(restaurant.id));
+      const scoreColor = isHighlighted ? '#9333ea' : getScoreColor(score); // Purple for AI highlights
       
       const marker = L.marker([restaurant.latitude, restaurant.longitude], {
-        icon: createOptimizedIcon(score, scoreColor)
+        icon: createOptimizedIcon(score, scoreColor, isHighlighted)
       });
 
       // Add popup with restaurant info
@@ -281,12 +284,13 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
   }, [onRestaurantClick]);
 
   // Create optimized marker icon
-  const createOptimizedIcon = (score: number, color: string): L.DivIcon => {
+  const createOptimizedIcon = (score: number, color: string, isHighlighted: boolean = false): L.DivIcon => {
     return L.divIcon({
       className: 'custom-marker',
       html: `
-        <div class="marker-pin" style="background-color: ${color};">
+        <div class="marker-pin" style="background-color: ${color}; ${isHighlighted ? 'box-shadow: 0 0 10px 3px rgba(147, 51, 234, 0.5);' : ''}">
           <span class="marker-score">${score.toFixed(1)}</span>
+          ${isHighlighted ? '<span class="ai-badge" style="position: absolute; top: -8px; right: -8px; background: #9333ea; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold;">AI</span>' : ''}
         </div>
       `,
       iconSize: [30, 30],
