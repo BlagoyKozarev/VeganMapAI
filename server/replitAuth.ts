@@ -25,8 +25,16 @@ const getOidcConfig = memoize(
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
+  
+  // Use the correct database URL in production
+  let dbUrl = process.env.DATABASE_URL;
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔧 PRODUCTION: Using correct veganmapai database for sessions');
+    dbUrl = 'postgresql://neondb_owner:npg_Ks8nuIrDCqe4@ep-solid-block-a59dqz1u.us-east-2.aws.neon.tech/veganmapai?sslmode=require';
+  }
+  
   const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
+    conString: dbUrl,
     createTableIfMissing: false,
     ttl: sessionTtl,
     tableName: "sessions",
