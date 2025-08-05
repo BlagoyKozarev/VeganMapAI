@@ -40,7 +40,7 @@ export class MapPerformanceManager {
   };
   
   // Configuration
-  private readonly MAX_MARKERS_PER_VIEWPORT = 500; // Increased to show more restaurants
+  private readonly MAX_MARKERS_PER_VIEWPORT = 1000; // Increased to show all restaurants
   private readonly GRID_SIZE = 0.01; // ~1km grid cells
   private readonly MIN_ZOOM_FOR_INDIVIDUAL_MARKERS = 12;
   private readonly PERFORMANCE_MONITORING_INTERVAL = 5000;
@@ -166,13 +166,13 @@ export class MapPerformanceManager {
     let maxMarkers = this.MAX_MARKERS_PER_VIEWPORT;
     
     if (bounds.zoom < 10) {
-      maxMarkers = 200; // City overview level - show more
+      maxMarkers = 500; // City overview level - show more
     } else if (bounds.zoom < 12) {
-      maxMarkers = 300; // District level - show more
+      maxMarkers = 600; // District level - show more
     } else if (bounds.zoom < 14) {
-      maxMarkers = 400; // Neighborhood level - show more
+      maxMarkers = 800; // Neighborhood level - show more
     } else {
-      maxMarkers = 500; // Street level
+      maxMarkers = 1000; // Street level - show all
     }
     
     // If under limit, return all

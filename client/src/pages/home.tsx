@@ -58,7 +58,7 @@ export default function Home() {
     cuisineType: 'all',
     minVeganScore: 0,
     priceLevel: 'all',
-    maxDistance: 100 // Increased to show all restaurants
+    maxDistance: 500 // Increased to show all restaurants in Bulgaria
   });
   const [showAISearch, setShowAISearch] = useState(false);
   const [aiHighlightedRestaurants, setAiHighlightedRestaurants] = useState<Set<number>>(new Set());
@@ -88,7 +88,9 @@ export default function Home() {
       if (!response.ok) throw new Error('Failed to fetch restaurants');
       const data = await response.json();
       // Handle both direct array response and wrapped response
-      return data.restaurants || data;
+      const restaurantData = data.restaurants || data;
+      console.log('📡 Fetched restaurants:', restaurantData.length);
+      return restaurantData;
     },
   });
   // Handle restaurant selection from URL
@@ -168,6 +170,7 @@ export default function Home() {
     
     // Apply distance filter (only if we have user's position)
     if (currentPosition) {
+      console.log('📍 User position available:', currentPosition);
       filtered = filtered.filter((restaurant: any) => {
         const distance = calculateDistance(
           currentPosition.lat,
@@ -177,9 +180,20 @@ export default function Home() {
         );
         return distance <= filters.maxDistance;
       });
+    } else {
+      console.log('📍 No user position - showing all restaurants');
     }
     // Only update if actually different to prevent loops
     if (JSON.stringify(filtered) !== JSON.stringify(filteredRestaurants)) {
+      console.log('🔍 Filtered restaurants:', filtered.length, 'out of', restaurants.length);
+      console.log('Filters applied:', {
+        searchQuery,
+        minVeganScore,
+        minGoogleScore,
+        filters,
+        currentPosition,
+        showFavoritesOnly
+      });
       setFilteredRestaurants(filtered);
     }
   }, [restaurants.length, searchQuery, minVeganScore, minGoogleScore, filters, currentPosition, showFavoritesOnly, userFavorites]); // Use length instead of full array
@@ -571,6 +585,12 @@ export default function Home() {
           aiHighlightedRestaurants={aiHighlightedRestaurants}
           isAuthenticated={isAuthenticated}
         />
+        {/* Debug info */}
+        <div className="absolute bottom-20 left-4 bg-black/70 text-white p-2 rounded text-xs z-[1000]">
+          <div>Total restaurants: {restaurants.length}</div>
+          <div>Filtered restaurants: {filteredRestaurants.length}</div>
+          <div>Position: {currentPosition ? 'Available' : 'Not available'}</div>
+        </div>
         {/* Mobile Panels */}
         {isMobile && (
           <>
