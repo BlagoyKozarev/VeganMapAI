@@ -23,7 +23,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript and Node.js (ES modules).
 - **API Design**: RESTful API with structured error handling.
-- **Database**: PostgreSQL with Drizzle ORM.
+- **Database**: PostgreSQL with Drizzle ORM. Production uses snake_case columns (vegan_score, price_level) with special handling in storage.ts.
 - **Authentication**: Replit Auth integration with Express sessions and PostgreSQL store.
 - **Core Systems**:
     - **Multi-Agent System**: A crew-style architecture with specialized agents: MapAgent, SearchAgent, ScoreAgent (6-dimension system with admin interface), ReviewAgent, ProfileAgent, and AnalyticsAgent.
