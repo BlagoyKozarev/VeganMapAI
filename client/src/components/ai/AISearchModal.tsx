@@ -65,14 +65,15 @@ export function AISearchModal({ isOpen, onClose, onSearchResults }: AISearchModa
       />
       
       {/* Modal */}
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl z-[1003] px-4">
-        <Card className="bg-white shadow-2xl rounded-2xl overflow-hidden">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
-            <div className="flex items-center justify-between">
+      <div className="fixed inset-0 flex items-end sm:items-center justify-center z-[1003] sm:px-4">
+        <Card className="bg-white shadow-2xl rounded-t-2xl sm:rounded-2xl overflow-hidden w-full max-w-2xl sm:mb-0 mobile-modal">
+          <div className="max-h-[calc(100vh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem)] overflow-y-auto">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 sm:p-6">
+              <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Bot className="w-8 h-8 text-white mr-3" />
-                <h2 className="text-2xl font-bold text-white">AI Restaurant Search</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">AI Restaurant Search</h2>
               </div>
               <Button
                 onClick={onClose}
@@ -86,7 +87,7 @@ export function AISearchModal({ isOpen, onClose, onSearchResults }: AISearchModa
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Search Input */}
             <div className="mb-6">
               <div className="relative">
@@ -222,6 +223,7 @@ export function AISearchModal({ isOpen, onClose, onSearchResults }: AISearchModa
                 </div>
               </div>
             )}
+          </div>
           </div>
         </Card>
       </div>

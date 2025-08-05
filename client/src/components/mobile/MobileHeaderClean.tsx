@@ -29,20 +29,20 @@ export function MobileHeader({
 }: MobileHeaderProps) {
   return (
     <header 
-      className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg h-16 z-[99999]"
+      className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg z-[99999]"
       style={{ 
         position: 'fixed',
-        top: 0,
+        top: 'env(safe-area-inset-top, 0px)',
         left: 0,
         right: 0,
         width: '100%',
-        height: '64px',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
         zIndex: 99999
       }}
     >
-      <div className="flex items-center px-4 py-2 h-full">
+      <div className="flex items-center px-4 py-2 h-16">
         <div className="flex-1 relative mr-2">
-          <div className="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3 py-1.5">
+          <div className="bg-gray-50 border border-gray-300 rounded-full shadow-sm flex items-center px-3" style={{ minHeight: '44px' }}>
             <div className="text-gray-400 mr-2 text-sm">🔍</div>
             <input
               type="text"
@@ -56,7 +56,8 @@ export function MobileHeader({
             {searchQuery && (
               <button
                 onClick={() => onSearchChange('')}
-                className="ml-2 text-gray-400 hover:text-gray-600 text-lg"
+                className="ml-2 text-gray-400 hover:text-gray-600 text-lg p-2 -m-2"
+                style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 ×
               </button>
@@ -129,10 +130,10 @@ export function MobileHeader({
           )}
         </div>
         {/* Navigation Icons */}
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center gap-2">
           <button 
             onClick={onOpenAdvancedSearch || (() => {})}
-            className="w-9 h-9 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
+            className="w-11 h-11 min-w-[44px] min-h-[44px] bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
             title="Advanced Search"
             style={{ touchAction: 'manipulation' }}
           >
@@ -140,7 +141,7 @@ export function MobileHeader({
           </button>
           <button 
             onClick={onOpenChat || (() => window.location.href = '/ai-chat')}
-            className="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
+            className="w-11 h-11 min-w-[44px] min-h-[44px] bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
             title="AI Voice Assistant"
             style={{ touchAction: 'manipulation' }}
           >
@@ -149,7 +150,7 @@ export function MobileHeader({
           {isAuthenticated && (
             <button 
               onClick={onToggleFavorites}
-              className={`w-9 h-9 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${
+              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${
                 showFavoritesOnly ? 'bg-red-500 hover:bg-red-600' : 'bg-gradient-to-r from-red-500 to-red-600'
               }`}
               title={showFavoritesOnly ? "Show all restaurants" : "Show favorites only"}
@@ -160,7 +161,7 @@ export function MobileHeader({
           )}
           <button 
             onClick={onOpenProfile}
-            className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
             style={{ touchAction: 'manipulation' }}>
             <i className="fas fa-user text-sm"></i>
           </button>

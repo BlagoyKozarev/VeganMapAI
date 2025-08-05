@@ -96,7 +96,7 @@ export default function ActionMenu({ restaurant, onClose }: ActionMenuProps) {
           </div>
           <button 
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors touch-manipulation"
+            className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors touch-manipulation"
           >
             <span className="text-gray-600 text-xl">×</span>
           </button>

@@ -46,7 +46,7 @@ export function RestaurantModal({ restaurant, isOpen, onClose }: RestaurantModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto lg:max-h-[90vh] sm:max-h-[calc(100vh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem)] sm:rounded-t-2xl sm:rounded-b-none sm:bottom-0 sm:top-auto sm:translate-y-0 mobile-modal">
         <DialogHeader className="flex flex-row items-start justify-between">
           <div className="flex-1">
             <DialogTitle className="text-xl font-semibold mb-2">
