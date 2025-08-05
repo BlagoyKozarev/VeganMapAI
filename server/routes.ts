@@ -130,6 +130,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/restaurants/public/map-data', async (req, res) => {
     try {
       console.log('Public map data request received');
+      console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+      console.log('DATABASE_URL prefix:', process.env.DATABASE_URL?.substring(0, 30) + '...');
       
       // Get all restaurants with scores for public viewing
       const restaurants = await storage.getAllRestaurantsWithScores();

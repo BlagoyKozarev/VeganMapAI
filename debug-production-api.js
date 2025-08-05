@@ -1,50 +1,43 @@
-// Debug production API endpoint
-const https = require('https');
+import https from 'https';
 
-console.log('🔍 Testing VeganMapAI Production API...\n');
+console.log('🔍 Debugging VeganMapAI Production API');
+console.log('=====================================\n');
 
-const options = {
-  hostname: 'vegan-map-ai-bkozarev.replit.app',
-  path: '/api/restaurants/public/map-data',
-  method: 'GET',
-  headers: {
-    'Accept': 'application/json'
-  }
-};
+// Test public endpoint
+const url = 'https://vegan-map-ai-bkozarev.replit.app/api/restaurants/public/map-data';
 
-const req = https.request(options, (res) => {
-  console.log(`📡 Status Code: ${res.statusCode}`);
-  console.log(`📋 Headers:`, res.headers);
-  
+https.get(url, (res) => {
   let data = '';
+
   res.on('data', (chunk) => {
     data += chunk;
   });
-  
+
   res.on('end', () => {
+    console.log('📡 API Response Status:', res.statusCode);
+    console.log('📋 Response Headers:', res.headers);
+    
     try {
-      const parsed = JSON.parse(data);
-      console.log('\n✅ API Response:');
-      console.log(`   Restaurant count: ${parsed.count || 0}`);
-      console.log(`   Restaurants array length: ${parsed.restaurants ? parsed.restaurants.length : 0}`);
+      const json = JSON.parse(data);
+      console.log('\n📊 Response Data:');
+      console.log('- Success:', json.success);
+      console.log('- Restaurant Count:', json.count);
+      console.log('- Public Access:', json.public);
       
-      if (parsed.restaurants && parsed.restaurants.length > 0) {
-        console.log('\n📍 Sample restaurants:');
-        parsed.restaurants.slice(0, 3).forEach(r => {
-          console.log(`   - ${r.name} (${r.address})`);
-        });
+      if (json.count === 0) {
+        console.log('\n⚠️  WARNING: API returns 0 restaurants!');
+        console.log('Possible causes:');
+        console.log('1. Deployment not using production DATABASE_URL');
+        console.log('2. Database connection issue');
+        console.log('3. Storage implementation issue');
       } else {
-        console.log('\n❌ No restaurants found in response!');
+        console.log('\n✅ SUCCESS: API returns', json.count, 'restaurants!');
       }
     } catch (e) {
-      console.log('\n❌ Error parsing response:', e.message);
-      console.log('Raw response:', data.substring(0, 200));
+      console.error('❌ Failed to parse response:', e);
+      console.log('Raw response:', data);
     }
   });
+}).on('error', (e) => {
+  console.error('❌ Request failed:', e);
 });
-
-req.on('error', (e) => {
-  console.error('❌ Request failed:', e.message);
-});
-
-req.end();

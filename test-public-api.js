@@ -1,31 +1,44 @@
-// Quick test for public API endpoint
-async function testPublicAPI() {
+import fetch from 'node-fetch';
+
+const PRODUCTION_URL = 'https://vegan-map-ai-bkozarev.replit.app';
+
+async function testAPI() {
+  console.log('🧪 Testing VeganMapAI Production API');
+  console.log('=====================================\n');
+
   try {
-    const response = await fetch('http://localhost:5000/api/restaurants/public/map-data');
-    const data = await response.json();
+    // Test 1: Public map data endpoint
+    console.log('📍 Test 1: Public Map Data');
+    const mapResponse = await fetch(`${PRODUCTION_URL}/api/restaurants/public/map-data`);
+    const mapData = await mapResponse.json();
     
-    console.log('API Response Status:', response.status);
-    console.log('Success:', data.success);
-    console.log('Total restaurants:', data.count);
-    console.log('Is public endpoint:', data.public);
+    console.log('Response status:', mapResponse.status);
+    console.log('Restaurant count:', mapData.count);
+    console.log('Success:', mapData.success);
     
-    if (data.restaurants && data.restaurants.length > 0) {
-      console.log('\nSample Sofia restaurants:');
-      const sofiaRestaurants = data.restaurants.filter(r => {
-        const lat = parseFloat(r.latitude);
-        const lng = parseFloat(r.longitude);
-        return lat >= 42.6 && lat <= 42.8 && lng >= 23.2 && lng <= 23.4;
-      });
-      
-      console.log('Sofia restaurants found:', sofiaRestaurants.length);
-      console.log('\nFirst 3 Sofia restaurants:');
-      sofiaRestaurants.slice(0, 3).forEach((r, i) => {
-        console.log(`${i + 1}. ${r.name} - Score: ${r.veganScore}, Address: ${r.address}`);
-      });
+    if (mapData.count === 0) {
+      console.log('\n❌ CRITICAL: API returns 0 restaurants!');
+      console.log('\nTroubleshooting steps:');
+      console.log('1. Go to Deployments tab');
+      console.log('2. Click on your deployment');
+      console.log('3. Look for "Logs" or "Console" section');
+      console.log('4. Check for database connection errors');
+      console.log('\nOr try:');
+      console.log('1. In Environment Variables, remove DATABASE_URL');
+      console.log('2. Save (deployment will fail)');
+      console.log('3. Add DATABASE_URL back with correct value');
+      console.log('4. Save again (this forces a fresh connection)');
     }
+    
+    // Test 2: Check if site is up
+    console.log('\n📍 Test 2: Site Health Check');
+    const homeResponse = await fetch(PRODUCTION_URL);
+    console.log('Homepage status:', homeResponse.status);
+    console.log('Site is:', homeResponse.status === 200 ? '✅ UP' : '❌ DOWN');
+
   } catch (error) {
-    console.error('Test failed:', error.message);
+    console.error('❌ Test failed:', error.message);
   }
 }
 
-testPublicAPI();
+testAPI();
