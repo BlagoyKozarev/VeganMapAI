@@ -93,6 +93,12 @@ export default function Home() {
       return restaurantData;
     },
   });
+  
+  // Debug loading state
+  useEffect(() => {
+    console.log('🔄 Restaurant loading state:', restaurantsLoading);
+    console.log('📊 Total restaurants loaded:', restaurants.length);
+  }, [restaurantsLoading, restaurants.length]);
   // Handle restaurant selection from URL
   useEffect(() => {
     if (restaurants.length > 0) {
@@ -511,7 +517,7 @@ export default function Home() {
         </div>
       </div>
       {/* Simple Map Container */}
-      <div className="w-full h-full relative">
+      <div className="w-full h-full relative" style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
         <OptimizedLeafletMap
           center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.6977, 23.3219]}
           zoom={11}
@@ -533,20 +539,15 @@ export default function Home() {
           aiHighlightedRestaurants={aiHighlightedRestaurants}
           isAuthenticated={isAuthenticated}
         />
-        {/* Debug info */}
-        <div className="absolute bottom-20 left-4 bg-black/70 text-white p-2 rounded text-xs z-[1000]">
-          <div>Total restaurants: {restaurants.length}</div>
-          <div>Filtered restaurants: {filteredRestaurants.length}</div>
-          <div>Position: {currentPosition ? 'Available' : 'Not available'}</div>
-        </div>
+
         {/* Mobile Panels */}
         {isMobile && (
           <>
             {/* Vegan Score Legend - Mobile */}
             <div 
-              className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 z-[998]"
+              className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44"
               style={{ 
-                zIndex: showDropdown ? 1 : 999,
+                zIndex: showDropdown ? 1 : 50,
                 opacity: showDropdown ? 0.7 : 1
               }}
             >
@@ -592,7 +593,7 @@ export default function Home() {
               </div>
             </div>
             {/* Mobile Filter Controls - Top Right under Legend */}
-            <div className="absolute top-72 right-4 z-[998]">
+            <div className="absolute top-72 right-4 z-[40]">
               <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-3 w-44 transition-all duration-300 hover:shadow-xl">
                 <div className="flex items-center mb-2">
                   <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center mr-2">

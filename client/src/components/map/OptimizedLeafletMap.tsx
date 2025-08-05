@@ -151,18 +151,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
 
     mapRef.current = map;
     markerClusterGroupRef.current = clusterGroup;
-    
-    // TEST: Add a simple red marker to test map visibility
-    const testMarker = L.marker([42.6977, 23.3219], {
-      icon: L.divIcon({
-        className: 'test-marker',
-        html: '<div style="width: 30px; height: 30px; background: red; border-radius: 50%; border: 3px solid white;"></div>',
-        iconSize: [30, 30]
-      })
-    });
-    testMarker.bindPopup('TEST MARKER - Sofia Center');
-    testMarker.addTo(map);
-    console.log('🔴 Test marker added to Sofia center');
+
 
     // Set up viewport change handling with throttling
     const handleViewportChange = throttle(() => {
@@ -294,12 +283,6 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       });
 
       markers.push(marker);
-      
-      // TEST: Add first 5 markers directly to map
-      if (markers.length <= 5 && mapRef.current) {
-        marker.addTo(mapRef.current);
-        console.log('🔴 Added marker directly to map:', restaurant.name);
-      }
     });
 
     console.log('📍 Created', markers.length, 'markers');
@@ -409,7 +392,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       <div
         ref={mapContainerRef}
         className="w-full h-full"
-        style={{ minHeight: '400px', background: '#f0f0f0', border: '2px solid red' }}
+        style={{ minHeight: '400px', zIndex: 1 }}
       />
 
       {/* Loading overlay - temporarily disabled for debugging */}
