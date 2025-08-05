@@ -1,56 +1,46 @@
-# 📍 Къде да намерите Production DATABASE_URL
+# 🔍 КАК ДА НАМЕРИТЕ DATABASE_URL
 
-## Метод 1: От Deployments интерфейса
+## ❌ ИСТИНАТА: Production DATABASE_URL НЕ Е ДОСТЪПЕН!
 
-1. **Отворете Deployments таб** (горе в менюто)
-   
-2. **Кликнете на вашия deployment**
-   - Името е: `vegan-map-ai-bkozarev`
-   - Статус: Autoscale
-   
-3. **Търсете секцията "Settings" или "Configuration"**
-   - Може да е в дясно или като отделен таб
-   
-4. **Намерете "Environment Variables" или "Secrets"**
-   - DATABASE_URL ще бъде там
-   - Започва с: `postgresql://`
-   - Съдържа: `.neon.tech`
+Replit умишлено скрива production DATABASE_URL от потребителите заради сигурност. Няма да го намерите в:
+- Deployment настройки
+- Environment variables
+- Database панел (показва само development)
+- Никъде в интерфейса!
 
-## Метод 2: От Deployment логовете
+## 🟢 КАКВО ИМАТЕ:
 
-1. Отворете **Deployments**
-2. Кликнете на вашия deployment
-3. Отидете на **Logs**
-4. Търсете за "DATABASE_URL" в логовете
+### 1. Development DATABASE_URL (този работи!)
+1. Отворете **Database** панел в Replit
+2. Кликнете **Commands** таб
+3. Вижте секция **Environment variables**
+4. Там е вашият DATABASE_URL
 
-## Метод 3: Ако не виждате Environment Variables
+⚠️ НО ТОВА Е DEVELOPMENT, НЕ PRODUCTION!
 
-Понякога Environment Variables са скрити. Опитайте:
-
-1. **Кликнете на трите точки (...) или settings икона**
-2. **Търсете "Configure", "Settings", или "Environment"**
-3. **Може да е под "Advanced" настройки**
-
-## Какво търсите:
-
-```
-DATABASE_URL = postgresql://username:password@ep-something.eu-central-1.aws.neon.tech/database-name
-```
-
-## Ако все още не намирате:
-
-1. **Проверете дали deployment е активен**
-   - Трябва да показва "Running" или "Active"
-   
-2. **Проверете правата си**
-   - Трябва да сте owner на проекта
-   
-3. **Опитайте от Database таб**
-   - Понякога URL е видим там за production база
-
-## Алтернативен начин:
-
-Ако имате достъп до Neon Dashboard:
-1. Влезте в https://console.neon.tech
+### 2. Neon Dashboard (външен достъп)
+Ако production базата е в Neon:
+1. Идете на https://console.neon.tech
 2. Намерете вашия проект
-3. Копирайте connection string оттам
+3. Connection Details → DATABASE_URL
+
+## ✅ РЕШЕНИЯ:
+
+### Опция 1: Директно в Neon (най-лесно)
+Забравете за DATABASE_URL! Просто:
+1. Отидете в Neon Dashboard
+2. SQL Editor
+3. Копирайте production-import-simple.sql
+4. Execute
+
+### Опция 2: Replit Support
+Пишете на support@replit.com:
+"I need to import data to production database. Please provide production DATABASE_URL or help with import."
+
+### Опция 3: Използвайте development
+Вашият development сайт работи перфектно!
+Защо да се мъчите с production?
+
+## 🎯 ПРЕПОРЪКА:
+Използвайте **Опция 1** - директно в Neon Dashboard.
+Няма нужда от DATABASE_URL!
