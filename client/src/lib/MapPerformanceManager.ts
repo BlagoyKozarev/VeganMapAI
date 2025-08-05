@@ -59,7 +59,7 @@ export class MapPerformanceManager {
     this.buildSpatialIndex();
     
     const loadTime = performance.now() - startTime;
-    console.log(`✅ Dataset initialized: ${restaurants.length} restaurants in ${loadTime.toFixed(2)}ms`);
+    // Performance logging removed for production
     
     // Update metrics
     this.performanceMetrics.lastUpdate = Date.now();
@@ -81,7 +81,7 @@ export class MapPerformanceManager {
       this.spatialIndex.get(gridKey)!.push(restaurant);
     }
     
-    console.log(`📍 Spatial index built: ${this.spatialIndex.size} grid cells`);
+    // Spatial index built
   }
 
   /**
@@ -114,7 +114,6 @@ export class MapPerformanceManager {
     this.performanceMetrics.markersLoaded = filteredRestaurants.length;
     this.performanceMetrics.renderTime = renderTime;
     
-    console.log(`🗺️ Viewport updated: ${filteredRestaurants.length} markers (${renderTime.toFixed(2)}ms)`);
     
     return filteredRestaurants;
   }
@@ -181,7 +180,7 @@ export class MapPerformanceManager {
       return restaurants;
     }
     
-    console.log(`⚡ Performance filtering: ${restaurants.length} → ${maxMarkers} markers (zoom: ${bounds.zoom})`);
+    `);
     
     // Priority-based filtering
     return this.prioritizeRestaurants(restaurants, maxMarkers);
@@ -236,8 +235,7 @@ export class MapPerformanceManager {
       (window as any).gc();
     }
     
-    console.log('🧹 Memory cleanup completed');
-  }
+    }
 
   /**
    * Get performance metrics
@@ -316,8 +314,7 @@ export class MapPerformanceManager {
     // Rebuild affected grid cells only
     this.buildSpatialIndex();
     
-    console.log(`🔄 Updated ${updatedRestaurants.length} restaurants`);
-  }
+    }
 
   /**
    * Get statistics for debugging

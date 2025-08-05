@@ -90,8 +90,6 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    console.log('🗺️ Initializing optimized map...');
-
     // Create map with optimized settings
     const map = L.map(mapContainerRef.current, {
       center: center,
@@ -115,8 +113,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     const clusterGroup = L.markerClusterGroup({
       chunkedLoading: true,
       chunkProgress: (processed: number, total: number) => {
-        console.log(`📍 Loading markers: ${processed}/${total}`);
-      },
+        },
       maxClusterRadius: 50,
       disableClusteringAtZoom: 16,
       spiderfyOnMaxZoom: true,
@@ -287,7 +284,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     currentMarkersRef.current = markers;
 
     const renderTime = performance.now() - startTime;
-    console.log(`✅ Rendered ${markers.length} markers in ${renderTime.toFixed(2)}ms`);
+    // Performance logging removed for production
   }, [onRestaurantClick, userFavorites, aiHighlightedRestaurants]);
 
   // Create optimized marker icon

@@ -51,7 +51,6 @@ export default function VoiceLimitsTest() {
       name: 'Free User Session Limits',
       description: '10 min/session, 30 min/day, 2h cooldown',
       run: () => {
-        console.log('Testing free user limits:', freeUserLimits);
         return freeUserLimits.remainingSessionMinutes <= 10 && freeUserLimits.remainingDailyMinutes <= 30;
       }
     },
@@ -59,7 +58,6 @@ export default function VoiceLimitsTest() {
       name: 'Paid User Session Limits',
       description: '20 min/session, 120 min/day, no cooldown',
       run: () => {
-        console.log('Testing paid user limits:', paidUserLimits);
         return paidUserLimits.remainingSessionMinutes <= 20 && paidUserLimits.remainingDailyMinutes <= 120;
       }
     },
@@ -67,7 +65,6 @@ export default function VoiceLimitsTest() {
       name: 'Daily Limits Enforcement',
       description: 'Voice disabled when limits exhausted',
       run: () => {
-        console.log('Testing exhausted limits:', exhaustedLimits);
         return !exhaustedLimits.canUseVoice && exhaustedLimits.cooldownEndsAt !== null;
       }
     },

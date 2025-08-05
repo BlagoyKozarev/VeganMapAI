@@ -122,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/restaurants/all-available', isAuthenticated, async (req: any, res) => {
     try {
       const restaurants = await storage.getAllRestaurantsWithScores();
-      console.log(`Returning ${restaurants.length} restaurants with AI scores`);
+      // Return restaurants with AI scores
       res.json(restaurants);
     } catch (error) {
       console.error("Error getting all restaurants:", error);
@@ -133,12 +133,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // PUBLIC endpoint for map data (no authentication required)
   app.get('/api/restaurants/public/map-data', async (req, res) => {
     try {
-      console.log('===== PUBLIC MAP DATA REQUEST =====');
-      console.log('Time:', new Date().toISOString());
-      console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
-      console.log('DATABASE_URL prefix:', process.env.DATABASE_URL?.substring(0, 30) + '...');
-      console.log('NODE_ENV:', process.env.NODE_ENV);
-      console.log('Deployment version: 1.0.2-column-fix'); // Force new deployment with column fix
+      // Production logging removed for deployment
       
       // Get all restaurants with scores for public viewing
       const restaurants = await storage.getAllRestaurantsWithScores();
@@ -157,8 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: restaurant.address
       }));
       
-      console.log(`Returning ${publicData.length} restaurants for public map view`);
-      console.log('===================================');
+      // Return public map data
       
       res.json({
         success: true,
