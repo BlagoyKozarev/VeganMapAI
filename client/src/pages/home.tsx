@@ -369,18 +369,19 @@ export default function Home() {
                 <span className="text-white text-sm sm:text-lg">⚙️</span>
               </Button>
             </a>
-            <Button 
-              variant="ghost" 
-              className="w-9 h-9 sm:w-10 sm:h-10 p-0 hover:scale-105 transition-all duration-200"
-              title="AI Assistant"
-              onClick={() => alert('AI чат скоро ще бъде достъпен с Voiceflow интеграция')}
-            >
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M7 4a3 3 0 616 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 715 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </Button>
+            <a href="/ai-chat">
+              <Button 
+                variant="ghost" 
+                className="w-9 h-9 sm:w-10 sm:h-10 p-0 hover:scale-105 transition-all duration-200"
+                title="AI Assistant"
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7 4a3 3 0 616 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 715 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </Button>
+            </a>
             <a href="/profile">
               <Button 
                 variant="ghost" 
@@ -631,7 +632,7 @@ export default function Home() {
       {/* Restaurant Dropdown */}
       {selectedRestaurant && showDropdown && (
         <RestaurantDropdown
-          restaurant={selectedRestaurant}
+          restaurant={{ ...selectedRestaurant, geoHash: null }}
           onClose={handleCloseDropdown}
           onNavigate={handleNavigate}
           onViewDetails={handleViewDetails}
@@ -640,7 +641,7 @@ export default function Home() {
       {/* Restaurant Modal */}
       {selectedRestaurant && (
         <RestaurantModal 
-          restaurant={selectedRestaurant}
+          restaurant={{ ...selectedRestaurant, geoHash: null }}
           isOpen={showRestaurantModal}
           onClose={handleCloseModal}
         />
@@ -659,6 +660,17 @@ export default function Home() {
           allergies: [],
         }}
       />
+      {/* Mobile Filter Drawer Button */}
+      {isMobile && (
+        <div className="fixed bottom-20 right-4 z-[999]">
+          <MobileFilterDrawer
+            minVeganScore={minVeganScore}
+            minGoogleScore={minGoogleScore}
+            onVeganScoreChange={setMinVeganScore}
+            onGoogleScoreChange={setMinGoogleScore}
+          />
+        </div>
+      )}
       </div>
     </>
   );

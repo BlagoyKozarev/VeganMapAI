@@ -33,6 +33,11 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
     - **Profile Setup System**: Complete multi-step profile setup with dietary preferences, allergies, cuisine preferences, and price range selection, including custom allergies input and checkbox visualization.
     - **Public Map Access**: Provides an unauthenticated endpoint (`/api/restaurants/public/map-data`) for public map viewing with limited data, allowing users to explore the map before logging in.
 
+## Recent Changes
+- **Development Environment Focus (August 5, 2025)**: Cleaned up all deployment-related files and focused on development environment with 408 working restaurants.
+- **Button Functionality Fixed (August 5, 2025)**: Fixed AI Assistant button to properly navigate to AI chat page, integrated MobileFilterDrawer for filter functionality on mobile devices, and resolved TypeScript errors for proper component functionality.
+- **Mobile Performance Optimized**: Implemented touch-optimized controls, fixed filter drawer positioning, and enhanced mobile UX.
+
 ## External Dependencies
 
 ### Third-Party Services
