@@ -195,13 +195,15 @@ export class DatabaseStorage implements IStorage {
     console.log('Getting all restaurants with AI vegan scores');
     const allRestaurants = await db.select().from(restaurants);
     
-    // Only return restaurants with vegan scores (exclude 0 scores which are placeholders)
-    const scoredRestaurants = allRestaurants.filter(restaurant => 
-      restaurant.veganScore && parseFloat(restaurant.veganScore) > 0
-    );
+    // TEMPORARY: Return ALL restaurants to debug production issue
+    console.log(`Found ${allRestaurants.length} total restaurants in database`);
     
-    console.log(`Found ${allRestaurants.length} total restaurants, ${scoredRestaurants.length} with AI scores`);
-    return scoredRestaurants;
+    // Log database connection info
+    console.log('Database connection check:');
+    console.log('- DATABASE_URL exists:', !!process.env.DATABASE_URL);
+    console.log('- DATABASE_URL starts with:', process.env.DATABASE_URL?.substring(0, 25) + '...');
+    
+    return allRestaurants;
   }
 
   async getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]> {
