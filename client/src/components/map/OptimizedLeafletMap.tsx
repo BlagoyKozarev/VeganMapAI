@@ -62,7 +62,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
   onMapMove,
   searchQuery = '',
   center = [42.6977, 23.3219], // Sofia default
-  zoom = 12,
+  zoom = 10, // Zoom out more to show all restaurants
   className = '',
   highlightedRestaurants = new Set(),
   userFavorites = [],

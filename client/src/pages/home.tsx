@@ -58,7 +58,7 @@ export default function Home() {
     cuisineType: 'all',
     minVeganScore: 0,
     priceLevel: 'all',
-    maxDistance: 10
+    maxDistance: 100 // Increased to show all restaurants
   });
   const [showAISearch, setShowAISearch] = useState(false);
   const [aiHighlightedRestaurants, setAiHighlightedRestaurants] = useState<Set<number>>(new Set());
