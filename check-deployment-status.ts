@@ -1,54 +1,56 @@
-import https from 'https';
+#!/usr/bin/env tsx
+
+// Check deployment status and database connection
+
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { restaurants } from './shared/schema.js';
+import ws from 'ws';
+
+neonConfig.webSocketConstructor = ws;
 
 async function checkDeployment() {
-  console.log('🔍 Checking VeganMapAI Deployment Status');
-  console.log('=====================================\n');
+  console.log('🔍 Deployment Status Check');
+  console.log('========================\n');
+
+  // Check API
+  try {
+    const response = await fetch('https://vegan-map-ai-bkozarev.replit.app/api/restaurants/public/map-data');
+    const data = await response.json();
+    console.log('📡 API Response:');
+    console.log(`  - Success: ${data.success}`);
+    console.log(`  - Count: ${data.count}`);
+    console.log(`  - DB Connected: ${data.debug?.dbConnected}`);
+    console.log(`  - Environment: ${data.debug?.nodeEnv}`);
+  } catch (error) {
+    console.error('❌ API Error:', error);
+  }
+
+  // Check production database directly
+  const prodUrl = process.env.PRODUCTION_DATABASE_URL || 
+    'postgresql://neondb_owner:npg_Ks8nuIrDCqe4@ep-solitary-sun-adx3l722.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require';
   
-  // Check multiple times with delay
-  for (let i = 0; i < 5; i++) {
-    console.log(`\n📊 Check #${i + 1} at ${new Date().toLocaleTimeString()}`);
+  try {
+    const pool = new Pool({ connectionString: prodUrl });
+    const db = drizzle({ client: pool, schema: { restaurants } });
     
-    await new Promise((resolve) => {
-      https.get('https://vegan-map-ai-bkozarev.replit.app/api/restaurants/public/map-data', (res) => {
-        let data = '';
-        
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-        
-        res.on('end', () => {
-          try {
-            const json = JSON.parse(data);
-            console.log(`- Status: ${res.statusCode}`);
-            console.log(`- Restaurant count: ${json.count}`);
-            console.log(`- Deployment ID: ${res.headers['x-replit-deployment-id'] || 'not available'}`);
-            
-            if (json.count > 0) {
-              console.log('\n✅ SUCCESS! Deployment is now serving restaurants!');
-              process.exit(0);
-            }
-          } catch (e) {
-            console.error('Parse error:', e);
-          }
-          resolve(null);
-        });
-      }).on('error', (e) => {
-        console.error('Request error:', e);
-        resolve(null);
-      });
-    });
-    
-    if (i < 4) {
-      console.log('Waiting 15 seconds before next check...');
-      await new Promise(resolve => setTimeout(resolve, 15000));
+    const count = await db.select().from(restaurants);
+    console.log(`\n💾 Direct DB Check:`);
+    console.log(`  - Restaurant count: ${count.length}`);
+    if (count.length > 0) {
+      console.log(`  - First restaurant: ${count[0].name}`);
+      console.log(`  - Last restaurant: ${count[count.length - 1].name}`);
     }
+    
+    await pool.end();
+  } catch (error) {
+    console.error('❌ DB Error:', error);
   }
   
-  console.log('\n❌ Still returning 0 restaurants after multiple checks.');
-  console.log('\nPOSSIBLE ISSUES:');
-  console.log('1. Deployment is using cached code');
-  console.log('2. DATABASE_URL is not being read in production');
-  console.log('3. Production build has different behavior');
+  console.log('\n💡 Next Steps:');
+  console.log('1. If API shows 0 but DB has data -> Code deployment issue');
+  console.log('2. Try: Deployments → Settings → Environment Variables');
+  console.log('3. Ensure PRODUCTION_DATABASE_URL is set correctly');
 }
 
 checkDeployment();
