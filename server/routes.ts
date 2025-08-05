@@ -6,6 +6,9 @@ import { registerApiStatsRoutes } from "./routes/api-stats";
 import { Client } from '@googlemaps/google-maps-services-js';
 import multer from 'multer';
 import fs from 'fs';
+import { db } from "./db";
+import { sql } from "drizzle-orm";
+import { restaurants } from "@shared/schema";
 // FormData is now globally available in Node.js
 
 import { 
@@ -134,6 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
       console.log('DATABASE_URL prefix:', process.env.DATABASE_URL?.substring(0, 30) + '...');
       console.log('NODE_ENV:', process.env.NODE_ENV);
+      console.log('Deployment version: 1.0.1'); // Force new deployment
       
       // Get all restaurants with scores for public viewing
       const restaurants = await storage.getAllRestaurantsWithScores();
@@ -176,6 +180,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
           errorMessage: error.message,
           dbConnected: !!process.env.DATABASE_URL
         }
+      });
+    }
+  });
+
+  // Debug endpoint to test production database
+  app.get('/api/debug/production-db', async (req, res) => {
+    try {
+      console.log('===== DEBUG PRODUCTION DB =====');
+      const dbUrl = process.env.DATABASE_URL || "";
+      console.log('DATABASE_URL pattern:', dbUrl.includes('ep-solitary-sun') ? 'CORRECT DB' : 'WRONG DB');
+      console.log('DATABASE_URL substring:', dbUrl.substring(30, 55));
+      
+      // Direct query to test database
+      const result = await db.select({ count: sql<number>`count(*)` }).from(restaurants);
+      const count = result[0]?.count || 0;
+      
+      // Get sample restaurants
+      const samples = await db.select().from(restaurants).limit(3);
+      
+      res.json({
+        success: true,
+        databaseUrl: {
+          exists: !!process.env.DATABASE_URL,
+          pattern: dbUrl.substring(30, 55),
+          isCorrectDb: dbUrl.includes('ep-solitary-sun'),
+        },
+        restaurantCount: count,
+        sampleRestaurants: samples.map(r => ({
+          id: r.id,
+          name: r.name,
+          city: r.city
+        })),
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Debug error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: error.stack
       });
     }
   });
