@@ -25,6 +25,7 @@ import { ttsHandler } from "./api/tts";
 import { insertUserProfileSchema, insertUserFavoriteSchema, insertUserVisitSchema } from "@shared/schema";
 import { z } from "zod";
 import { searchRestaurantsWithAI } from "./services/aiSearch";
+import importTempRouter from "./routes/import-temp";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -32,6 +33,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register API stats routes
   registerApiStatsRoutes(app);
+  
+  // TEMPORARY IMPORT ROUTE - Remove after use
+  app.use(importTempRouter);
 
   // Multer setup for voice assistant
   const upload = multer({ dest: 'uploads/' });
