@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check VeganMapAI Deployment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 5px solid #10b981; }
+        .error { border-left: 5px solid #ef4444; }
+        .loading { border-left: 5px solid #3b82f6; }
+        h1 { color: #333; }
+        .url { 
+            background: #f0f0f0; 
+            padding: 10px; 
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .data {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌱 VeganMapAI Deployment Check</h1>
+    
+    <div id="mainStatus" class="status loading">
+        <h2>Checking Main Website...</h2>
+        <div class="url">https://veganmapai-replit-veganmapai.replit.app/</div>
+        <div id="mainResult">Loading...</div>
+    </div>
+    
+    <div id="apiStatus" class="status loading">
+        <h2>Checking API Endpoint...</h2>
+        <div class="url">https://veganmapai-replit-veganmapai.replit.app/api/restaurants/public/map-data</div>
+        <div id="apiResult">Loading...</div>
+    </div>
+
+    <script>
+        async function checkDeployment() {
+            // Check main website
+            try {
+                const mainResponse = await fetch('https://veganmapai-replit-veganmapai.replit.app/', {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                
+                document.getElementById('mainStatus').className = 'status success';
+                document.getElementById('mainResult').innerHTML = '<strong>✅ Website is accessible!</strong>';
+            } catch (error) {
+                document.getElementById('mainStatus').className = 'status error';
+                document.getElementById('mainResult').innerHTML = '<strong>❌ Cannot reach website</strong><br>Error: ' + error.message;
+            }
+
+            // Check API
+            try {
+                const apiResponse = await fetch('https://veganmapai-replit-veganmapai.replit.app/api/restaurants/public/map-data');
+                const data = await apiResponse.json();
+                
+                if (data.success && data.restaurants) {
+                    document.getElementById('apiStatus').className = 'status success';
+                    document.getElementById('apiResult').innerHTML = 
+                        `<strong>✅ API is working!</strong>
+                        <div class="data">
+                            Total restaurants: ${data.restaurants.length}<br>
+                            Sample: ${data.restaurants[0]?.name || 'N/A'}<br>
+                            Address: ${data.restaurants[0]?.address || 'N/A'}
+                        </div>`;
+                } else {
+                    document.getElementById('apiStatus').className = 'status error';
+                    document.getElementById('apiResult').innerHTML = '<strong>❌ API returned no data</strong>';
+                }
+            } catch (error) {
+                document.getElementById('apiStatus').className = 'status error';
+                document.getElementById('apiResult').innerHTML = '<strong>❌ API Error</strong><br>Error: ' + error.message;
+            }
+        }
+
+        // Run check immediately
+        checkDeployment();
+    </script>
+</body>
+</html>
