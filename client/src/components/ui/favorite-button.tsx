@@ -1,145 +1,118 @@
 import { useState } from 'react';
+import { Heart } from 'lucide-react';
+import { Button } from './button';
+import { useAuth } from '@/hooks/useAuth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import { isUnauthorizedError } from '@/lib/authUtils';
 
 interface FavoriteButtonProps {
   restaurantId: string;
-  className?: string;
   size?: 'sm' | 'md' | 'lg';
+  showLabel?: boolean;
 }
 
-export function FavoriteButton({ restaurantId, className = "", size = 'md' }: FavoriteButtonProps) {
+export function FavoriteButton({ restaurantId, size = 'md', showLabel = false }: FavoriteButtonProps) {
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Check if restaurant is favorite
-  const { data: favoriteData } = useQuery({
-    queryKey: ['/api/favorites/check', restaurantId],
+  
+  // Query favorites
+  const { data: favorites = [] } = useQuery<any[]>({
+    queryKey: ['/api/favorites'],
     enabled: isAuthenticated,
+    retry: false
   });
-
-  const isFavorite = favoriteData && typeof favoriteData === 'object' && 'isFavorite' in favoriteData ? (favoriteData as any).isFavorite : false;
-
+  
+  const isFavorite = favorites.some((fav: any) => fav.id === restaurantId);
+  
   // Add favorite mutation
   const addFavoriteMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('/api/favorites', 'POST', { restaurantId });
+      return await apiRequest(`/api/favorites/${restaurantId}`, 'POST');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/favorites/check', restaurantId] });
       toast({
-        title: "Added to Favorites",
-        description: "Restaurant saved to your favorites list.",
+        title: "Added to favorites",
+        description: "Restaurant saved to your favorites list"
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
       toast({
         title: "Error",
-        description: "Failed to add to favorites.",
-        variant: "destructive",
+        description: "Failed to add to favorites",
+        variant: "destructive"
       });
-    },
+    }
   });
-
+  
   // Remove favorite mutation
   const removeFavoriteMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest(`/api/favorites/${restaurantId}`, 'DELETE');
+      return await apiRequest(`/api/favorites/${restaurantId}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/favorites/check', restaurantId] });
       toast({
-        title: "Removed from Favorites",
-        description: "Restaurant removed from your favorites list.",
+        title: "Removed from favorites",
+        description: "Restaurant removed from your favorites list"
       });
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
       toast({
-        title: "Error",
-        description: "Failed to remove from favorites.",
-        variant: "destructive",
+        title: "Error", 
+        description: "Failed to remove from favorites",
+        variant: "destructive"
       });
-    },
+    }
   });
-
-  const handleToggleFavorite = () => {
+  
+  const handleClick = () => {
     if (!isAuthenticated) {
       toast({
-        title: "Login Required",
-        description: "Please log in to save favorites.",
-        variant: "destructive",
+        title: "Login required",
+        description: "Please login to save favorites",
+        variant: "destructive"
       });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 1000);
       return;
     }
-
+    
     if (isFavorite) {
       removeFavoriteMutation.mutate();
     } else {
       addFavoriteMutation.mutate();
     }
   };
-
+  
   const sizeClasses = {
-    sm: 'h-6 w-6',
-    md: 'h-7 w-7',
-    lg: 'h-8 w-8'
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-12 w-12'
   };
-
-  const buttonSizes = {
-    sm: 'p-1',
-    md: 'p-1.5',
-    lg: 'p-2'
+  
+  const iconSizes = {
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5',
+    lg: 'h-6 w-6'
   };
-
+  
   return (
     <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleToggleFavorite}
+      onClick={handleClick}
+      variant={isFavorite ? 'default' : 'outline'}
+      size="icon"
+      className={`${sizeClasses[size]} ${isFavorite ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
       disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
-      className={`${buttonSizes[size]} hover:bg-red-50 dark:hover:bg-red-900/20 ${className}`}
-      title={isFavorite ? "Remove from favorites" : "Add to favorites"}
     >
-      <Heart
-        className={`${sizeClasses[size]} transition-colors ${
-          isFavorite 
-            ? 'fill-red-500 text-red-500' 
-            : 'text-gray-400 hover:text-red-500'
-        }`}
+      <Heart 
+        className={`${iconSizes[size]} ${isFavorite ? 'fill-current' : ''}`}
       />
+      {showLabel && (
+        <span className="ml-2">
+          {isFavorite ? 'Saved' : 'Save'}
+        </span>
+      )}
     </Button>
   );
 }

@@ -37,6 +37,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Development Environment Focus (August 5, 2025)**: Cleaned up all deployment-related files and focused on development environment with 408 working restaurants.
 - **Button Functionality Fixed (August 5, 2025)**: Fixed AI Assistant button to properly navigate to AI chat page, integrated MobileFilterDrawer for filter functionality on mobile devices, and resolved TypeScript errors for proper component functionality.
 - **Mobile Performance Optimized**: Implemented touch-optimized controls, fixed filter drawer positioning, and enhanced mobile UX.
+- **Favorites System Enhanced (August 5, 2025)**: Added favorites toggle button on both desktop and mobile interfaces. Users can now filter map view to show only favorited restaurants. Heart icons display on favorited restaurants on the map. Fixed FavoriteButton component TypeScript errors and integrated with map markers.
 
 ## External Dependencies
 

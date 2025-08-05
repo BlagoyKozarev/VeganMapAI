@@ -1,4 +1,6 @@
 import React from 'react';
+import { Heart } from 'lucide-react';
+
 interface MobileHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -7,8 +9,24 @@ interface MobileHeaderProps {
   searchSuggestions: any[];
   onOpenChat?: () => void;
   onOpenAdvancedSearch?: () => void;
+  onOpenProfile?: () => void;
+  showFavoritesOnly?: boolean;
+  onToggleFavorites?: () => void;
+  isAuthenticated?: boolean;
 }
-export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onShowSuggestions, searchSuggestions, onOpenChat, onOpenAdvancedSearch }: MobileHeaderProps) {
+export function MobileHeader({ 
+  searchQuery, 
+  onSearchChange, 
+  showSuggestions, 
+  onShowSuggestions, 
+  searchSuggestions, 
+  onOpenChat, 
+  onOpenAdvancedSearch, 
+  onOpenProfile,
+  showFavoritesOnly = false,
+  onToggleFavorites,
+  isAuthenticated = false
+}: MobileHeaderProps) {
   return (
     <header 
       className="lg:hidden fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg h-16 z-[99999]"
@@ -128,12 +146,24 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
           >
             <span className="text-white text-sm">🎤</span>
           </button>
-          <a href="/profile">
-            <button className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ touchAction: 'manipulation' }}>
-              BK
+          {isAuthenticated && (
+            <button 
+              onClick={onToggleFavorites}
+              className={`w-9 h-9 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${
+                showFavoritesOnly ? 'bg-red-500 hover:bg-red-600' : 'bg-gradient-to-r from-red-500 to-red-600'
+              }`}
+              title={showFavoritesOnly ? "Show all restaurants" : "Show favorites only"}
+              style={{ touchAction: 'manipulation' }}
+            >
+              <Heart className="w-4 h-4 text-white" fill={showFavoritesOnly ? "currentColor" : "none"} />
             </button>
-          </a>
+          )}
+          <button 
+            onClick={onOpenProfile}
+            className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{ touchAction: 'manipulation' }}>
+            <i className="fas fa-user text-sm"></i>
+          </button>
         </div>
       </div>
     </header>

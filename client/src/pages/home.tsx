@@ -12,7 +12,9 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { FilterModal } from '@/components/filters/FilterModal';
 import { FilterOptions } from '@/components/filters/RestaurantFilters';
 import { AISearchModal } from '@/components/ai/AISearchModal';
+import { ProfileModal } from '@/components/profile/ProfileModal';
 import { Bot } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 interface Restaurant {
   id: string;
   name: string;
@@ -57,6 +59,16 @@ export default function Home() {
   });
   const [showAISearch, setShowAISearch] = useState(false);
   const [aiHighlightedRestaurants, setAiHighlightedRestaurants] = useState<Set<number>>(new Set());
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const { isAuthenticated } = useAuth();
+  
+  // Query user favorites
+  const { data: userFavorites = [] } = useQuery({
+    queryKey: ['/api/favorites'],
+    enabled: isAuthenticated,
+    retry: false
+  });
   // Check URL parameters for custom location and restaurant selection
   const urlParams = new URLSearchParams(window.location.search);
   const customLat = urlParams.get('lat');
@@ -145,6 +157,12 @@ export default function Home() {
         restaurant.priceLevel === parseInt(filters.priceLevel)
       );
     }
+    // Apply favorites filter if enabled
+    if (showFavoritesOnly && userFavorites.length > 0) {
+      const favoriteIds = new Set(userFavorites.map((f: any) => f.id));
+      filtered = filtered.filter((restaurant: any) => favoriteIds.has(restaurant.id));
+    }
+    
     // Apply distance filter (only if we have user's position)
     if (currentPosition) {
       filtered = filtered.filter((restaurant: any) => {
@@ -161,7 +179,7 @@ export default function Home() {
     if (JSON.stringify(filtered) !== JSON.stringify(filteredRestaurants)) {
       setFilteredRestaurants(filtered);
     }
-  }, [restaurants.length, searchQuery, minVeganScore, minGoogleScore, filters, currentPosition]); // Use length instead of full array
+  }, [restaurants.length, searchQuery, minVeganScore, minGoogleScore, filters, currentPosition, showFavoritesOnly, userFavorites]); // Use length instead of full array
   // Generate search suggestions separately to avoid complex dependencies
   useEffect(() => {
     if (!restaurants.length) {
@@ -349,6 +367,10 @@ export default function Home() {
         searchSuggestions={searchSuggestions}
         onOpenChat={() => setLocation('/ai-chat')}
         onOpenAdvancedSearch={handleAdvancedSearchOpen}
+        onOpenProfile={() => setShowProfileModal(true)}
+        showFavoritesOnly={showFavoritesOnly}
+        onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+        isAuthenticated={isAuthenticated}
       />
       <div 
         className="h-screen relative bg-gray-50"
@@ -476,17 +498,32 @@ export default function Home() {
                 </div>
               </Button>
             </a>
-            <a href="/profile">
-              <Button 
-                variant="ghost" 
-                className="w-9 h-9 sm:w-10 sm:h-10 hover:bg-gray-100 rounded-full transition-all duration-200 flex items-center justify-center p-0 hover:scale-105"
-                title="Profile"
+            <Button 
+              onClick={() => setShowProfileModal(true)}
+              variant="ghost" 
+              className="w-9 h-9 sm:w-10 sm:h-10 hover:bg-gray-100 rounded-full transition-all duration-200 flex items-center justify-center p-0 hover:scale-105"
+              title="Profile"
+            >
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-medium shadow-lg">
+                <i className="fas fa-user"></i>
+              </div>
+            </Button>
+            {isAuthenticated && (
+              <Button
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                variant={showFavoritesOnly ? "default" : "ghost"}
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full transition-all duration-200 flex items-center justify-center p-0 hover:scale-105 ${
+                  showFavoritesOnly ? 'bg-red-500 hover:bg-red-600 text-white' : 'hover:bg-gray-100'
+                }`}
+                title={showFavoritesOnly ? "Show all restaurants" : "Show favorites only"}
               >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-medium shadow-lg">
-                  BK
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
+                  showFavoritesOnly ? '' : 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg'
+                }`}>
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5" fill={showFavoritesOnly ? "currentColor" : "none"} />
                 </div>
               </Button>
-            </a>
+            )}
           </div>
         </div>
       </div>
@@ -508,6 +545,9 @@ export default function Home() {
             }
           }}
           searchQuery={searchQuery}
+          userFavorites={userFavorites.map((f: any) => f.id)}
+          aiHighlightedRestaurants={aiHighlightedRestaurants}
+          isAuthenticated={isAuthenticated}
         />
         {/* Mobile Panels */}
         {isMobile && (
@@ -784,6 +824,16 @@ export default function Home() {
         isOpen={showAISearch}
         onClose={() => setShowAISearch(false)}
         onSearchResults={handleAISearchResults}
+      />
+      
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onShowFavorites={() => {
+          setShowFavoritesOnly(true);
+          setShowProfileModal(false);
+        }}
       />
       </div>
     </>

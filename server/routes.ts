@@ -407,6 +407,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User stats route
+  app.get('/api/user/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const favorites = await storage.getUserFavorites(userId);
+      const analytics = await storage.getUserAnalytics(userId, 1);
+      
+      res.json({
+        favoritesCount: favorites.length,
+        searchesCount: analytics.length // This is a simple count, you might want to aggregate
+      });
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      res.status(500).json({ message: 'Failed to fetch user stats' });
+    }
+  });
+
   app.get('/api/favorites', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -415,6 +432,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting favorites:", error);
       res.status(500).json({ message: "Failed to get favorites" });
+    }
+  });
+  
+  // User preferences routes
+  app.get('/api/user/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.getUserProfile(userId);
+      
+      res.json({
+        defaultLat: profile?.defaultLat,
+        defaultLng: profile?.defaultLng,
+        preferredCuisines: profile?.preferredCuisines || [],
+        minVeganScore: profile?.minVeganScore || 0,
+        searchRadius: profile?.searchRadius || 10
+      });
+    } catch (error) {
+      console.error('Error fetching preferences:', error);
+      res.status(500).json({ message: 'Failed to fetch preferences' });
+    }
+  });
+  
+  app.post('/api/user/preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { defaultLat, defaultLng, preferredCuisines, minVeganScore, searchRadius } = req.body;
+      
+      const updatedProfile = await storage.upsertUserProfile({
+        userId,
+        defaultLat,
+        defaultLng,
+        preferredCuisines,
+        minVeganScore,
+        searchRadius
+      });
+      
+      res.json({
+        success: true,
+        preferences: {
+          defaultLat: updatedProfile.defaultLat,
+          defaultLng: updatedProfile.defaultLng,
+          preferredCuisines: updatedProfile.preferredCuisines,
+          minVeganScore: updatedProfile.minVeganScore,
+          searchRadius: updatedProfile.searchRadius
+        }
+      });
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      res.status(500).json({ message: 'Failed to save preferences' });
     }
   });
 
