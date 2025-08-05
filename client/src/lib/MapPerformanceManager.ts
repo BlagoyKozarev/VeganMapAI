@@ -207,7 +207,9 @@ export class MapPerformanceManager {
       return Math.random() - 0.5;
     });
     
-    return sortedRestaurants.slice(0, maxCount);
+    // Ensure maxCount is valid to prevent RangeError
+    const safeMaxCount = Math.max(0, maxCount);
+    return sortedRestaurants.slice(0, safeMaxCount);
   }
 
   /**
