@@ -12,7 +12,7 @@ import fs from 'fs';
 // Configure WebSocket for local execution
 neonConfig.webSocketConstructor = ws;
 
-const PRODUCTION_URL = 'postgresql://neondb_owner:npg_Ks8nuIrDCqe4@ep-solitary-sun-adx3l722.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const PRODUCTION_URL = process.env.DATABASE_URL!;
 
 async function importToProduction() {
   console.log('🚀 Manual Production Import');
