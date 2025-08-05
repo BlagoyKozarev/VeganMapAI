@@ -1,32 +1,45 @@
-# 🎯 НАЙ-ПРОСТОТО РЕШЕНИЕ
+# 🚨 Production Database Connection Issue
 
-## Проблем:
-Production базата е празна и сайтът не работи
+## Problem
+- Production database HAS the data (408 restaurants) ✅
+- Production website shows 0 restaurants ❌
+- This means the deployment isn't connecting to the correct database
 
-## Решение за 2 минути:
+## Quick Fix Steps
 
-### Вариант 1: Пишете на Replit Support
-Копирайте това съобщение:
+### 1. Check Deployment Environment Variables
+1. Open **Deployments** tab in Replit
+2. Click on **vegan-map-ai-bkozarev**
+3. Go to **Environment Variables**
+4. Verify these exist:
+   - `DATABASE_URL` - Should point to your Neon production database
+   - `OPENAI_API_KEY` - For AI features
+   - `GOOGLE_MAPS_API_KEY` - For maps
+
+### 2. Verify DATABASE_URL Format
+The DATABASE_URL should look like:
 ```
-My production site is not working because the database is empty.
-Development has 408 restaurants but production has 0.
-Deployment: vegan-map-ai-bkozarev
-Please help me import the data or provide production DATABASE_URL.
+postgresql://neondb_owner:npg_XXXXX@ep-name-region.aws.neon.tech/neondb?sslmode=require
 ```
 
-### Вариант 2: Използвайте development версията
-Докато чакате отговор:
-- Работете с development версията
-- Тя има всички 408 ресторанта
-- URL: https://workspace-bkozarev.replit.app (или вашият workspace URL)
+**Important**: Make sure it ends with `?sslmode=require`
 
-### Вариант 3: Попитайте в Discord/Community
-Replit има активна общност където помагат бързо
+### 3. Redeploy Your Application
+1. In Deployments tab, click **Redeploy**
+2. Wait for deployment to complete
+3. Check https://vegan-map-ai-bkozarev.replit.app
 
-## Защо е сложно:
-- Replit скрива production credentials от сигурност
-- Production и development са отделни бази
-- Няма лесен начин за копиране между тях
+### 4. Alternative: Manual Environment Update
+If redeploy doesn't work:
+1. Stop the deployment
+2. Update environment variables
+3. Start deployment again
 
-## Не се притеснявайте!
-Това е честа грешка и support ще помогне бързо.
+## Verification
+After fixing, visit your site and check:
+- Map should show 408 restaurants
+- Restaurants should have vegan scores
+- Search should work
+
+## Still Not Working?
+The data IS in your production database. We just need to ensure the deployment connects to it properly. Contact support@replit.com if the deployment continues to show 0 restaurants after updating environment variables.
