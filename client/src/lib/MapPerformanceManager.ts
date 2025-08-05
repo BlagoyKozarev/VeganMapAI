@@ -40,7 +40,7 @@ export class MapPerformanceManager {
   };
   
   // Configuration
-  private readonly MAX_MARKERS_PER_VIEWPORT = 2000;
+  private readonly MAX_MARKERS_PER_VIEWPORT = 100; // Reduced for better performance
   private readonly GRID_SIZE = 0.01; // ~1km grid cells
   private readonly MIN_ZOOM_FOR_INDIVIDUAL_MARKERS = 12;
   private readonly PERFORMANCE_MONITORING_INTERVAL = 5000;
@@ -163,21 +163,34 @@ export class MapPerformanceManager {
    * Apply performance-based filtering to prevent browser overload
    */
   private applyPerformanceFiltering(restaurants: Restaurant[], bounds: ViewportBounds): Restaurant[] {
+    // Adjust max markers based on zoom level
+    let maxMarkers = this.MAX_MARKERS_PER_VIEWPORT;
+    
+    if (bounds.zoom < 10) {
+      maxMarkers = 30; // City overview level
+    } else if (bounds.zoom < 12) {
+      maxMarkers = 50; // District level
+    } else if (bounds.zoom < 14) {
+      maxMarkers = 75; // Neighborhood level
+    } else {
+      maxMarkers = 100; // Street level
+    }
+    
     // If under limit, return all
-    if (restaurants.length <= this.MAX_MARKERS_PER_VIEWPORT) {
+    if (restaurants.length <= maxMarkers) {
       return restaurants;
     }
     
-    console.log(`⚡ Performance filtering: ${restaurants.length} → ${this.MAX_MARKERS_PER_VIEWPORT} markers`);
+    console.log(`⚡ Performance filtering: ${restaurants.length} → ${maxMarkers} markers (zoom: ${bounds.zoom})`);
     
     // Priority-based filtering
-    return this.prioritizeRestaurants(restaurants);
+    return this.prioritizeRestaurants(restaurants, maxMarkers);
   }
 
   /**
    * Prioritize restaurants for display when filtering is needed
    */
-  private prioritizeRestaurants(restaurants: Restaurant[]): Restaurant[] {
+  private prioritizeRestaurants(restaurants: Restaurant[], maxCount: number): Restaurant[] {
     // Sort by priority: vegan score (desc) → rating (desc) → random
     const sortedRestaurants = [...restaurants].sort((a, b) => {
       // Primary: Vegan score
@@ -194,7 +207,7 @@ export class MapPerformanceManager {
       return Math.random() - 0.5;
     });
     
-    return sortedRestaurants.slice(0, this.MAX_MARKERS_PER_VIEWPORT);
+    return sortedRestaurants.slice(0, maxCount);
   }
 
   /**

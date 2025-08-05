@@ -259,11 +259,20 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     });
 
     // Add markers to cluster group in batches for better performance
-    const batchSize = 500;
-    for (let i = 0; i < markers.length; i += batchSize) {
-      const batch = markers.slice(i, i + batchSize);
-      markerClusterGroupRef.current.addLayers(batch);
-    }
+    const batchSize = 50; // Reduced batch size for better responsiveness
+    
+    // Use requestAnimationFrame to prevent UI blocking
+    let i = 0;
+    const addBatch = () => {
+      if (i < markers.length && markerClusterGroupRef.current) {
+        const batch = markers.slice(i, Math.min(i + batchSize, markers.length));
+        markerClusterGroupRef.current.addLayers(batch);
+        i += batchSize;
+        requestAnimationFrame(addBatch);
+      }
+    };
+    
+    requestAnimationFrame(addBatch);
 
     currentMarkersRef.current = markers;
 
