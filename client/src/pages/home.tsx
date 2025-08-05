@@ -9,6 +9,8 @@ import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
 import { MobileAdvancedSearch } from '@/components/mobile/MobileAdvancedSearch';
 import { MobileHeader } from '@/components/mobile/MobileHeaderClean';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { FilterModal } from '@/components/filters/FilterModal';
+import { FilterOptions } from '@/components/filters/RestaurantFilters';
 interface Restaurant {
   id: string;
   name: string;
@@ -45,6 +47,12 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 1024);
   const [minVeganScore, setMinVeganScore] = useState(0);
   const [minGoogleScore, setMinGoogleScore] = useState(0);
+  const [filters, setFilters] = useState<FilterOptions>({
+    cuisineType: 'all',
+    minVeganScore: 0,
+    priceLevel: 'all',
+    maxDistance: 10
+  });
   // Check URL parameters for custom location and restaurant selection
   const urlParams = new URLSearchParams(window.location.search);
   const customLat = urlParams.get('lat');
@@ -81,7 +89,20 @@ export default function Home() {
       }
     }
   }, [restaurants.length, restaurantId]); // Stable dependency
-  // Filter restaurants based on search query and scores - memoized to prevent loops
+  // Helper function to calculate distance between two points
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Filter restaurants based on search query, scores, and comprehensive filters
   useEffect(() => {
     if (!restaurants.length) {
       if (filteredRestaurants.length > 0) {
@@ -97,21 +118,46 @@ export default function Home() {
         restaurant.address.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    // Apply vegan score filter
+    // Apply vegan score filter (use filters.minVeganScore if it's higher than legacy minVeganScore)
+    const effectiveMinVeganScore = Math.max(minVeganScore, filters.minVeganScore);
     filtered = filtered.filter((restaurant: any) => {
       const veganScore = restaurant.veganScore ? parseFloat(restaurant.veganScore) : 0;
-      return veganScore >= minVeganScore;
+      return veganScore >= effectiveMinVeganScore;
     });
     // Apply Google score filter
     filtered = filtered.filter((restaurant: any) => {
       const googleScore = restaurant.rating ? parseFloat(restaurant.rating) : 0;
       return googleScore >= minGoogleScore;
     });
+    // Apply cuisine type filter
+    if (filters.cuisineType !== 'all') {
+      filtered = filtered.filter((restaurant: any) => 
+        restaurant.cuisineTypes && restaurant.cuisineTypes.includes(filters.cuisineType)
+      );
+    }
+    // Apply price level filter
+    if (filters.priceLevel !== 'all') {
+      filtered = filtered.filter((restaurant: any) => 
+        restaurant.priceLevel === parseInt(filters.priceLevel)
+      );
+    }
+    // Apply distance filter (only if we have user's position)
+    if (currentPosition) {
+      filtered = filtered.filter((restaurant: any) => {
+        const distance = calculateDistance(
+          currentPosition.lat,
+          currentPosition.lng,
+          parseFloat(restaurant.latitude),
+          parseFloat(restaurant.longitude)
+        );
+        return distance <= filters.maxDistance;
+      });
+    }
     // Only update if actually different to prevent loops
     if (JSON.stringify(filtered) !== JSON.stringify(filteredRestaurants)) {
       setFilteredRestaurants(filtered);
     }
-  }, [restaurants.length, searchQuery, minVeganScore, minGoogleScore]); // Use length instead of full array
+  }, [restaurants.length, searchQuery, minVeganScore, minGoogleScore, filters, currentPosition]); // Use length instead of full array
   // Generate search suggestions separately to avoid complex dependencies
   useEffect(() => {
     if (!restaurants.length) {
@@ -199,9 +245,15 @@ export default function Home() {
   const handleAdvancedSearchOpen = () => {
     setShowAdvancedSearch(true);
   };
-  const handleApplyAdvancedFilters = (filters: any) => {
-    setMinVeganScore(filters.minVeganScore);
-    setMinGoogleScore(filters.minGoogleScore);
+  const handleApplyAdvancedFilters = (advancedFilters: any) => {
+    setMinVeganScore(advancedFilters.minVeganScore);
+    setMinGoogleScore(advancedFilters.minGoogleScore);
+    // Update main filters with advanced filter values
+    setFilters(prev => ({
+      ...prev,
+      minVeganScore: advancedFilters.minVeganScore,
+      // Add other advanced filters if needed
+    }));
   };
   const handleCloseDropdown = () => {
     setShowDropdown(false);
@@ -360,6 +412,15 @@ export default function Home() {
           </div>
           {/* Enhanced Right Icons */}
           <div className="flex items-center ml-2 sm:ml-3 space-x-1 sm:space-x-2">
+            {/* Filter Button - Desktop */}
+            <div className="relative hidden sm:block mr-2">
+              <FilterModal
+                restaurants={restaurants}
+                filteredCount={filteredRestaurants.length}
+                totalCount={restaurants.length}
+                onFiltersChange={setFilters}
+              />
+            </div>
             <a href="/admin" className="hidden sm:block">
               <Button 
                 variant="ghost" 
@@ -664,10 +725,10 @@ export default function Home() {
       {isMobile && (
         <div className="fixed bottom-20 right-4 z-[999]">
           <MobileFilterDrawer
-            minVeganScore={minVeganScore}
-            minGoogleScore={minGoogleScore}
-            onVeganScoreChange={setMinVeganScore}
-            onGoogleScoreChange={setMinGoogleScore}
+            restaurants={restaurants}
+            filteredCount={filteredRestaurants.length}
+            totalCount={restaurants.length}
+            onFiltersChange={setFilters}
           />
         </div>
       )}
