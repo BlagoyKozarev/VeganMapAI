@@ -1,0 +1,18 @@
+# Git Commands for Public Map Access Update
+
+# Check status
+git status
+
+# Add all changes
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: Add public map access without authentication
+
+- Created /api/restaurants/public/map-data endpoint
+- Updated home.tsx to use public endpoint
+- Map now shows 354 restaurants without login
+- Authentication only required for advanced features"
+
+# Push to main branch
+git push origin main
