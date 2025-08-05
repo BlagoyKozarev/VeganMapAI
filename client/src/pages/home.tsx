@@ -13,6 +13,7 @@ import { FilterModal } from '@/components/filters/FilterModal';
 import { FilterOptions } from '@/components/filters/RestaurantFilters';
 import { AISearchModal } from '@/components/ai/AISearchModal';
 import { ProfileModal } from '@/components/profile/ProfileModal';
+import { WelcomeOverlay } from '@/components/onboarding/WelcomeOverlay';
 import { Bot, Heart, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -321,17 +322,7 @@ export default function Home() {
   }, []);
 
   // Show welcome message for first-time users
-  useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
-    if (!hasSeenWelcome && !loading && !restaurantsLoading) {
-      toast({
-        title: "Welcome to VeganMapAI! 🌱",
-        description: "Discover vegan-friendly restaurants with AI search, smart filters, and save your favorites!",
-        duration: 5000,
-      });
-      localStorage.setItem('hasSeenWelcome', 'true');
-    }
-  }, [loading, restaurantsLoading, toast]);
+  // Removed the old welcome toast since we now have the WelcomeOverlay component
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -864,6 +855,21 @@ export default function Home() {
         onShowFavorites={() => {
           setShowFavoritesOnly(true);
           setShowProfileModal(false);
+        }}
+      />
+      
+      {/* Welcome Overlay */}
+      <WelcomeOverlay
+        onGetStarted={() => {
+          // Could trigger a guided tour in the future
+          toast({
+            title: "Welcome aboard! 🌱",
+            description: "Start exploring vegan-friendly restaurants on the map or try AI search!",
+            duration: 3000,
+          });
+        }}
+        onSkip={() => {
+          // User skipped the welcome overlay
         }}
       />
       </div>
