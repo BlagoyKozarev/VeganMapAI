@@ -273,6 +273,24 @@
   border-color: var(--vegan-green);
 }
 
+/* Fix for map marker visibility */
+.leaflet-pane {
+  z-index: auto !important;
+}
+
+.leaflet-marker-pane {
+  z-index: 600 !important;
+}
+
+.leaflet-marker-icon {
+  z-index: 600 !important;
+}
+
+.custom-marker {
+  z-index: 600 !important;
+  position: absolute !important;
+}
+
 .focus\:border-vegan-green:focus {
   border-color: var(--vegan-green);
 }

@@ -6,6 +6,18 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 
+// Fix Leaflet icon paths for Vite
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+});
+
 // Type declaration for marker cluster
 declare module 'leaflet' {
   export interface MarkerClusterGroupOptions {
@@ -230,8 +242,12 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
 
   // Update markers function
   const updateMarkers = useCallback((restaurantsToShow: Restaurant[]) => {
-    if (!markerClusterGroupRef.current) return;
+    if (!markerClusterGroupRef.current) {
+      console.error('❌ Marker cluster group not initialized');
+      return;
+    }
 
+    console.log('🗺️ Updating markers with', restaurantsToShow.length, 'restaurants');
     const startTime = performance.now();
 
     // Clear existing markers
@@ -265,6 +281,17 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       markers.push(marker);
     });
 
+    console.log('📍 Created', markers.length, 'markers');
+    
+    // Log first few restaurant coordinates for debugging
+    if (restaurantsToShow.length > 0) {
+      console.log('Sample restaurant:', {
+        name: restaurantsToShow[0].name,
+        lat: restaurantsToShow[0].latitude,
+        lng: restaurantsToShow[0].longitude
+      });
+    }
+    
     // Add markers to cluster group in batches for better performance
     const batchSize = 50; // Reduced batch size for better responsiveness
     
@@ -273,9 +300,12 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     const addBatch = () => {
       if (i < markers.length && markerClusterGroupRef.current) {
         const batch = markers.slice(i, Math.min(i + batchSize, markers.length));
+        console.log('➕ Adding batch of', batch.length, 'markers to cluster');
         markerClusterGroupRef.current.addLayers(batch);
         i += batchSize;
         requestAnimationFrame(addBatch);
+      } else if (i >= markers.length) {
+        console.log('✅ All markers added to cluster');
       }
     };
     
@@ -284,6 +314,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     currentMarkersRef.current = markers;
 
     const renderTime = performance.now() - startTime;
+    console.log('⏱️ Marker update completed in', renderTime.toFixed(2), 'ms');
     // Performance logging removed for production
   }, [onRestaurantClick, userFavorites, aiHighlightedRestaurants]);
 
@@ -292,10 +323,10 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     return L.divIcon({
       className: 'custom-marker',
       html: `
-        <div class="marker-pin" style="background-color: ${color}; ${isHighlighted ? 'box-shadow: 0 0 10px 3px rgba(147, 51, 234, 0.5);' : ''}">
-          <span class="marker-score">${score.toFixed(1)}</span>
-          ${isHighlighted ? '<span class="ai-badge" style="position: absolute; top: -8px; right: -8px; background: #9333ea; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold;">AI</span>' : ''}
-          ${isFavorite ? '<span class="favorite-badge" style="position: absolute; top: -8px; left: -8px; color: #ef4444; font-size: 16px;">❤️</span>' : ''}
+        <div style="width: 30px; height: 30px; background-color: ${color}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); position: relative; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+          <div style="transform: rotate(45deg); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg); color: white; font-weight: bold; font-size: 12px;">
+            ${score.toFixed(1)}
+          </div>
         </div>
       `,
       iconSize: [30, 30],

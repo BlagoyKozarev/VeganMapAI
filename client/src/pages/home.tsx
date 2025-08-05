@@ -67,7 +67,7 @@ export default function Home() {
   const { isAuthenticated } = useAuth();
   
   // Query user favorites
-  const { data: userFavorites = [] } = useQuery({
+  const { data: userFavorites = [] } = useQuery<any[]>({
     queryKey: ['/api/favorites'],
     enabled: isAuthenticated,
     retry: false
@@ -566,7 +566,8 @@ export default function Home() {
         )}
         
         <OptimizedLeafletMap
-          center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
+          center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.6977, 23.3219]}
+          zoom={11}
           restaurants={filteredRestaurants.map(r => ({
             ...r,
             latitude: parseFloat(r.latitude),
