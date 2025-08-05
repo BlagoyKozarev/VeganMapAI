@@ -87,7 +87,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
   const performanceManagerRef = useRef<MapPerformanceManager | null>(null);
   const currentMarkersRef = useRef<L.Marker[]>([]);
   
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [performanceStats, setPerformanceStats] = useState<any>({});
   const [mapReady, setMapReady] = useState(false);
 
@@ -394,16 +394,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
         style={{ minHeight: '400px' }}
       />
 
-      {/* Loading overlay */}
-      {isLoading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-[1000]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-lg font-medium">Loading restaurants...</p>
-            <p className="text-sm text-gray-600">Optimizing for {restaurants.length.toLocaleString()} locations</p>
-          </div>
-        </div>
-      )}
+      {/* Loading overlay - temporarily disabled for debugging */}
 
       {/* Performance stats overlay (development) */}
       {process.env.NODE_ENV === 'development' && Object.keys(performanceStats).length > 0 && (

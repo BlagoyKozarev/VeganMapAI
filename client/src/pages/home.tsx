@@ -337,50 +337,8 @@ export default function Home() {
 
   // Show welcome message for first-time users
   // Removed the old welcome toast since we now have the WelcomeOverlay component
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-100 to-green-200 rounded-3xl mb-6 shadow-lg">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full animate-pulse shadow-md"></div>
-          </div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">VeganMapAI</h2>
-          <p className="text-gray-600 font-opensans">Loading restaurants...</p>
-          <p className="text-sm text-gray-500 mt-2">Preparing your personalized vegan dining experience</p>
-          <div className="mt-4 flex justify-center space-x-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  if (!position && error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md bg-white rounded-3xl shadow-2xl p-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-100 to-red-200 rounded-3xl mb-6">
-            <i className="fas fa-map-marker-alt text-red-500 text-3xl"></i>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">Welcome to VeganMapAI</h2>
-          <p className="text-gray-600 font-opensans mb-8 leading-relaxed">
-            Discover vegan-friendly restaurants near you. Allow location for better recommendations.
-          </p>
-          <Button 
-            onClick={handleCurrentLocation}
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-          >
-            <i className="fas fa-location-arrow mr-3"></i>
-            Enable Location Access
-          </Button>
-          <p className="text-xs text-gray-400 mt-4">
-            Your location data is used only for restaurant recommendations and is not stored.
-          </p>
-        </div>
-      </div>
-    );
-  }
+
+
   return (
     <>
       {/* MOBILE HEADER */}
