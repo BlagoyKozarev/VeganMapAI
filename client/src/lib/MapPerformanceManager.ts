@@ -172,15 +172,13 @@ export class MapPerformanceManager {
     } else if (bounds.zoom < 14) {
       maxMarkers = 400; // Neighborhood level - show more
     } else {
-      maxMarkers = 100; // Street level
+      maxMarkers = 500; // Street level
     }
     
     // If under limit, return all
     if (restaurants.length <= maxMarkers) {
       return restaurants;
     }
-    
-    `);
     
     // Priority-based filtering
     return this.prioritizeRestaurants(restaurants, maxMarkers);
@@ -234,8 +232,7 @@ export class MapPerformanceManager {
     if ((window as any).gc) {
       (window as any).gc();
     }
-    
-    }
+  }
 
   /**
    * Get performance metrics
@@ -313,8 +310,7 @@ export class MapPerformanceManager {
     
     // Rebuild affected grid cells only
     this.buildSpatialIndex();
-    
-    }
+  }
 
   /**
    * Get statistics for debugging
