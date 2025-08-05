@@ -1,36 +1,39 @@
-# 🆘 СПЕШНО РЕШЕНИЕ - Ако не намирате Production URL
+# 🆘 Emergency Fix: If You Don't Have DATABASE_URL
 
-## Проблем
-Production сайтът показва 0 ресторанта защото production базата е празна.
+## Option 1: Get from Neon Dashboard
+1. Go to https://console.neon.tech
+2. Login with your account
+3. Find your VeganMapAI project
+4. Click **Connection Details**
+5. Select **PostgreSQL** connection type
+6. Copy the connection string
+7. Add `?sslmode=require` at the end
 
-## Временно решение (докато намерите URL)
+## Option 2: Find in Replit Secrets
+1. In your Replit workspace
+2. Click the lock icon (Secrets)
+3. Look for DATABASE_URL
+4. Copy the value
 
-### Опция 1: Използвайте Database Pane
-1. Отворете **Database** таб (ляво меню)
-2. Горе ще има dropdown - превключете на **"Production"**
-3. Ако виждате празна база:
-   - Кликнете **"Import"**
-   - Изберете `restaurants-export.json`
-   - Или копирайте SQL от development
+## Option 3: Create New Neon Database
+If you can't find your database:
+1. Go to https://console.neon.tech
+2. Create new project "veganmapai-prod"
+3. Get the connection string
+4. Run the import script with new URL:
+```bash
+psql 'your-new-database-url' -f production-import-fixed.sql
+```
 
-### Опция 2: През Neon Dashboard
-1. Отидете на https://console.neon.tech
-2. Влезте с вашия акаунт
-3. Намерете проекта
-4. Копирайте connection string
-5. Изпълнете: `DATABASE_URL="url-от-neon" tsx import-production-fix.ts`
+## What Your DATABASE_URL Should Look Like:
+```
+postgresql://neondb_owner:npg_YourPasswordHere@ep-your-project-12345678.us-east-2.aws.neon.tech/neondb?sslmode=require
+```
 
-### Опция 3: Свържете се с Replit Support
-Ако нищо не работи, питайте support:
-"I can't find the production DATABASE_URL in my deployment settings"
-
-## Защо е важно
-- Без данни в production, сайтът е безполезен
-- 408 ресторанта чакат да бъдат импортирани
-- Потребителите виждат празна карта
-
-## Проверка
-След импорт проверете:
-https://vegan-map-ai-bkozarev.replit.app/api/restaurants/public/map-data
-
-Трябва да покаже: "count": 354 (не 0)
+Parts:
+- `neondb_owner` - Your database username
+- `npg_YourPasswordHere` - Your database password
+- `ep-your-project-12345678` - Your unique endpoint
+- `us-east-2.aws.neon.tech` - Neon server region
+- `neondb` - Database name
+- `?sslmode=require` - REQUIRED for production

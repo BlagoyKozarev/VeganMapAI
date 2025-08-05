@@ -1,46 +1,47 @@
-# 🚨 URGENT: Fix Production Database
+# 🔥 QUICK FIX: Production Database Connection
 
-## Problem
-Production site shows "Loading restaurants" because the production database is empty (0 restaurants).
+## Your Current Situation:
+✅ Production database has 408 restaurants  
+❌ Website shows "Loading restaurants..."  
+❌ Deployment can't connect to database  
 
-## Quick Fix Instructions
+## 3-MINUTE FIX:
 
-### Option 1: Use Replit Database Pane (EASIEST)
-1. Open the **Database** pane in Replit (left sidebar)
-2. Switch to **Production** database 
-3. Import the `restaurants-export.json` file
-4. Restaurants will appear immediately on the live site
+### 1️⃣ Get Your Production DATABASE_URL
+Run this command in your terminal:
+```bash
+echo $DATABASE_URL
+```
+Copy the output - this is your working database URL.
 
-### Option 2: Manual Import via Console
-1. Open Replit Shell
-2. Set production environment:
-   ```bash
-   export NODE_ENV=production
-   export DATABASE_URL="your-production-database-url"
-   ```
-3. Run import script:
-   ```bash
-   tsx import-restaurants.ts
-   ```
+### 2️⃣ Open Deployment Settings
+1. Click **Deployments** tab
+2. Click **vegan-map-ai-bkozarev**
+3. Click **Environment Variables**
 
-### Option 3: Copy Database URL from Deployment
-1. Go to Deployments tab
-2. Click on your deployment
-3. Go to "Environment Variables"
-4. Copy the production DATABASE_URL
-5. Run: `DATABASE_URL="paste-url-here" tsx import-restaurants.ts`
+### 3️⃣ Add/Update DATABASE_URL
+- **Variable Name:** DATABASE_URL
+- **Value:** Paste the URL from step 1
+- Click **Save**
 
-## What This Does
-- Imports 408 restaurants with vegan scores
-- Populates production database
-- Makes the map work immediately
+### 4️⃣ Add Other Required Variables
+Make sure these exist:
+```
+OPENAI_API_KEY = sk-proj-...
+GOOGLE_MAPS_API_KEY = AIzaSy...
+NODE_ENV = production
+```
 
-## Verification
-After import, check: https://vegan-map-ai-bkozarev.replit.app/api/restaurants/public/map-data
-Should show `"count": 354` instead of `"count": 0`
+### 5️⃣ Redeploy
+1. Click **Redeploy** button
+2. Wait 2-3 minutes
+3. Visit https://vegan-map-ai-bkozarev.replit.app
 
-## Data Exported
-- 408 total restaurants
-- 354 with AI vegan scores
-- All Sofia locations
-- File: `restaurants-export.json` (ready to import)
+## Success Check:
+- Map loads immediately
+- Shows 408 restaurants
+- No "Loading..." message
+
+## Still Broken?
+The issue is 100% the DATABASE_URL in deployment settings.
+Your database has the data - deployment just can't reach it.
