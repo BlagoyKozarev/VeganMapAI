@@ -554,17 +554,6 @@ export default function Home() {
       </div>
       {/* Simple Map Container */}
       <div className="w-full h-full relative">
-        {/* Map Loading State */}
-        {restaurantsLoading && (
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full animate-pulse shadow-lg mb-4 mx-auto"></div>
-              <p className="text-lg font-semibold text-gray-800">Loading restaurants...</p>
-              <p className="text-sm text-gray-600 mt-2">Preparing your vegan dining map</p>
-            </div>
-          </div>
-        )}
-        
         <OptimizedLeafletMap
           center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.6977, 23.3219]}
           zoom={11}

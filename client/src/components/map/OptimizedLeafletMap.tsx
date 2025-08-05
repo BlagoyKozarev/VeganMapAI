@@ -199,6 +199,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     if (!performanceManagerRef.current || !restaurants.length) return;
 
     const initializeData = async () => {
+      console.log('🚀 Starting data initialization with', restaurants.length, 'restaurants');
       setIsLoading(true);
       
       try {
@@ -206,6 +207,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
         
         // Initial viewport update
         if (mapRef.current) {
+          console.log('✅ Map is ready, updating viewport');
           const bounds = mapRef.current.getBounds();
           const zoom = mapRef.current.getZoom();
           
@@ -225,6 +227,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       } catch (error) {
         console.error('❌ Failed to initialize restaurant data:', error);
       } finally {
+        console.log('📌 Setting isLoading to false');
         setIsLoading(false);
       }
     };
