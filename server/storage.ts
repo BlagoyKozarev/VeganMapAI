@@ -193,16 +193,40 @@ export class DatabaseStorage implements IStorage {
   
   async getAllRestaurantsWithScores(): Promise<Restaurant[]> {
     console.log('Getting all restaurants with AI vegan scores');
+    
+    // PRODUCTION FIX: Use raw SQL query with snake_case column names
+    if (process.env.NODE_ENV === 'production') {
+      const result = await db.execute(sql`
+        SELECT 
+          id,
+          place_id as "placeId",
+          name,
+          address,
+          latitude,
+          longitude,
+          phone_number as "phoneNumber",
+          website,
+          price_level as "priceLevel",
+          cuisine_types as "cuisineTypes",
+          opening_hours as "openingHours",
+          photos,
+          rating,
+          review_count as "reviewCount",
+          vegan_score as "veganScore",
+          is_verified as "isVerified",
+          created_at as "createdAt",
+          updated_at as "updatedAt",
+          geo_hash as "geoHash"
+        FROM restaurants
+      `);
+      
+      console.log(`Found ${result.rows.length} total restaurants in production database`);
+      return result.rows as Restaurant[];
+    }
+    
+    // Development: use normal Drizzle query
     const allRestaurants = await db.select().from(restaurants);
-    
-    // TEMPORARY: Return ALL restaurants to debug production issue
     console.log(`Found ${allRestaurants.length} total restaurants in database`);
-    
-    // Log database connection info
-    console.log('Database connection check:');
-    console.log('- DATABASE_URL exists:', !!process.env.DATABASE_URL);
-    console.log('- DATABASE_URL starts with:', process.env.DATABASE_URL?.substring(0, 25) + '...');
-    
     return allRestaurants;
   }
 

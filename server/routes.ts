@@ -137,21 +137,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
       console.log('DATABASE_URL prefix:', process.env.DATABASE_URL?.substring(0, 30) + '...');
       console.log('NODE_ENV:', process.env.NODE_ENV);
-      console.log('Deployment version: 1.0.1'); // Force new deployment
+      console.log('Deployment version: 1.0.2-column-fix'); // Force new deployment with column fix
       
       // Get all restaurants with scores for public viewing
       const restaurants = await storage.getAllRestaurantsWithScores();
       
       // Return limited data for public access (essential fields only)
+      // Handle both camelCase and snake_case column names for production compatibility
       const publicData = restaurants.map(restaurant => ({
         id: restaurant.id,
         name: restaurant.name,
         latitude: restaurant.latitude,
         longitude: restaurant.longitude,
-        veganScore: restaurant.veganScore,
-        cuisineTypes: restaurant.cuisineTypes,
+        veganScore: restaurant.veganScore || restaurant.vegan_score,
+        cuisineTypes: restaurant.cuisineTypes || restaurant.cuisine_types,
         rating: restaurant.rating,
-        priceLevel: restaurant.priceLevel,
+        priceLevel: restaurant.priceLevel || restaurant.price_level,
         address: restaurant.address
       }));
       
