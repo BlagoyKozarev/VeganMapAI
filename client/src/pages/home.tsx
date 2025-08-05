@@ -13,7 +13,8 @@ import { FilterModal } from '@/components/filters/FilterModal';
 import { FilterOptions } from '@/components/filters/RestaurantFilters';
 import { AISearchModal } from '@/components/ai/AISearchModal';
 import { ProfileModal } from '@/components/profile/ProfileModal';
-import { Bot } from 'lucide-react';
+import { Bot, Heart, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 interface Restaurant {
   id: string;
@@ -39,6 +40,7 @@ interface Restaurant {
 export default function Home() {
   const [, setLocation] = useLocation();
   const { position, loading, error, getCurrentPosition } = useGeolocation();
+  const { toast } = useToast();
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -236,6 +238,10 @@ export default function Home() {
   const handleCurrentLocation = () => {
     // Get fresh location data
     getCurrentPosition();
+    toast({
+      title: "Getting your location",
+      description: "Finding nearby vegan restaurants...",
+    });
   };
   const handleRestaurantClick = (restaurant: any, event?: any) => {
     setSelectedRestaurant({ ...restaurant, geoHash: restaurant.geoHash || null });
@@ -313,6 +319,19 @@ export default function Home() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Show welcome message for first-time users
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome && !loading && !restaurantsLoading) {
+      toast({
+        title: "Welcome to VeganMapAI! 🌱",
+        description: "Discover vegan-friendly restaurants with AI search, smart filters, and save your favorites!",
+        duration: 5000,
+      });
+      localStorage.setItem('hasSeenWelcome', 'true');
+    }
+  }, [loading, restaurantsLoading, toast]);
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -321,7 +340,8 @@ export default function Home() {
             <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full animate-pulse shadow-md"></div>
           </div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">VeganMapAI</h2>
-          <p className="text-gray-600 font-opensans">Getting your location...</p>
+          <p className="text-gray-600 font-opensans">Loading restaurants...</p>
+          <p className="text-sm text-gray-500 mt-2">Preparing your personalized vegan dining experience</p>
           <div className="mt-4 flex justify-center space-x-1">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
             <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
@@ -338,9 +358,9 @@ export default function Home() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-red-100 to-red-200 rounded-3xl mb-6">
             <i className="fas fa-map-marker-alt text-red-500 text-3xl"></i>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-3">Location Access Required</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-3">Welcome to VeganMapAI</h2>
           <p className="text-gray-600 font-opensans mb-8 leading-relaxed">
-            VeganMapAI needs access to your location to show nearby vegan-friendly restaurants and provide personalized recommendations.
+            Discover vegan-friendly restaurants near you. Allow location for better recommendations.
           </p>
           <Button 
             onClick={handleCurrentLocation}
@@ -464,7 +484,7 @@ export default function Home() {
               className="hidden sm:flex bg-white hover:bg-gray-50 border-gray-300 text-gray-700 font-medium shadow-sm hover:shadow-md transition-all duration-200 mr-2"
             >
               <Bot className="w-4 h-4 mr-2" />
-              AI Search
+              AI Restaurant Search
             </Button>
             
             {/* Filter Button - Desktop */}
@@ -480,7 +500,7 @@ export default function Home() {
               <Button 
                 variant="ghost" 
                 className="w-9 h-9 sm:w-10 sm:h-10 p-0 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                title="Admin Panel"
+                title="Admin Panel - Manage platform settings"
               >
                 <span className="text-white text-sm sm:text-lg">⚙️</span>
               </Button>
@@ -489,7 +509,7 @@ export default function Home() {
               <Button 
                 variant="ghost" 
                 className="w-9 h-9 sm:w-10 sm:h-10 p-0 hover:scale-105 transition-all duration-200"
-                title="AI Assistant"
+                title="AI Voice Assistant - Ask questions about restaurants"
               >
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -502,7 +522,7 @@ export default function Home() {
               onClick={() => setShowProfileModal(true)}
               variant="ghost" 
               className="w-9 h-9 sm:w-10 sm:h-10 hover:bg-gray-100 rounded-full transition-all duration-200 flex items-center justify-center p-0 hover:scale-105"
-              title="Profile"
+              title="My Profile - View favorites and preferences"
             >
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-medium shadow-lg">
                 <i className="fas fa-user"></i>
@@ -529,6 +549,17 @@ export default function Home() {
       </div>
       {/* Simple Map Container */}
       <div className="w-full h-full relative">
+        {/* Map Loading State */}
+        {restaurantsLoading && (
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-[1000] flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full animate-pulse shadow-lg mb-4 mx-auto"></div>
+              <p className="text-lg font-semibold text-gray-800">Loading restaurants...</p>
+              <p className="text-sm text-gray-600 mt-2">Preparing your vegan dining map</p>
+            </div>
+          </div>
+        )}
+        
         <OptimizedLeafletMap
           center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.7, 23.16]}
           restaurants={filteredRestaurants.map(r => ({
@@ -597,7 +628,7 @@ export default function Home() {
                   style={{ touchAction: 'manipulation' }}
                 >
                   <span className="mr-1">📍</span>
-                  {loading ? 'Loading...' : 'My Location'}
+                  {loading ? 'Finding your location...' : 'My Location'}
                 </Button>
               </div>
             </div>
@@ -699,7 +730,7 @@ export default function Home() {
             disabled={loading}
           >
             <span className="mr-1">📍</span>
-            {loading ? 'Loading...' : 'My Location'}
+            {loading ? 'Finding your location...' : 'My Location'}
           </Button>
         </div>
       </div>

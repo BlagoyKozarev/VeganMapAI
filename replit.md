@@ -4,7 +4,7 @@
 VeganMapAI is a full-stack web application designed to help users discover vegan-friendly restaurants and food locations. The platform provides personalized restaurant recommendations, vegan scoring, and AI-powered chat assistance. The business vision is to expand to the top 20 US cities, prioritizing cost-effective API usage through intelligent caching and strategic data management. The project aims for a seamless user experience, acting as a comprehensive guide for vegan-friendly dining.
 
 ## User Preferences
-- **Communication Style**: Simple, everyday language with Bulgarian support
+- **Communication Style**: Simple, everyday language (English only for US market launch)
 - **AI Chat Response Style**: Brief, clear, direct responses. No task repetition, focus on results only. Maximum 2-3 sentences per response
 - **Development Approach**: Comprehensive testing before deployment, focus on real-world functionality over theoretical solutions
 - **Documentation**: Maintain detailed technical documentation in `replit.md` for continuity across sessions
@@ -38,6 +38,7 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 - **Button Functionality Fixed (August 5, 2025)**: Fixed AI Assistant button to properly navigate to AI chat page, integrated MobileFilterDrawer for filter functionality on mobile devices, and resolved TypeScript errors for proper component functionality.
 - **Mobile Performance Optimized**: Implemented touch-optimized controls, fixed filter drawer positioning, and enhanced mobile UX.
 - **Favorites System Enhanced (August 5, 2025)**: Added favorites toggle button on both desktop and mobile interfaces. Users can now filter map view to show only favorited restaurants. Heart icons display on favorited restaurants on the map. Fixed FavoriteButton component TypeScript errors and integrated with map markers.
+- **US Market Launch Polish (August 5, 2025)**: Removed all Bulgarian text and prepared for NYC launch. Added English loading states "Loading restaurants...", English button labels "AI Restaurant Search", "Filter Restaurants", "My Profile". Implemented toast notifications for user actions, welcome onboarding message, and comprehensive error handling with English messages. Added "Share" button to restaurant popups and improved overall UX with loading spinners and progress indicators.
 
 ## External Dependencies
 

@@ -11,12 +11,12 @@ interface AISearchModalProps {
 }
 
 const examplePrompts = [
-  "Find restaurants without soy",
-  "Healthy vegan options near me",
-  "Best rated Bulgarian vegan food",
-  "Cheap vegetarian places",
+  "Healthy vegan near me",
+  "Restaurants without soy",
+  "Best rated vegan places",
+  "Cheap vegetarian food",
   "Italian vegan restaurants",
-  "Places with gluten-free options"
+  "Gluten-free vegan options"
 ];
 
 export function AISearchModal({ isOpen, onClose, onSearchResults }: AISearchModalProps) {
@@ -41,14 +41,14 @@ export function AISearchModal({ isOpen, onClose, onSearchResults }: AISearchModa
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'AI search failed');
+        throw new Error(errorData.message || 'Connection problem - please try again');
       }
 
       const data = await response.json();
       setAiResponse(data);
       onSearchResults(data.restaurants);
     } catch (err: any) {
-      setError(err.message || 'Failed to process AI search');
+      setError(err.message || 'AI search taking longer than expected... Please try again');
     } finally {
       setIsLoading(false);
     }

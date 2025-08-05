@@ -67,21 +67,21 @@ export default function AdminImprove() {
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Подобряване на AI Scoring System
+            Improve AI Scoring System
           </h1>
           <p className="text-gray-600">
-            Обновяване на vegan scores с подобрен алгоритъм
+            Update vegan scores with improved algorithm
           </p>
         </div>
 
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Настройки за Scoring</CardTitle>
+            <CardTitle>Scoring Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Брой ресторанти за обработка:
+                Number of restaurants to process:
               </label>
               <input
                 type="number"
@@ -101,7 +101,7 @@ export default function AdminImprove() {
                   onChange={(e) => setOnlyLowScores(e.target.checked)}
                   className="rounded"
                 />
-                <span className="text-sm">Само ресторанти с ниски scores (&lt; 2.0)</span>
+                <span className="text-sm">Only restaurants with low scores (&lt; 2.0)</span>
               </label>
             </div>
 
@@ -110,7 +110,7 @@ export default function AdminImprove() {
               disabled={improveMutation.isPending}
               className="w-full"
             >
-              {improveMutation.isPending ? 'Обработва...' : 'Стартирай Подобряване'}
+              {improveMutation.isPending ? 'Processing...' : 'Start Improvement'}
             </Button>
           </CardContent>
         </Card>

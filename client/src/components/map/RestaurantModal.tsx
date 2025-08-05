@@ -167,7 +167,7 @@ export function RestaurantModal({ restaurant, isOpen, onClose }: RestaurantModal
               className="flex-1"
             >
               <MapPin className="h-4 w-4 mr-2" />
-              Directions
+              Get Directions
             </Button>
             
             {restaurant.phoneNumber && (
@@ -180,6 +180,27 @@ export function RestaurantModal({ restaurant, isOpen, onClose }: RestaurantModal
                 Call
               </Button>
             )}
+            
+            <Button
+              variant="outline"
+              onClick={() => {
+                const shareUrl = `${window.location.origin}/?restaurant=${restaurant.id}`;
+                if (navigator.share) {
+                  navigator.share({
+                    title: restaurant.name,
+                    text: `Check out ${restaurant.name} on VeganMapAI`,
+                    url: shareUrl,
+                  });
+                } else {
+                  navigator.clipboard.writeText(shareUrl);
+                  // Add toast notification for copy
+                }
+              }}
+              className="flex-1"
+            >
+              <i className="fas fa-share-alt mr-2"></i>
+              Share
+            </Button>
           </div>
         </div>
       </DialogContent>
