@@ -8,25 +8,16 @@ async function importRestaurants() {
   try {
     console.log('📥 Importing restaurants to database...');
     
-    // Check if we're in production
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    if (isDevelopment) {
-      console.warn('⚠️  WARNING: Running in development mode!');
-      console.log('To import to production, set NODE_ENV=production');
-      const readline = require('readline').createInterface({
-        input: process.stdin,
-        output: process.stdout
-      });
-      
-      const answer = await new Promise(resolve => {
-        readline.question('Continue with development database? (y/N): ', resolve);
-      });
-      readline.close();
-      
-      if (answer?.toLowerCase() !== 'y') {
-        console.log('Import cancelled');
-        process.exit(0);
-      }
+    // Check environment
+    const isProduction = process.env.NODE_ENV === 'production';
+    const dbUrl = process.env.DATABASE_URL;
+    
+    console.log(`📍 Environment: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
+    console.log(`🔗 Database: ${dbUrl?.includes('neon.tech') ? 'Neon (Production)' : 'Local/Dev'}`);
+    
+    if (!isProduction) {
+      console.warn('⚠️  WARNING: Not in production mode!');
+      console.log('To import to production, run with: NODE_ENV=production DATABASE_URL="your-prod-url"');
     }
     
     // Read export file
