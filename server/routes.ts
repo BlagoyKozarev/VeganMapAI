@@ -129,9 +129,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // PUBLIC endpoint for map data (no authentication required)
   app.get('/api/restaurants/public/map-data', async (req, res) => {
     try {
-      console.log('Public map data request received');
+      console.log('===== PUBLIC MAP DATA REQUEST =====');
+      console.log('Time:', new Date().toISOString());
       console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
       console.log('DATABASE_URL prefix:', process.env.DATABASE_URL?.substring(0, 30) + '...');
+      console.log('NODE_ENV:', process.env.NODE_ENV);
       
       // Get all restaurants with scores for public viewing
       const restaurants = await storage.getAllRestaurantsWithScores();
@@ -150,12 +152,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       console.log(`Returning ${publicData.length} restaurants for public map view`);
+      console.log('===================================');
       
       res.json({
         success: true,
         restaurants: publicData,
         count: publicData.length,
-        public: true
+        public: true,
+        debug: {
+          dbConnected: !!process.env.DATABASE_URL,
+          nodeEnv: process.env.NODE_ENV,
+          timestamp: new Date().toISOString()
+        }
       });
       
     } catch (error) {
@@ -163,7 +171,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         error: 'Failed to fetch restaurant data',
-        restaurants: []
+        restaurants: [],
+        debug: {
+          errorMessage: error.message,
+          dbConnected: !!process.env.DATABASE_URL
+        }
       });
     }
   });
