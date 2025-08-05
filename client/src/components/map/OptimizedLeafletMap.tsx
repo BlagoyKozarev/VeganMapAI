@@ -318,7 +318,9 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
   // Create popup content
   const createPopupContent = (restaurant: Restaurant): string => {
     const score = parseFloat(restaurant.veganScore) || 0;
-    const stars = '★'.repeat(Math.round(score)) + '☆'.repeat(5 - Math.round(score));
+    // Cap score at 5 for star display (some restaurants have scores > 5)
+    const cappedScore = Math.min(5, Math.max(0, Math.round(score)));
+    const stars = '★'.repeat(cappedScore) + '☆'.repeat(5 - cappedScore);
     
     return `
       <div class="restaurant-popup">
