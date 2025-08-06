@@ -310,7 +310,6 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     requestAnimationFrame(addBatch);
     currentMarkersRef.current = markers;
     const renderTime = performance.now() - startTime;
-    , 'ms');
     // Performance logging removed for production
   }, [onRestaurantClick, userFavorites, aiHighlightedRestaurants]);
   // Create optimized marker icon
