@@ -44,6 +44,7 @@ import compression from "compression";
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
+import testGBGPTRouter from './routes/testGBGPT.js';
 
 const app = express();
 
@@ -92,6 +93,9 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Add GBGPT test routes
+app.use('/api', testGBGPTRouter);
 
 (async () => {
   const server = await registerRoutes(app);
