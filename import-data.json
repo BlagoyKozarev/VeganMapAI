@@ -1,0 +1,312 @@
+[
+  {
+    "restaurant": {
+      "name": "Кафе-ресторант Космос",
+      "address": "ул. Витоша 45, София",
+      "cuisineTypes": [
+        "cafe",
+        "bulgarian"
+      ],
+      "lat": 42.6977,
+      "lng": 23.3219,
+      "description": "Традиционна българска кухня с модерен подход"
+    },
+    "score": {
+      "overallScore": 3,
+      "dimensions": {
+        "menuVariety": 2.5,
+        "ingredientClarity": 1.5,
+        "staffKnowledge": 2,
+        "crossContamination": 1,
+        "nutritionalInfo": 0.5,
+        "allergenManagement": 1.5
+      },
+      "reasoning": "Fallback scoring: Moderate cuisine type",
+      "confidence": 0.4,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:43.072Z",
+      "gbgptAttempted": false
+    },
+    "duration": 3077,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Пица Темпо",
+      "address": "бул. Васил Левски 132, София",
+      "cuisineTypes": [
+        "pizza",
+        "italian"
+      ],
+      "lat": 42.6869,
+      "lng": 23.3228,
+      "description": "Италианска пицария с fresh ingredients"
+    },
+    "score": {
+      "overallScore": 3,
+      "dimensions": {
+        "menuVariety": 2.5,
+        "ingredientClarity": 1.5,
+        "staffKnowledge": 2,
+        "crossContamination": 1,
+        "nutritionalInfo": 0.5,
+        "allergenManagement": 1.5
+      },
+      "reasoning": "Fallback scoring: Moderate cuisine type",
+      "confidence": 0.4,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:43.529Z",
+      "gbgptAttempted": false
+    },
+    "duration": 3035,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Ресторант Made in Home",
+      "address": "ул. Оборище 42, София",
+      "cuisineTypes": [
+        "modern_european",
+        "healthy"
+      ],
+      "lat": 42.6886,
+      "lng": 23.3394,
+      "description": "Здравословна кухня с домашен вкус"
+    },
+    "score": {
+      "overallScore": 0,
+      "dimensions": {
+        "menuVariety": 0,
+        "ingredientClarity": 0,
+        "staffKnowledge": 0,
+        "crossContamination": 0,
+        "nutritionalInfo": 0,
+        "allergenManagement": 0
+      },
+      "reasoning": "Not a food establishment - vegan scoring not applicable",
+      "confidence": 1,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:43.995Z",
+      "gbgptAttempted": false
+    },
+    "duration": 3001,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Ethno",
+      "address": "ул. Дякон Игнатий 4, София",
+      "cuisineTypes": [
+        "traditional",
+        "bulgarian"
+      ],
+      "lat": 42.6948,
+      "lng": 23.3227,
+      "description": "Автентична българска кухня в стилна обстановка"
+    },
+    "score": {
+      "overallScore": 0,
+      "dimensions": {
+        "menuVariety": 0,
+        "ingredientClarity": 0,
+        "staffKnowledge": 0,
+        "crossContamination": 0,
+        "nutritionalInfo": 0,
+        "allergenManagement": 0
+      },
+      "reasoning": "Not a food establishment - vegan scoring not applicable",
+      "confidence": 1,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:44.495Z",
+      "gbgptAttempted": false
+    },
+    "duration": 3001,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Rainbow Factory",
+      "address": "ул. Цар Самуил 25, София",
+      "cuisineTypes": [
+        "healthy",
+        "vegetarian"
+      ],
+      "lat": 42.6953,
+      "lng": 23.3264,
+      "description": "Здравословни и vegetarian опции"
+    },
+    "score": {
+      "overallScore": 0,
+      "dimensions": {
+        "menuVariety": 0,
+        "ingredientClarity": 0,
+        "staffKnowledge": 0,
+        "crossContamination": 0,
+        "nutritionalInfo": 0,
+        "allergenManagement": 0
+      },
+      "reasoning": "Not a food establishment - vegan scoring not applicable",
+      "confidence": 1,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:44.996Z",
+      "gbgptAttempted": false
+    },
+    "duration": 3001,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Salad Studio",
+      "address": "бул. Витоша 89, София",
+      "cuisineTypes": [
+        "healthy",
+        "salads"
+      ],
+      "lat": 42.6934,
+      "lng": 23.3197,
+      "description": "Fresh салати и здравословни ястия"
+    },
+    "score": {
+      "overallScore": 0,
+      "dimensions": {
+        "menuVariety": 0,
+        "ingredientClarity": 0,
+        "staffKnowledge": 0,
+        "crossContamination": 0,
+        "nutritionalInfo": 0,
+        "allergenManagement": 0
+      },
+      "reasoning": "Not a food establishment - vegan scoring not applicable",
+      "confidence": 1,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:46.998Z",
+      "gbgptAttempted": false
+    },
+    "duration": 0,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Bistro Pesto",
+      "address": "ул. Шишман 12, София",
+      "cuisineTypes": [
+        "italian",
+        "bistro"
+      ],
+      "lat": 42.6891,
+      "lng": 23.3312,
+      "description": "Италианско bistro с fresh pasta"
+    },
+    "score": {
+      "overallScore": 3,
+      "dimensions": {
+        "menuVariety": 2.5,
+        "ingredientClarity": 1.5,
+        "staffKnowledge": 2,
+        "crossContamination": 1,
+        "nutritionalInfo": 0.5,
+        "allergenManagement": 1.5
+      },
+      "reasoning": "Fallback scoring: Moderate cuisine type",
+      "confidence": 0.4,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:47.537Z",
+      "gbgptAttempted": false
+    },
+    "duration": 40,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Green House",
+      "address": "ул. Граф Игнатиев 64, София",
+      "cuisineTypes": [
+        "healthy",
+        "organic"
+      ],
+      "lat": 42.6847,
+      "lng": 23.3254,
+      "description": "Органична храна и зелени smoothies"
+    },
+    "score": {
+      "overallScore": 0,
+      "dimensions": {
+        "menuVariety": 0,
+        "ingredientClarity": 0,
+        "staffKnowledge": 0,
+        "crossContamination": 0,
+        "nutritionalInfo": 0,
+        "allergenManagement": 0
+      },
+      "reasoning": "Not a food establishment - vegan scoring not applicable",
+      "confidence": 1,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:47.998Z",
+      "gbgptAttempted": false
+    },
+    "duration": 1,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Asia Garden",
+      "address": "бул. Черни връх 47, София",
+      "cuisineTypes": [
+        "asian",
+        "thai"
+      ],
+      "lat": 42.6712,
+      "lng": 23.3156,
+      "description": "Автентична азиатска кухня"
+    },
+    "score": {
+      "overallScore": 5.5,
+      "dimensions": {
+        "menuVariety": 5,
+        "ingredientClarity": 4,
+        "staffKnowledge": 4.5,
+        "crossContamination": 3.5,
+        "nutritionalInfo": 3,
+        "allergenManagement": 4
+      },
+      "reasoning": "Fallback scoring: Vegan-friendly cuisine type",
+      "confidence": 0.4,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:48.531Z",
+      "gbgptAttempted": false
+    },
+    "duration": 35,
+    "success": true
+  },
+  {
+    "restaurant": {
+      "name": "Vegetarian Delight",
+      "address": "ул. Раковски 95, София",
+      "cuisineTypes": [
+        "vegetarian",
+        "vegan"
+      ],
+      "lat": 42.6923,
+      "lng": 23.3278,
+      "description": "100% vegetarian ресторант с vegan опции"
+    },
+    "score": {
+      "overallScore": 0,
+      "dimensions": {
+        "menuVariety": 0,
+        "ingredientClarity": 0,
+        "staffKnowledge": 0,
+        "crossContamination": 0,
+        "nutritionalInfo": 0,
+        "allergenManagement": 0
+      },
+      "reasoning": "Not a food establishment - vegan scoring not applicable",
+      "confidence": 1,
+      "provider": "OpenAI (fallback)",
+      "timestamp": "2025-08-06T14:35:48.997Z",
+      "gbgptAttempted": false
+    },
+    "duration": 0,
+    "success": true
+  }
+]
