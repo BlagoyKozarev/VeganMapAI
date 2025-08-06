@@ -1,110 +1,92 @@
-// Generate simple SQL INSERT statements from restaurants export
-import fs from 'fs/promises';
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+import fs from 'fs';
 
-async function generateSimpleSQL() {
-  console.log('📝 Generating simple SQL statements...\n');
-  
+dotenv.config();
+
+async function generateSQL() {
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: false
+  });
+
   try {
-    // Read and fix the JSON file
-    let jsonContent = await fs.readFile('restaurants-export.json', 'utf-8');
+    console.log('📊 Генериране на SQL файл от development базата...');
     
-    // Remove any bad control characters
-    jsonContent = jsonContent.replace(/[\x00-\x1F\x7F-\x9F]/g, ' ');
+    // Вземаме всички ресторанти
+    const result = await pool.query(`
+      SELECT 
+        id,
+        place_id,
+        name,
+        address,
+        latitude,
+        longitude,
+        phone_number,
+        website,
+        price_level,
+        cuisine_types,
+        opening_hours,
+        photos,
+        rating,
+        review_count,
+        vegan_score,
+        is_verified,
+        created_at,
+        updated_at,
+        geo_hash
+      FROM restaurants
+      ORDER BY id
+    `);
     
-    const data = JSON.parse(jsonContent);
+    console.log(`Намерени ${result.rows.length} ресторанта`);
     
-    // Start SQL file
-    let sql = '-- VeganMapAI Simple Production Import\n';
-    sql += '-- Run these statements in your production database\n\n';
+    let sqlContent = '-- VeganMapAI Restaurant Data Import\n';
+    sqlContent += '-- Generated on ' + new Date().toISOString() + '\n\n';
     
-    // Delete existing data (optional)
-    sql += '-- Step 1: Clear existing data (optional)\n';
-    sql += 'DELETE FROM vegan_score_breakdown;\n';
-    sql += 'DELETE FROM restaurants;\n\n';
-    
-    // Generate restaurant inserts
-    sql += '-- Step 2: Insert restaurants\n';
-    let count = 0;
-    
-    for (const r of data.restaurants) {
-      // Escape single quotes in strings
-      const escape = (str) => str ? str.replace(/'/g, "''") : null;
+    for (const restaurant of result.rows) {
+      // Escape single quotes
+      const escapeSingle = (str) => str ? str.replace(/'/g, "''") : null;
       
-      // Build values array
-      const values = [
-        `'${r.id}'`,
-        `'${r.placeId}'`, 
-        `'${escape(r.name)}'`,
-        `'${escape(r.address)}'`,
-        r.latitude,
-        r.longitude,
-        r.phoneNumber ? `'${escape(r.phoneNumber)}'` : 'NULL',
-        r.website ? `'${escape(r.website)}'` : 'NULL',
-        r.priceLevel || 'NULL',
-        `ARRAY[${r.cuisineTypes.map(c => `'${escape(c)}'`).join(',')}]::text[]`,
-        r.openingHours ? `'${JSON.stringify(r.openingHours).replace(/'/g, "''")}'::jsonb` : 'NULL',
-        r.veganScore || 'NULL',
-        r.photoUrl ? `'${escape(r.photoUrl)}'` : 'NULL',
-        r.lastUpdated ? `'${r.lastUpdated}'` : 'CURRENT_TIMESTAMP',
-        r.rating || 'NULL',
-        r.userRatingsTotal || 'NULL'
-      ];
-      
-      sql += `INSERT INTO restaurants (id, place_id, name, address, latitude, longitude, phone_number, website, price_level, cuisine_types, opening_hours, vegan_score, photo_url, last_updated, rating, user_ratings_total) VALUES (${values.join(', ')});\n`;
-      
-      count++;
-      if (count % 10 === 0) {
-        sql += '\n'; // Add blank line every 10 inserts for readability
-      }
+      sqlContent += `INSERT INTO restaurants (
+        id, place_id, name, address, latitude, longitude, 
+        phone_number, website, price_level, cuisine_types, 
+        opening_hours, photos, rating, review_count, 
+        vegan_score, is_verified, created_at, updated_at, geo_hash
+      ) VALUES (
+        '${restaurant.id}',
+        '${restaurant.place_id}',
+        '${escapeSingle(restaurant.name)}',
+        '${escapeSingle(restaurant.address)}',
+        ${restaurant.latitude},
+        ${restaurant.longitude},
+        ${restaurant.phone_number ? `'${escapeSingle(restaurant.phone_number)}'` : 'NULL'},
+        ${restaurant.website ? `'${escapeSingle(restaurant.website)}'` : 'NULL'},
+        ${restaurant.price_level ? `'${restaurant.price_level}'` : 'NULL'},
+        ${restaurant.cuisine_types ? `'{${restaurant.cuisine_types.join(',')}}'` : 'NULL'},
+        ${restaurant.opening_hours ? `'${JSON.stringify(restaurant.opening_hours).replace(/'/g, "''")}'` : 'NULL'},
+        ${restaurant.photos ? `'{${restaurant.photos.join(',')}}'` : 'NULL'},
+        ${restaurant.rating || 'NULL'},
+        ${restaurant.review_count || 'NULL'},
+        ${restaurant.vegan_score},
+        ${restaurant.is_verified},
+        '${restaurant.created_at.toISOString()}',
+        '${restaurant.updated_at.toISOString()}',
+        ${restaurant.geo_hash ? `'${restaurant.geo_hash}'` : 'NULL'}
+      ) ON CONFLICT (id) DO NOTHING;\n\n`;
     }
     
-    sql += `\n-- Total restaurants: ${data.restaurants.length}\n\n`;
-    
-    // Generate vegan score inserts
-    sql += '-- Step 3: Insert vegan scores\n';
-    count = 0;
-    
-    for (const s of data.veganScoreBreakdown) {
-      const values = [
-        `'${s.id}'`,
-        `'${s.restaurantId}'`,
-        s.menuOptionsScore,
-        s.ingredientsScore,
-        s.crossContaminationScore,
-        s.certificationScore,
-        s.staffKnowledgeScore,
-        s.communityScore,
-        s.overallScore,
-        `'${s.lastUpdated}'`
-      ];
-      
-      sql += `INSERT INTO vegan_score_breakdown (id, restaurant_id, menu_options_score, ingredients_score, cross_contamination_score, certification_score, staff_knowledge_score, community_score, overall_score, last_updated) VALUES (${values.join(', ')});\n`;
-      
-      count++;
-      if (count % 10 === 0) {
-        sql += '\n';
-      }
-    }
-    
-    sql += `\n-- Total vegan scores: ${data.veganScoreBreakdown.length}\n`;
-    
-    // Save to file
-    await fs.writeFile('production-import-simple.sql', sql);
-    
-    console.log('✅ SQL file generated: production-import-simple.sql');
-    console.log(`📊 Contains:`);
-    console.log(`   - ${data.restaurants.length} restaurants`);
-    console.log(`   - ${data.veganScoreBreakdown.length} vegan scores`);
-    console.log('\n📋 Instructions:');
-    console.log('1. Copy the contents of production-import-simple.sql');
-    console.log('2. Paste into your production database console');
-    console.log('3. Execute the SQL statements');
-    console.log('\n✨ The production site will work immediately after execution!');
+    // Запазваме във файл
+    fs.writeFileSync('production-import-simple.sql', sqlContent);
+    console.log('✅ SQL файл създаден: production-import-simple.sql');
+    console.log(`📊 Общо ${result.rows.length} INSERT заявки`);
     
   } catch (error) {
-    console.error('❌ Error:', error.message);
-    console.log('\nTrying alternative approach...');
+    console.error('❌ Грешка:', error.message);
+  } finally {
+    await pool.end();
   }
 }
 
-generateSimpleSQL();
+generateSQL();

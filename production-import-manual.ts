@@ -1,65 +1,68 @@
-#!/usr/bin/env tsx
-
-// Manual production import script
-// Run this after deployment to populate the production database
-
-import { restaurants } from './shared/schema.js';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from 'ws';
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import fs from 'fs';
 
-// Configure WebSocket for local execution
-neonConfig.webSocketConstructor = ws;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const PRODUCTION_URL = process.env.DATABASE_URL!;
+dotenv.config();
 
 async function importToProduction() {
-  console.log('🚀 Manual Production Import');
-  console.log('==========================\n');
-  
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: false
+  });
+
   try {
-    // Create production connection
-    const pool = new Pool({ connectionString: PRODUCTION_URL });
-    const db = drizzle({ client: pool, schema: { restaurants } });
+    console.log('📊 Проверка на текущото състояние...');
     
-    // Check current state
-    const existing = await db.select().from(restaurants);
-    console.log(`📊 Current restaurants in production: ${existing.length}`);
+    // Проверка на броя ресторанти
+    const countResult = await pool.query('SELECT COUNT(*) as count FROM restaurants');
+    const currentCount = parseInt(countResult.rows[0].count);
     
-    if (existing.length > 0) {
-      console.log('⚠️  Production database already has data!');
-      console.log('Do you want to continue? This will add more restaurants.');
-      return;
+    console.log(`🔍 Намерени ${currentCount} ресторанта в базата`);
+    
+    if (currentCount >= 408) {
+      console.log('✅ Базата вече съдържа всички ресторанти!');
+      process.exit(0);
     }
     
-    // Load export data
-    const fileContent = JSON.parse(fs.readFileSync('restaurants-export.json', 'utf-8'));
-    const data = fileContent.restaurants || fileContent;
-    console.log(`📥 Loading ${data.length} restaurants from export...`);
+    // Изпълнение на SQL файла за импорт
+    console.log('📥 Импортиране на ресторанти от SQL файла...');
     
-    // Insert in batches
-    const batchSize = 50;
-    let successCount = 0;
+    const sqlFile = fs.readFileSync('./production-import-simple.sql', 'utf8');
     
-    for (let i = 0; i < data.length; i += batchSize) {
-      const batch = data.slice(i, i + batchSize);
-      try {
-        await db.insert(restaurants).values(batch);
-        successCount += batch.length;
-        console.log(`✅ Imported ${successCount}/${data.length}`);
-      } catch (error) {
-        console.error(`❌ Failed batch ${i}-${i+batchSize}:`, error);
+    // Разделяме на отделни заявки
+    const statements = sqlFile.split(';').filter(stmt => stmt.trim());
+    
+    let imported = 0;
+    for (const statement of statements) {
+      if (statement.trim().startsWith('INSERT INTO restaurants')) {
+        try {
+          await pool.query(statement + ';');
+          imported++;
+        } catch (err) {
+          // Игнорираме дубликати
+          if (!err.message.includes('duplicate key')) {
+            console.error('Грешка при импорт:', err.message);
+          }
+        }
       }
     }
     
-    // Verify
-    const final = await db.select().from(restaurants);
-    console.log(`\n✅ SUCCESS! Production now has ${final.length} restaurants!`);
+    console.log(`✅ Импортирани ${imported} ресторанта`);
     
-    await pool.end();
+    // Финална проверка
+    const finalCount = await pool.query('SELECT COUNT(*) as count FROM restaurants');
+    console.log(`📊 Общо ресторанти в базата: ${finalCount.rows[0].count}`);
+    
   } catch (error) {
-    console.error('❌ Import failed:', error);
+    console.error('❌ Грешка:', error.message);
+  } finally {
+    await pool.end();
   }
 }
 
