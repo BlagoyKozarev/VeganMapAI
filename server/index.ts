@@ -45,6 +45,7 @@ import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
 import testGBGPTRouter from './routes/testGBGPT.js';
+import bulkTestGBGPTRouter from './routes/bulkTestGBGPT.js';
 
 const app = express();
 
@@ -96,6 +97,7 @@ app.use((req, res, next) => {
 
 // Add GBGPT test routes
 app.use('/api', testGBGPTRouter);
+app.use('/api', bulkTestGBGPTRouter);
 
 (async () => {
   const server = await registerRoutes(app);
