@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Map Diagnostic</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            z-index: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        #status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 90%;
+        }
+        
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="status">
+        <h3>Mobile Map Test</h3>
+        <div id="messages"></div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const messages = document.getElementById('messages');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            messages.appendChild(div);
+            console.log(message);
+        }
+        
+        try {
+            log('Initializing map...');
+            
+            // Create map
+            const map = L.map('map', {
+                center: [42.6977, 23.3219],
+                zoom: 11,
+                zoomControl: true,
+                attributionControl: false
+            });
+            
+            log('Map created successfully', 'success');
+            
+            // Add tile layer
+            const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                opacity: 1
+            });
+            
+            tileLayer.addTo(map);
+            log('Tile layer added', 'success');
+            
+            // Test adding markers
+            fetch('/api/restaurants/public/map-data')
+                .then(response => response.json())
+                .then(data => {
+                    const restaurants = data.restaurants || data;
+                    log(`Loaded ${restaurants.length} restaurants`, 'success');
+                    
+                    // Add first 10 markers as test
+                    let count = 0;
+                    restaurants.slice(0, 10).forEach(restaurant => {
+                        if (restaurant.latitude && restaurant.longitude) {
+                            const marker = L.marker([
+                                parseFloat(restaurant.latitude),
+                                parseFloat(restaurant.longitude)
+                            ]);
+                            marker.bindPopup(restaurant.name);
+                            marker.addTo(map);
+                            count++;
+                        }
+                    });
+                    
+                    log(`Added ${count} test markers`, 'success');
+                })
+                .catch(error => {
+                    log(`Error loading restaurants: ${error.message}`, 'error');
+                });
+            
+            // Test map events
+            map.on('load', () => {
+                log('Map fully loaded', 'success');
+            });
+            
+            map.on('tileload', () => {
+                if (!window.tileLoaded) {
+                    window.tileLoaded = true;
+                    log('First tile loaded', 'success');
+                }
+            });
+            
+            map.on('tileerror', (e) => {
+                log(`Tile error: ${e.error}`, 'error');
+            });
+            
+            // Check viewport
+            setTimeout(() => {
+                const bounds = map.getBounds();
+                log(`Map bounds: ${bounds.toBBoxString()}`, 'info');
+                
+                // Force invalidate size for mobile
+                map.invalidateSize();
+                log('Map size invalidated', 'info');
+            }, 1000);
+            
+        } catch (error) {
+            log(`Fatal error: ${error.message}`, 'error');
+        }
+    </script>
+</body>
+</html>

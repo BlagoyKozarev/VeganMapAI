@@ -102,16 +102,30 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    // Mobile detection and debug
+    const isMobile = window.innerWidth < 768;
+    console.log('📱 Mobile device:', isMobile, 'Width:', window.innerWidth);
+    
     // Create map with optimized settings
-    const map = L.map(mapContainerRef.current, {
+    const mapOptions: any = {
       center: center,
       zoom: zoom,
       zoomControl: true,
       attributionControl: false,
       preferCanvas: true, // Use canvas for better performance
       maxZoom: 18,
-      minZoom: 8
-    });
+      minZoom: 8,
+      touchZoom: true,
+      dragging: true
+    };
+    
+    // Add mobile-specific options
+    if (isMobile) {
+      mapOptions.tap = true;
+      mapOptions.tapTolerance = 40;
+    }
+    
+    const map = L.map(mapContainerRef.current, mapOptions);
 
     // Add tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -151,6 +165,19 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
 
     mapRef.current = map;
     markerClusterGroupRef.current = clusterGroup;
+    
+    // Force map invalidation on mobile after initialization
+    if (isMobile) {
+      setTimeout(() => {
+        console.log('📱 Invalidating map size for mobile');
+        map.invalidateSize();
+      }, 100);
+      
+      // Additional mobile fix for Safari
+      setTimeout(() => {
+        map.invalidateSize(true);
+      }, 500);
+    }
 
 
     // Set up viewport change handling with throttling
@@ -203,6 +230,12 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       console.log('🚀 Starting data initialization with', restaurants.length, 'restaurants');
       setIsLoading(true);
       
+      // Add timeout to prevent infinite loading on mobile
+      const loadingTimeout = setTimeout(() => {
+        console.log('⏱️ Loading timeout - forcing completion');
+        setIsLoading(false);
+      }, 3000); // 3 second timeout
+      
       try {
         await performanceManagerRef.current!.initializeDataset(restaurants);
         
@@ -228,6 +261,7 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       } catch (error) {
         console.error('❌ Failed to initialize restaurant data:', error);
       } finally {
+        clearTimeout(loadingTimeout);
         console.log('📌 Setting isLoading to false');
         setIsLoading(false);
       }
@@ -392,10 +426,25 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       <div
         ref={mapContainerRef}
         className="w-full h-full"
-        style={{ minHeight: '400px', zIndex: 1 }}
+        style={{ 
+          minHeight: '400px', 
+          height: '100%',
+          position: 'relative',
+          zIndex: 1,
+          backgroundColor: '#f5f5f5'
+        }}
       />
 
-      {/* Loading overlay - temporarily disabled for debugging */}
+      {/* Loading overlay - only show briefly */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center" 
+             style={{ zIndex: 10, pointerEvents: 'none' }}>
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+            <p className="mt-2 text-gray-600 text-sm">Loading map...</p>
+          </div>
+        </div>
+      )}
 
       {/* Performance stats overlay (development) */}
       {process.env.NODE_ENV === 'development' && Object.keys(performanceStats).length > 0 && (
