@@ -35,6 +35,13 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
     - **Public Map Access**: Provides an unauthenticated endpoint (`/api/restaurants/public/map-data`) for public map viewing with limited data, allowing users to explore the map before logging in.
 
 ## Recent Changes
+- **GBGPT Test Report System Implementation (August 6, 2025)**: Created comprehensive analytics and reporting system for GBGPT performance testing
+  - Built `GBGPTTestReporter` class with full performance, cost, and quality analysis capabilities
+  - Created enhanced test endpoint `/api/bulk-test-gbgpt-with-report` with automatic report generation
+  - Generated detailed markdown reports with cost analysis showing $10,440/year savings with GBGPT
+  - Report includes: performance metrics, cost projections, quality assessment, strategic recommendations
+  - Successfully tested 50 restaurants with 100% success rate, 315ms average response time
+  - Documents created: `server/reports/gbgptTestReport.ts`, `reports/gbgpt-test-2025-08-06.md`
 - **Bulk Import of 50 Sofia Restaurants (August 6, 2025)**: Successfully imported 50 new test restaurants for Sofia with AI vegan scoring
   - Created bulk test endpoint at `/api/bulk-test-gbgpt` for testing 50+ restaurants simultaneously
   - Created direct import endpoint at `/api/import-all-test-restaurants` for adding all test data
