@@ -1,5 +1,5 @@
 // OptimizedLeafletMap.tsx - High-performance map component for 250K+ restaurants
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, memo, useMemo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -41,6 +41,7 @@ declare module 'leaflet' {
 }
 
 import { MapPerformanceManager } from '@/lib/MapPerformanceManager';
+import { useViewportRestaurants } from '@/hooks/useRestaurants';
 
 interface Restaurant {
   id: string;
@@ -135,28 +136,35 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       updateWhenIdle: true
     }).addTo(map);
 
-    // Create marker cluster group with optimized settings
+    // Create marker cluster group with OPTIMIZED settings for performance
     const clusterGroup = L.markerClusterGroup({
       chunkedLoading: true,
       chunkProgress: (processed: number, total: number) => {
-        },
-      maxClusterRadius: 50,
-      disableClusteringAtZoom: 16,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false,
+        // Silent progress for performance
+      },
+      maxClusterRadius: 60, // Slightly increased for better clustering
+      disableClusteringAtZoom: 17, // Allow clustering at more zoom levels
+      spiderfyOnMaxZoom: false, // Disabled for better mobile performance
+      showCoverageOnHover: false, // Disabled for performance
       zoomToBoundsOnClick: true,
       removeOutsideVisibleBounds: true, // Critical for performance
       iconCreateFunction: (cluster: any) => {
         const count = cluster.getChildCount();
-        let className = 'marker-cluster-small';
+        let size = 'small';
+        let sizeClass = 30;
         
-        if (count > 100) className = 'marker-cluster-large';
-        else if (count > 10) className = 'marker-cluster-medium';
+        if (count > 100) {
+          size = 'large';
+          sizeClass = 50;
+        } else if (count > 10) {
+          size = 'medium';
+          sizeClass = 40;
+        }
         
         return L.divIcon({
-          html: `<div><span>${count}</span></div>`,
-          className: `marker-cluster ${className}`,
-          iconSize: L.point(40, 40)
+          html: `<div class="cluster-marker cluster-${size}">${count}</div>`,
+          className: 'cluster-icon',
+          iconSize: L.point(sizeClass, sizeClass)
         });
       }
     });
@@ -278,31 +286,43 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     updateMarkers(searchResults);
   }, [searchQuery, mapReady]);
 
-  // Update markers function
+  // OPTIMIZED Update markers function with batching and performance improvements
   const updateMarkers = useCallback((restaurantsToShow: Restaurant[]) => {
     if (!markerClusterGroupRef.current) {
       console.error('❌ Marker cluster group not initialized');
       return;
     }
 
+    // Skip if restaurants count is too low
+    if (restaurantsToShow.length === 0) {
+      markerClusterGroupRef.current.clearLayers();
+      currentMarkersRef.current = [];
+      return;
+    }
+
     console.log('🗺️ Updating markers with', restaurantsToShow.length, 'restaurants');
     const startTime = performance.now();
 
-    // Clear existing markers
+    // Clear existing markers efficiently
     markerClusterGroupRef.current.clearLayers();
     currentMarkersRef.current = [];
 
-    // Create new markers
+    // Create new markers with optimizations
     const markers: L.Marker[] = [];
     
-    restaurantsToShow.forEach(restaurant => {
+    // Limit markers for performance
+    const limitedRestaurants = restaurantsToShow.slice(0, 500);
+    
+    limitedRestaurants.forEach(restaurant => {
       const score = parseFloat(restaurant.veganScore) || 0;
       const isAIHighlighted = aiHighlightedRestaurants.has(parseInt(restaurant.id));
       const isFavorite = userFavorites.includes(restaurant.id);
-      const scoreColor = isAIHighlighted ? '#9333ea' : getScoreColor(score); // Purple for AI highlights
+      const scoreColor = isAIHighlighted ? '#9333ea' : getScoreColor(score);
       
+      // Use lighter weight marker for performance
       const marker = L.marker([restaurant.latitude, restaurant.longitude], {
-        icon: createOptimizedIcon(score, scoreColor, isAIHighlighted, isFavorite)
+        icon: createOptimizedIcon(score, scoreColor, isAIHighlighted, isFavorite),
+        riseOnHover: false // Disable hover effect for performance
       });
 
       // Add popup with restaurant info
@@ -500,31 +520,46 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
         </div>
       )}
 
-      {/* Custom styles */}
+      {/* Optimized cluster styles for performance */}
       <style>{`
-        .marker-cluster {
-          background-color: #3b82f6;
-          border: 2px solid #ffffff;
-          border-radius: 50%;
+        .cluster-icon {
+          background: none !important;
+          border: none !important;
+        }
+
+        .cluster-marker {
+          background: #3B82F6;
           color: white;
-          font-weight: bold;
-          text-align: center;
-          font-size: 12px;
+          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
+          font-weight: bold;
+          font-size: 12px;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          will-change: transform; /* Optimize for animations */
         }
 
-        .marker-cluster-small {
-          background-color: #10b981;
+        .cluster-small { 
+          width: 30px; 
+          height: 30px; 
+          font-size: 11px;
+          background: #10b981;
         }
-
-        .marker-cluster-medium {
-          background-color: #f59e0b;
+        
+        .cluster-medium { 
+          width: 40px; 
+          height: 40px; 
+          font-size: 12px;
+          background: #f59e0b;
         }
-
-        .marker-cluster-large {
-          background-color: #ef4444;
+        
+        .cluster-large { 
+          width: 50px; 
+          height: 50px; 
+          font-size: 14px;
+          background: #ef4444;
         }
 
         .custom-marker {

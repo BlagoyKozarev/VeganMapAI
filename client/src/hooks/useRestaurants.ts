@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Restaurant, SearchFilters, GeolocationPosition } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useMemo } from 'react';
 export function useNearbyRestaurants(location: GeolocationPosition | null, radius?: number) {
   return useQuery({
     queryKey: ['/api/restaurants/nearby', location?.lat, location?.lng, radius],
@@ -18,6 +19,35 @@ export function useNearbyRestaurants(location: GeolocationPosition | null, radiu
     },
     enabled: !!location,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+// Optimized viewport-based restaurant loading for better performance
+export function useViewportRestaurants(bounds?: { north: number; south: number; east: number; west: number }) {
+  return useQuery({
+    queryKey: ['/api/restaurants/public/map-data', bounds],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (bounds) {
+        params.append('north', bounds.north.toString());
+        params.append('south', bounds.south.toString());
+        params.append('east', bounds.east.toString());
+        params.append('west', bounds.west.toString());
+        params.append('limit', '200'); // Limit for performance
+      }
+      
+      const response = await fetch(`/api/restaurants/public/map-data?${params}`);
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch restaurants');
+      }
+      
+      return data.restaurants;
+    },
+    enabled: !!bounds,
+    staleTime: 2 * 60 * 1000, // 2 minutes cache
+    gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
   });
 }
 export function useRestaurant(id: string) {

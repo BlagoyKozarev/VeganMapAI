@@ -40,12 +40,27 @@ function validateEnvironment() {
 validateEnvironment();
 
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
 
 const app = express();
-app.use(express.json());
+
+// Add compression middleware for better performance
+app.use(compression({
+  level: 6, // Balanced compression level
+  threshold: 1024, // Only compress responses > 1KB
+  filter: (req, res) => {
+    // Compress text-based responses
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
+
+app.use(express.json({ limit: '1mb' })); // Limit JSON payload size
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {

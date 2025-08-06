@@ -53,6 +53,7 @@ export interface IStorage {
   updateRestaurant(id: string, restaurant: Partial<InsertRestaurant>): Promise<Restaurant>;
   getAllRestaurantsWithScores(): Promise<Restaurant[]>;
   getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]>;
+  getRestaurantsInBounds(bounds: { north: number, south: number, east: number, west: number }, limit?: number): Promise<Restaurant[]>;
   searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]>;
   getAllRestaurants(): Promise<Restaurant[]>;
   
@@ -256,6 +257,22 @@ export class DatabaseStorage implements IStorage {
     
     console.log(`Returning ${filteredRestaurants.length} restaurants within ${radiusKm}km`);
     return filteredRestaurants;
+  }
+
+  async getRestaurantsInBounds(bounds: { north: number, south: number, east: number, west: number }, limit: number = 200): Promise<Restaurant[]> {
+    // Optimized viewport-based loading
+    const query = await db.select()
+      .from(restaurants)
+      .where(
+        sql`${restaurants.latitude} >= ${bounds.south} AND 
+            ${restaurants.latitude} <= ${bounds.north} AND 
+            ${restaurants.longitude} >= ${bounds.west} AND 
+            ${restaurants.longitude} <= ${bounds.east}`
+      )
+      .limit(limit)
+      .orderBy(desc(restaurants.veganScore));
+    
+    return query;
   }
   
   async getAllRestaurants(): Promise<Restaurant[]> {

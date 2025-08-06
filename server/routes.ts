@@ -130,16 +130,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PUBLIC endpoint for map data (no authentication required)
+  // OPTIMIZED PUBLIC endpoint for map data with viewport-based loading
   app.get('/api/restaurants/public/map-data', async (req, res) => {
     try {
-      // Production logging removed for deployment
+      // Add caching headers for better performance
+      res.set({
+        'Cache-Control': 'public, max-age=300, s-maxage=600', // 5 min client, 10 min CDN
+        'Vary': 'Accept-Encoding'
+      });
       
-      // Get all restaurants with scores for public viewing
-      const restaurants = await storage.getAllRestaurantsWithScores();
+      // Check for viewport bounds
+      const { north, south, east, west, limit } = req.query;
       
-      // Return limited data for public access (essential fields only)
-      // Handle both camelCase and snake_case column names for production compatibility
+      let restaurants;
+      
+      if (north && south && east && west) {
+        // Viewport-based loading for better performance
+        const bounds = {
+          north: parseFloat(north as string),
+          south: parseFloat(south as string),
+          east: parseFloat(east as string),
+          west: parseFloat(west as string)
+        };
+        
+        // Get restaurants within viewport bounds only
+        restaurants = await storage.getRestaurantsInBounds(
+          bounds,
+          parseInt(limit as string) || 200
+        );
+      } else {
+        // Fallback to all restaurants (limited for performance)
+        restaurants = await storage.getAllRestaurantsWithScores();
+        // Limit to 500 restaurants for initial load
+        restaurants = restaurants.slice(0, 500);
+      }
+      
+      // Return optimized data (essential fields only)
       const publicData = restaurants.map(restaurant => ({
         id: restaurant.id,
         name: restaurant.name,
@@ -152,18 +178,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: restaurant.address
       }));
       
-      // Return public map data
-      
       res.json({
         success: true,
         restaurants: publicData,
         count: publicData.length,
         public: true,
-        debug: {
-          dbConnected: !!process.env.DATABASE_URL,
-          nodeEnv: process.env.NODE_ENV,
-          timestamp: new Date().toISOString()
-        }
+        optimized: true,
+        viewport: !!(north && south && east && west)
       });
       
     } catch (error) {
@@ -171,11 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         error: 'Failed to fetch restaurant data',
-        restaurants: [],
-        debug: {
-          errorMessage: error.message,
-          dbConnected: !!process.env.DATABASE_URL
-        }
+        restaurants: []
       });
     }
   });
