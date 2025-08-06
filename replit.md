@@ -35,7 +35,8 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
     - **Public Map Access**: Provides an unauthenticated endpoint (`/api/restaurants/public/map-data`) for public map viewing with limited data, allowing users to explore the map before logging in.
 
 ## Recent Changes
-- **Data Recovery Success (August 5, 2025)**: Successfully recovered all 408 restaurants from git history after database data loss. Used `production-import-simple.sql` from commit 0ecbd79 to restore complete restaurant dataset. Database now has all original restaurants with vegan scores, addresses, and metadata intact.
+- **Production Database Fixed (August 6, 2025)**: Successfully resolved production deployment issues by importing all 408 restaurants to production database and fixing timestamp validation errors. Production deployment now works correctly with full restaurant dataset.
+- **Data Recovery Success (August 5, 2025)**: Successfully recovered all 408 restaurants from git history after database data loss. Used `production-import-simple.sql` from commit 0ecbd79 to restore complete restaurant dataset.
 - **Development Environment Focus (August 5, 2025)**: Cleaned up all deployment-related files and focused on development environment with 408 working restaurants.
 - **Button Functionality Fixed (August 5, 2025)**: Fixed AI Assistant button to properly navigate to AI chat page, integrated MobileFilterDrawer for filter functionality on mobile devices, and resolved TypeScript errors for proper component functionality.
 - **Mobile Performance Optimized**: Implemented touch-optimized controls, fixed filter drawer positioning, and enhanced mobile UX.
