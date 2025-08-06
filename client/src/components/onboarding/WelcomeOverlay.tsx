@@ -9,14 +9,24 @@ interface WelcomeOverlayProps {
 
 export function WelcomeOverlay({ onGetStarted, onSkip }: WelcomeOverlayProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   useEffect(() => {
     // Check if user has seen the welcome message
     const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
     if (!hasSeenWelcome) {
       setIsVisible(true);
+      
+      // Auto-close after 5 seconds on mobile devices
+      if (isMobile) {
+        const timer = setTimeout(() => {
+          sessionStorage.setItem('hasSeenWelcome', 'true');
+          setIsVisible(false);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, []);
+  }, [isMobile]);
 
   const handleGetStarted = () => {
     sessionStorage.setItem('hasSeenWelcome', 'true');

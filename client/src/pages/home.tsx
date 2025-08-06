@@ -827,8 +827,8 @@ export default function Home() {
         }}
       />
       
-      {/* Welcome Overlay */}
-      <WelcomeOverlay
+      {/* Welcome Overlay - Temporarily disabled for mobile debugging */}
+      {/* <WelcomeOverlay
         onGetStarted={() => {
           // Could trigger a guided tour in the future
           toast({
@@ -840,7 +840,7 @@ export default function Home() {
         onSkip={() => {
           // User skipped the welcome overlay
         }}
-      />
+      /> */}
       </div>
     </>
   );
