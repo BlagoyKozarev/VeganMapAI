@@ -36,6 +36,10 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
 
 ## Recent Changes
 - **Production Database Fixed (August 6, 2025)**: Successfully resolved production deployment issues by importing all 408 restaurants to production database and fixing timestamp validation errors. Production deployment now works correctly with full restaurant dataset.
+  - Created `production-clean.sql` - optimized SQL import without JSON fields (128KB)
+  - Fixed timestamp fields with UPDATE query to resolve Drizzle ORM validation errors
+  - Database transfer method: manual SQL import via Database panel Production tab
+  - Files created: `generate-simple-sql.ts`, `fix-production-timestamps.sql`, `fix-deployment-error.ts`
 - **Data Recovery Success (August 5, 2025)**: Successfully recovered all 408 restaurants from git history after database data loss. Used `production-import-simple.sql` from commit 0ecbd79 to restore complete restaurant dataset.
 - **Development Environment Focus (August 5, 2025)**: Cleaned up all deployment-related files and focused on development environment with 408 working restaurants.
 - **Button Functionality Fixed (August 5, 2025)**: Fixed AI Assistant button to properly navigate to AI chat page, integrated MobileFilterDrawer for filter functionality on mobile devices, and resolved TypeScript errors for proper component functionality.
