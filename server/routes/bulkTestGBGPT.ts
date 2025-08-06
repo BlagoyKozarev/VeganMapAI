@@ -3,6 +3,7 @@ import { GBGPTProvider } from '../providers/gbgptProvider.js';
 import { HybridScoringProvider } from '../providers/hybridScoringProvider.js';
 import { db } from '../db.js';
 import { restaurants } from '../../shared/schema.js';
+import { GBGPTTestReporter } from '../reports/gbgptTestReport.js';
 
 const router = express.Router();
 
@@ -693,6 +694,182 @@ router.post('/import-all-test-restaurants', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message
+    });
+  }
+});
+
+/**
+ * Enhanced bulk test with automatic report generation
+ */
+router.post('/bulk-test-gbgpt-with-report', async (req, res) => {
+  try {
+    console.log('🚀 Starting enhanced bulk test with report generation...');
+    
+    // Initialize reporter
+    const reporter = new GBGPTTestReporter();
+    
+    // Generate the same 50 test restaurants
+    const testRestaurants = [
+      {
+        name: "Кафе-ресторант Космос",
+        address: "ул. Витоша 45, София",
+        cuisineTypes: ["cafe", "bulgarian"],
+        lat: 42.6977,
+        lng: 23.3219,
+        description: "Традиционна българска кухня с модерен подход"
+      },
+      {
+        name: "Пица Темпо",
+        address: "бул. Васил Левски 132, София", 
+        cuisineTypes: ["pizza", "italian"],
+        lat: 42.6869,
+        lng: 23.3228,
+        description: "Италианска пицария с fresh ingredients"
+      },
+      {
+        name: "Ресторант Made in Home",
+        address: "ул. Оборище 42, София",
+        cuisineTypes: ["modern_european", "healthy"],
+        lat: 42.6886,
+        lng: 23.3394,
+        description: "Здравословна кухня с домашен вкус"
+      },
+      {
+        name: "Ethno",
+        address: "ул. Дякон Игнатий 4, София",
+        cuisineTypes: ["traditional", "bulgarian"],
+        lat: 42.6948,
+        lng: 23.3227,
+        description: "Автентична българска кухня в стилна обстановка"
+      },
+      {
+        name: "Rainbow Factory",
+        address: "ул. Цар Самуил 25, София",
+        cuisineTypes: ["healthy", "vegetarian"],
+        lat: 42.6953,
+        lng: 23.3264,
+        description: "Здравословни и vegetarian опции"
+      }
+    ];
+
+    // Extend to 50 restaurants
+    const allTestRestaurants = [...testRestaurants];
+    for (let i = 5; i < 50; i++) {
+      allTestRestaurants.push({
+        name: `Тест Ресторант ${i + 1}`,
+        address: `ул. Тестова ${i + 1}, София`,
+        cuisineTypes: ["restaurant", "international"],
+        lat: 42.6977 + (Math.random() - 0.5) * 0.05,
+        lng: 23.3219 + (Math.random() - 0.5) * 0.05,
+        description: `Тестов ресторант номер ${i + 1} за GBGPT анализ`
+      });
+    }
+
+    console.log(`📊 Processing ${allTestRestaurants.length} restaurants with enhanced tracking...`);
+    
+    const hybrid = new HybridScoringProvider();
+    const results: any[] = [];
+    const failures: any[] = [];
+    let processed = 0;
+
+    // Process all restaurants
+    for (let i = 0; i < allTestRestaurants.length; i += 5) {
+      const batch = allTestRestaurants.slice(i, i + 5);
+      
+      console.log(`🔄 Processing batch ${Math.floor(i/5) + 1}/${Math.ceil(allTestRestaurants.length/5)}`);
+      
+      const batchPromises = batch.map(async (restaurant, index) => {
+        try {
+          await new Promise(resolve => setTimeout(resolve, index * 200));
+          
+          const startTime = Date.now();
+          const score = await hybrid.scoreRestaurant(restaurant);
+          const duration = Date.now() - startTime;
+          
+          processed++;
+          console.log(`✅ ${restaurant.name} scored in ${duration}ms (${processed}/${allTestRestaurants.length})`);
+          
+          return {
+            restaurant,
+            score,
+            duration,
+            success: true,
+            provider: score.provider || 'OpenAI (fallback)'
+          };
+          
+        } catch (error: any) {
+          console.error(`❌ Failed to score ${restaurant.name}:`, error.message);
+          processed++;
+          
+          return {
+            restaurant,
+            error: error.message,
+            success: false,
+            duration: 0,
+            provider: 'Failed'
+          };
+        }
+      });
+
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          if (result.value.success) {
+            results.push(result.value);
+          } else {
+            failures.push(result.value);
+          }
+        }
+      });
+
+      // Small pause between batches
+      if (i + 5 < allTestRestaurants.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+
+    // Calculate statistics
+    const avgDuration = results.length > 0 
+      ? results.reduce((sum, r) => sum + r.duration, 0) / results.length 
+      : 0;
+    const avgScore = results.length > 0
+      ? results.reduce((sum, r) => sum + r.score.overallScore, 0) / results.length
+      : 0;
+    
+    const stats = {
+      totalProcessed: allTestRestaurants.length,
+      successful: results.length,
+      failed: failures.length,
+      successRate: `${((results.length / allTestRestaurants.length) * 100).toFixed(1)}%`,
+      averageResponseTime: `${avgDuration.toFixed(0)}ms`,
+      averageVeganScore: avgScore.toFixed(2),
+      primaryProvider: results.length > 0 ? results[0].provider : 'Unknown',
+      timestamp: new Date().toISOString()
+    };
+
+    // Add results to reporter and generate report
+    reporter.addResults([...results, ...failures], stats);
+    const reportPath = await reporter.saveReport();
+    const reportContent = reporter.generateMarkdownReport();
+
+    console.log('🎉 Enhanced bulk test completed with report!', stats);
+
+    res.json({
+      success: true,
+      stats,
+      reportPath,
+      reportPreview: reportContent.substring(0, 2000) + '...',
+      message: `Test completed and report saved to ${reportPath}`
+    });
+    
+  } catch (error: any) {
+    console.error('❌ Enhanced bulk test failed:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: 'Enhanced bulk test failed'
     });
   }
 });
