@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Info, Star } from 'lucide-react';
+import { designTokens } from '../styles/designTokens';
 
 interface ScoreExplanationProps {
   score: number;
@@ -45,12 +46,35 @@ export function ScoreExplanation({ score, breakdown, restaurantName }: ScoreExpl
       </div>
 
       {showDetails && (
-        <div className="absolute z-10 mt-2 p-4 bg-white border rounded-lg shadow-lg w-80 left-0">
-          <div className="mb-3">
-            <h4 className="font-semibold text-gray-800">
+        <div 
+          className="absolute z-10 mt-2"
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: '0',
+            marginTop: '8px',
+            width: designTokens.popupSizes.scoreExplanation.width,
+            maxWidth: designTokens.popupSizes.scoreExplanation.maxWidth,
+            padding: designTokens.popupSizes.scoreExplanation.padding,
+            backgroundColor: designTokens.colors.background.primary,
+            border: `1px solid ${designTokens.colors.border}`,
+            borderRadius: designTokens.borderRadius.lg,
+            boxShadow: designTokens.shadows.lg,
+            zIndex: designTokens.zIndex.popover
+          }}
+        >
+          <div style={{ marginBottom: designTokens.spacing.md }}>
+            <h4 style={{
+              ...designTokens.typography.h4,
+              color: designTokens.colors.text.primary,
+              marginBottom: designTokens.spacing.xs
+            }}>
               Vegan Score: {getScoreText(score)}
             </h4>
-            <p className="text-sm text-gray-600 mt-1">
+            <p style={{
+              ...designTokens.typography.bodySmall,
+              color: designTokens.colors.text.secondary
+            }}>
               AI analysis of {restaurantName}'s vegan-friendliness
             </p>
           </div>

@@ -42,6 +42,7 @@ declare module 'leaflet' {
 
 import { MapPerformanceManager } from '@/lib/MapPerformanceManager';
 import { useViewportRestaurants } from '@/hooks/useRestaurants';
+import { designTokens } from '@/styles/designTokens';
 
 interface Restaurant {
   id: string;

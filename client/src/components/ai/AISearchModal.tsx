@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { Modal } from '@/components/ui/Modal';
 import { Bot, Search, Loader2, MapPin, Star, DollarSign } from 'lucide-react';
+import { designTokens } from '../../styles/designTokens';
 
 interface AISearchModalProps {
   isOpen: boolean;
@@ -54,37 +56,35 @@ export function AISearchModal({ isOpen, onClose, onSearchResults }: AISearchModa
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1002]" 
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
-      <div className="fixed inset-0 flex items-end sm:items-center justify-center z-[1003] sm:px-4">
-        <Card className="bg-white shadow-2xl rounded-t-2xl sm:rounded-2xl overflow-hidden w-full max-w-2xl sm:mb-0 mobile-modal">
-          <div className="max-h-[calc(100vh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem)] overflow-y-auto">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Bot className="w-8 h-8 text-white mr-3" />
-                <h2 className="text-xl sm:text-2xl font-bold text-white">AI Restaurant Search</h2>
-              </div>
-              <Button
-                onClick={onClose}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-              >
-                ✕
-              </Button>
-            </div>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      size="large"
+      className="ai-search-modal"
+    >
+      <div className="ai-search-content">
+        {/* Header with gradient */}
+        <div 
+          style={{
+            background: 'linear-gradient(to right, #3B82F6, #8B5CF6)',
+            margin: `-${designTokens.spacing.lg}`,
+            marginBottom: designTokens.spacing.lg,
+            padding: designTokens.spacing.lg,
+            borderRadius: `${designTokens.borderRadius.lg} ${designTokens.borderRadius.lg} 0 0`
+          }}
+        >
+          <div className="flex items-center">
+            <Bot className="w-8 h-8 text-white mr-3" />
+            <h2 style={{
+              ...designTokens.typography.h2,
+              color: 'white',
+              margin: 0
+            }}>
+              AI Restaurant Search
+            </h2>
           </div>
+        </div>
 
           {/* Content */}
           <div className="p-4 sm:p-6">
@@ -224,9 +224,7 @@ export function AISearchModal({ isOpen, onClose, onSearchResults }: AISearchModa
               </div>
             )}
           </div>
-          </div>
-        </Card>
       </div>
-    </>
+    </Modal>
   );
 }
