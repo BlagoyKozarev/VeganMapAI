@@ -1,7 +1,6 @@
 // useOptimizedMap.ts - React hook for map performance integration
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MapPerformanceManager } from '@/lib/MapPerformanceManager';
-
 interface Restaurant {
   id: string;
   name: string;
@@ -13,7 +12,6 @@ interface Restaurant {
   priceLevel?: number;
   address?: string;
 }
-
 interface UseOptimizedMapProps {
   restaurants: Restaurant[];
   initialCenter?: [number, number];
@@ -25,7 +23,6 @@ interface UseOptimizedMapProps {
     cuisineTypes?: string[];
   };
 }
-
 interface MapState {
   isLoading: boolean;
   visibleRestaurants: Restaurant[];
@@ -33,7 +30,6 @@ interface MapState {
   error: string | null;
   mapBounds: any;
 }
-
 export const useOptimizedMap = ({
   restaurants,
   initialCenter = [42.6977, 23.3219],
@@ -48,27 +44,21 @@ export const useOptimizedMap = ({
     error: null,
     mapBounds: null
   });
-
   // Create performance manager instance
   const performanceManager = useMemo(() => new MapPerformanceManager(), []);
-
   // Initialize restaurant dataset
   useEffect(() => {
     const initializeData = async () => {
       if (!restaurants.length) return;
-
       setMapState(prev => ({ ...prev, isLoading: true, error: null }));
-
       try {
         await performanceManager.initializeDataset(restaurants);
-        
         setMapState(prev => ({
           ...prev,
           isLoading: false,
           performanceStats: performanceManager.getStatistics()
         }));
       } catch (error) {
-        console.error('Failed to initialize map data:', error);
         setMapState(prev => ({
           ...prev,
           isLoading: false,
@@ -76,17 +66,13 @@ export const useOptimizedMap = ({
         }));
       }
     };
-
     initializeData();
   }, [restaurants, performanceManager]);
-
   // Handle viewport changes
   const handleViewportChange = useCallback((bounds: any) => {
     if (!performanceManager) return;
-
     try {
       const visibleRestaurants = performanceManager.updateViewport(bounds);
-      
       setMapState(prev => ({
         ...prev,
         visibleRestaurants,
@@ -94,16 +80,12 @@ export const useOptimizedMap = ({
         performanceStats: performanceManager.getStatistics()
       }));
     } catch (error) {
-      console.error('Failed to update viewport:', error);
     }
   }, [performanceManager]);
-
   // Handle search with filtering
   const searchResults = useMemo(() => {
     if (!performanceManager || mapState.isLoading) return [];
-
     let results = performanceManager.searchInViewport(searchQuery);
-
     // Apply filters
     if (filters.minScore !== undefined) {
       results = results.filter(restaurant => {
@@ -111,14 +93,12 @@ export const useOptimizedMap = ({
         return score >= filters.minScore!;
       });
     }
-
     if (filters.maxPrice !== undefined) {
       results = results.filter(restaurant => {
         const price = restaurant.priceLevel || 0;
         return price <= filters.maxPrice!;
       });
     }
-
     if (filters.cuisineTypes?.length) {
       results = results.filter(restaurant => 
         restaurant.cuisineTypes?.some(cuisine => 
@@ -126,10 +106,8 @@ export const useOptimizedMap = ({
         )
       );
     }
-
     return results;
   }, [performanceManager, mapState.isLoading, searchQuery, filters]);
-
   // Update visible restaurants when search changes
   useEffect(() => {
     setMapState(prev => ({
@@ -137,7 +115,6 @@ export const useOptimizedMap = ({
       visibleRestaurants: searchResults
     }));
   }, [searchResults]);
-
   // Performance monitoring
   useEffect(() => {
     const interval = setInterval(() => {
@@ -148,17 +125,14 @@ export const useOptimizedMap = ({
         }));
       }
     }, 5000);
-
     return () => clearInterval(interval);
   }, [performanceManager]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       performanceManager.cleanup();
     };
   }, [performanceManager]);
-
   // Map control functions
   const mapControls = {
     // Force refresh visible restaurants
@@ -167,36 +141,30 @@ export const useOptimizedMap = ({
         handleViewportChange(mapState.mapBounds);
       }
     }, [mapState.mapBounds, handleViewportChange]),
-
     // Get restaurants by quality tier
     getRestaurantsByTier: useCallback((tier: 'premium' | 'good' | 'basic') => {
       return performanceManager?.getRestaurantsByTier(tier) || [];
     }, [performanceManager]),
-
     // Update specific restaurants
     updateRestaurants: useCallback((updatedRestaurants: Restaurant[]) => {
       performanceManager?.updateRestaurants(updatedRestaurants);
       mapControls.refreshViewport();
     }, [performanceManager]),
-
     // Get clustering strategy for current zoom
     getClusteringStrategy: useCallback((zoom: number) => {
       return performanceManager?.getClusteringStrategy(zoom) || 'cluster';
     }, [performanceManager]),
-
     // Get performance metrics
     getPerformanceMetrics: useCallback(() => {
       return performanceManager?.getPerformanceMetrics() || {};
     }, [performanceManager])
   };
-
   return {
     // State
     isLoading: mapState.isLoading,
     visibleRestaurants: mapState.visibleRestaurants,
     performanceStats: mapState.performanceStats,
     error: mapState.error,
-    
     // Map props
     mapProps: {
       restaurants: mapState.visibleRestaurants,
@@ -204,7 +172,6 @@ export const useOptimizedMap = ({
       zoom: initialZoom,
       onMapMove: handleViewportChange
     },
-    
     // Controls
     ...mapControls
   };

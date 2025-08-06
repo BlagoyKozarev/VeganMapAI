@@ -65,7 +65,6 @@ export default function Home() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { isAuthenticated } = useAuth();
-  
   // Query user favorites
   const { data: userFavorites = [] } = useQuery<any[]>({
     queryKey: ['/api/favorites'],
@@ -89,15 +88,11 @@ export default function Home() {
       const data = await response.json();
       // Handle both direct array response and wrapped response
       const restaurantData = data.restaurants || data;
-      console.log('📡 Fetched restaurants:', restaurantData.length);
       return restaurantData;
     },
   });
-  
   // Debug loading state
   useEffect(() => {
-    console.log('🔄 Restaurant loading state:', restaurantsLoading);
-    console.log('📊 Total restaurants loaded:', restaurants.length);
   }, [restaurantsLoading, restaurants.length]);
   // Handle restaurant selection from URL
   useEffect(() => {
@@ -128,7 +123,6 @@ export default function Home() {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
   };
-
   // Filter restaurants based on search query, scores, and comprehensive filters
   useEffect(() => {
     if (!restaurants.length) {
@@ -173,10 +167,8 @@ export default function Home() {
       const favoriteIds = new Set(userFavorites.map((f: any) => f.id));
       filtered = filtered.filter((restaurant: any) => favoriteIds.has(restaurant.id));
     }
-    
     // Apply distance filter (only if we have user's position)
     if (currentPosition) {
-      console.log('📍 User position available:', currentPosition);
       filtered = filtered.filter((restaurant: any) => {
         const distance = calculateDistance(
           currentPosition.lat,
@@ -187,19 +179,9 @@ export default function Home() {
         return distance <= filters.maxDistance;
       });
     } else {
-      console.log('📍 No user position - showing all restaurants');
     }
     // Only update if actually different to prevent loops
     if (JSON.stringify(filtered) !== JSON.stringify(filteredRestaurants)) {
-      console.log('🔍 Filtered restaurants:', filtered.length, 'out of', restaurants.length);
-      console.log('Filters applied:', {
-        searchQuery,
-        minVeganScore,
-        minGoogleScore,
-        filters,
-        currentPosition,
-        showFavoritesOnly
-      });
       setFilteredRestaurants(filtered);
     }
   }, [restaurants.length, searchQuery, minVeganScore, minGoogleScore, filters, currentPosition, showFavoritesOnly, userFavorites]); // Use length instead of full array
@@ -307,15 +289,12 @@ export default function Home() {
   const handleCloseDropdown = () => {
     setShowDropdown(false);
   };
-
   const handleAISearchResults = (results: any[]) => {
     // Highlight AI-suggested restaurants
     const highlightedIds = new Set(results.map(r => r.id));
     setAiHighlightedRestaurants(highlightedIds);
-    
     // Clear search to show all restaurants with highlights
     setSearchQuery('');
-    
     // Optionally zoom to show all AI results
     if (results.length > 0) {
       // Calculate bounds for all AI results
@@ -340,11 +319,8 @@ export default function Home() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
   // Show welcome message for first-time users
   // Removed the old welcome toast since we now have the WelcomeOverlay component
-
-
   return (
     <>
       {/* MOBILE HEADER */}
@@ -455,7 +431,6 @@ export default function Home() {
               <Bot className="w-4 h-4 mr-2" />
               AI Restaurant Search
             </Button>
-            
             {/* Filter Button - Desktop */}
             <div className="relative hidden sm:block mr-2">
               <FilterModal
@@ -539,7 +514,6 @@ export default function Home() {
           aiHighlightedRestaurants={aiHighlightedRestaurants}
           isAuthenticated={isAuthenticated}
         />
-
         {/* Mobile Panels */}
         {isMobile && (
           <>
@@ -796,7 +770,6 @@ export default function Home() {
           />
         </div>
       )}
-      
       {/* Mobile AI Search Button */}
       {isMobile && (
         <div className="fixed bottom-40 right-4 z-[999]">
@@ -809,14 +782,12 @@ export default function Home() {
           </Button>
         </div>
       )}
-      
       {/* AI Search Modal */}
       <AISearchModal
         isOpen={showAISearch}
         onClose={() => setShowAISearch(false)}
         onSearchResults={handleAISearchResults}
       />
-      
       {/* Profile Modal */}
       <ProfileModal
         isOpen={showProfileModal}
@@ -826,7 +797,6 @@ export default function Home() {
           setShowProfileModal(false);
         }}
       />
-      
       {/* Welcome Overlay - Temporarily disabled for mobile debugging */}
       {/* <WelcomeOverlay
         onGetStarted={() => {

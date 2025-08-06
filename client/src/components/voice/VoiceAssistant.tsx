@@ -6,12 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { VOICE_SESSION_LIMITS } from '@shared/voice-limits';
 import type { VoiceLimitStatus } from '@shared/voice-limits';
-
 interface VoiceAssistantProps {
   onTranscription?: (text: string) => void;
   onResponse?: (response: string) => void;
 }
-
 export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAssistantProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -29,7 +27,6 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
   useEffect(() => {
     checkVoiceLimits();
   }, []);
-
   // Check for warnings during active session
   useEffect(() => {
     if (currentSessionId && isRecording) {
@@ -49,14 +46,11 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
             });
           }
         } catch (error) {
-          console.error('Error checking warning status:', error);
         }
       }, 5000); // Check every 5 seconds
-
       return () => clearInterval(warningInterval);
     }
   }, [currentSessionId, isRecording, showLimitWarning]);
-
   const checkVoiceLimits = async () => {
     try {
       const response = await fetch('/api/voice/limits', {
@@ -65,10 +59,8 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
       const limits = await response.json();
       setVoiceLimits(limits);
     } catch (error) {
-      console.error('Error checking voice limits:', error);
     }
   };
-
   const startVoiceSession = async () => {
     try {
       const response = await fetch('/api/voice/start-session', {
@@ -87,7 +79,6 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
       return null;
     }
   };
-
   const endVoiceSession = async (sessionId: string, endReason?: string) => {
     try {
       await fetch('/api/voice/end-session', {
@@ -101,10 +92,8 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
       // Refresh limits after session ends
       await checkVoiceLimits();
     } catch (error) {
-      console.error('Error ending voice session:', error);
     }
   };
-
   const requestMicrophonePermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -141,16 +130,13 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
       }
       return;
     }
-
     if (!permissionGranted) {
       const granted = await requestMicrophonePermission();
       if (!granted) return;
     }
-
     // Start voice session
     const sessionId = await startVoiceSession();
     if (!sessionId) return;
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -182,13 +168,11 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
       };
       mediaRecorder.start();
       setIsRecording(true);
-      
       // Set up auto-stop based on remaining session time
       const maxRecordingTime = Math.min(
         8000, // 8 seconds for optimal Whisper processing
         (voiceLimits?.remainingSessionMinutes || 8) * 60 * 1000
       );
-      
       sessionTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           stopRecording();
@@ -291,7 +275,6 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
               </span>
             )}
           </div>
-          
           {showLimitWarning && (
             <Alert className="bg-orange-50 dark:bg-orange-900/20 border-orange-200">
               <AlertTriangle className="h-4 w-4 text-orange-600" />
@@ -300,7 +283,6 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
               </AlertDescription>
             </Alert>
           )}
-          
           {voiceLimits.cooldownEndsAt && (
             <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200">
               <AlertDescription className="text-blue-800 dark:text-blue-200">
@@ -314,7 +296,6 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
           )}
         </div>
       )}
-
       <Button
         onClick={isRecording ? stopRecording : startRecording}
         disabled={isProcessing || (voiceLimits ? !voiceLimits.canUseVoice : false)}
@@ -325,7 +306,6 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
         <ButtonIcon className="w-5 h-5" />
         <span>{buttonState.text}</span>
       </Button>
-      
       {lastTranscription && (
         <div className="w-full max-w-md space-y-2">
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -344,7 +324,6 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
           )}
         </div>
       )}
-      
       <div className="text-xs text-muted-foreground text-center max-w-xs">
         Натиснете бутона и говорете до 8 секунди. 
         Асистентът ще отговори на български език.

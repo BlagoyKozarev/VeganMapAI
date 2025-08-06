@@ -127,7 +127,6 @@ export default function AiChat() {
           // TTS completed successfully
         })
         .catch(error => {
-          console.error('TTS error:', error);
         });
       // Reset activity time on successful conversation
       setLastActivityTime(Date.now());
