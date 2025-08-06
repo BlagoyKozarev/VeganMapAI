@@ -35,6 +35,13 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
     - **Public Map Access**: Provides an unauthenticated endpoint (`/api/restaurants/public/map-data`) for public map viewing with limited data, allowing users to explore the map before logging in.
 
 ## Recent Changes
+- **Professional Landing Page Added (August 6, 2025)**: Replaced simple login page with comprehensive marketing landing page
+  - Hero section with restaurant statistics (408+ restaurants)
+  - Features showcase with 6 key platform capabilities
+  - Interactive map preview section
+  - Call-to-action sections with registration prompts
+  - Full footer with navigation links and contact info
+  - Bulgarian language for local market focus
 - **AI Score Explanations Added (August 6, 2025)**: Implemented transparent explanations for vegan scores to build user trust
   - Created `ScoreExplanation.tsx` component with interactive tooltips
   - Shows score breakdown categories: Menu Variety, Clear Labeling, Staff Knowledge, Safety Measures
