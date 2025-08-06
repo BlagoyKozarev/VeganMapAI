@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { FavoriteButton } from '@/components/ui/favorite-button';
 import { MapPin, Phone, Globe, Clock, Star } from 'lucide-react';
 import type { Restaurant } from '@shared/schema';
+import { ScoreExplanation } from '@/components/ScoreExplanation';
 
 interface RestaurantModalProps {
   restaurant: Restaurant | null;
@@ -69,9 +70,10 @@ export function RestaurantModal({ restaurant, isOpen, onClose }: RestaurantModal
                 <p className="text-sm text-gray-600">AI-calculated score based on menu, staff knowledge, and policies</p>
               </div>
               <div className="text-right">
-                <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getVeganScoreColor(veganScore)}`}>
-                  {veganScore.toFixed(1)}/10 · {getVeganScoreLabel(veganScore)}
-                </div>
+                <ScoreExplanation 
+                  score={veganScore / 2}
+                  restaurantName={restaurant.name}
+                />
               </div>
             </div>
           </div>

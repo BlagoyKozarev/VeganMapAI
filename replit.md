@@ -35,6 +35,12 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
     - **Public Map Access**: Provides an unauthenticated endpoint (`/api/restaurants/public/map-data`) for public map viewing with limited data, allowing users to explore the map before logging in.
 
 ## Recent Changes
+- **AI Score Explanations Added (August 6, 2025)**: Implemented transparent explanations for vegan scores to build user trust
+  - Created `ScoreExplanation.tsx` component with interactive tooltips
+  - Shows score breakdown categories: Menu Variety, Clear Labeling, Staff Knowledge, Safety Measures
+  - Integrated in map popups, search results, and restaurant modals
+  - Color-coded scores with descriptive text (Excellent, Good, Limited, etc.)
+  - Click info icon to reveal/hide detailed scoring methodology
 - **Production Database Fixed (August 6, 2025)**: Successfully resolved production deployment issues by importing all 408 restaurants to production database and fixing timestamp validation errors. Production deployment now works correctly with full restaurant dataset.
   - Created `production-clean.sql` - optimized SQL import without JSON fields (128KB)
   - Fixed timestamp fields with UPDATE query to resolve Drizzle ORM validation errors

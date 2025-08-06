@@ -306,9 +306,29 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
       });
 
       // Add popup with restaurant info
-      marker.bindPopup(createPopupContent(restaurant), {
+      const popup = marker.bindPopup(createPopupContent(restaurant), {
         maxWidth: 300,
         className: 'custom-popup'
+      });
+
+      // Add event listener when popup opens
+      marker.on('popupopen', () => {
+        const popupContent = popup.getPopup();
+        if (popupContent) {
+          const popupElement = popupContent.getElement();
+          if (popupElement) {
+            const infoIcon = popupElement.querySelector('.info-icon');
+            const scoreExplanation = popupElement.querySelector('.score-explanation') as HTMLElement;
+            
+            if (infoIcon && scoreExplanation) {
+              infoIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = scoreExplanation.style.display === 'none';
+                scoreExplanation.style.display = isHidden ? 'block' : 'none';
+              });
+            }
+          }
+        }
       });
 
       // Click handler
@@ -388,12 +408,35 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
     const cappedScore = Math.min(5, Math.max(0, Math.round(score)));
     const stars = '★'.repeat(cappedScore) + '☆'.repeat(5 - cappedScore);
     
+    const getScoreText = (score: number) => {
+      if (score >= 4.5) return "Excellent vegan options";
+      if (score >= 3.5) return "Good vegan choices";
+      if (score >= 2.5) return "Some vegan options";
+      if (score >= 1.5) return "Limited vegan options";
+      return "Few vegan options";
+    };
+    
     return `
       <div class="restaurant-popup">
         <h3 class="popup-title">${restaurant.name}</h3>
         <div class="popup-score">
           <span class="stars">${stars}</span>
           <span class="score-value">${score.toFixed(1)}/5</span>
+          <span class="info-icon" title="Click for score details">ℹ️</span>
+        </div>
+        <div class="score-description">${getScoreText(score)}</div>
+        <div class="score-explanation" style="display: none;">
+          <div class="explanation-header">AI Vegan Score Analysis</div>
+          <div class="explanation-content">
+            <p>Score based on:</p>
+            <ul>
+              <li>Menu analysis for vegan options</li>
+              <li>Ingredient transparency</li>
+              <li>Kitchen safety practices</li>
+              <li>Staff training on dietary needs</li>
+            </ul>
+            <div class="explanation-footer">Powered by AI • Updated regularly</div>
+          </div>
         </div>
         ${restaurant.cuisineTypes?.length ? 
           `<div class="popup-cuisine">${restaurant.cuisineTypes.join(', ')}</div>` : ''
@@ -541,6 +584,67 @@ export const OptimizedLeafletMap: React.FC<OptimizedLeafletMapProps> = ({
           color: #9ca3af;
           font-size: 12px;
           line-height: 1.4;
+        }
+
+        .info-icon {
+          cursor: pointer;
+          opacity: 0.6;
+          transition: opacity 0.2s;
+          font-size: 14px;
+        }
+
+        .info-icon:hover {
+          opacity: 1;
+        }
+
+        .score-description {
+          color: #4b5563;
+          font-size: 13px;
+          margin-bottom: 8px;
+          font-weight: 500;
+        }
+
+        .score-explanation {
+          background: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          padding: 12px;
+          margin-top: 8px;
+          margin-bottom: 8px;
+        }
+
+        .explanation-header {
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 8px;
+          font-size: 13px;
+        }
+
+        .explanation-content {
+          font-size: 12px;
+          color: #6b7280;
+        }
+
+        .explanation-content p {
+          margin: 0 0 6px 0;
+        }
+
+        .explanation-content ul {
+          margin: 0;
+          padding-left: 16px;
+          list-style: disc;
+        }
+
+        .explanation-content li {
+          margin: 2px 0;
+        }
+
+        .explanation-footer {
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px solid #e5e7eb;
+          font-size: 11px;
+          color: #9ca3af;
         }
       `}</style>
     </div>

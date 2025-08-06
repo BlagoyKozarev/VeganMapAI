@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ScoreExplanation } from '@/components/ScoreExplanation';
 
 interface Restaurant {
   id: string;
@@ -276,9 +277,16 @@ export default function Search() {
                         
                         <div className="flex items-center space-x-4 mb-2">
                           <div className="flex items-center">
-                            <span className="text-sm font-medium text-green-600">
-                              Vegan Score: {restaurant.veganScore || 'N/A'}/10
-                            </span>
+                            {restaurant.veganScore ? (
+                              <ScoreExplanation 
+                                score={parseFloat(restaurant.veganScore) / 2}
+                                restaurantName={restaurant.name}
+                              />
+                            ) : (
+                              <span className="text-sm font-medium text-gray-500">
+                                Vegan Score: N/A
+                              </span>
+                            )}
                           </div>
                           {restaurant.rating && (
                             <div className="flex items-center">
