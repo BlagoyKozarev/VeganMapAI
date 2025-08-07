@@ -103,17 +103,15 @@ export default function Landing() {
           </p>
           
           <div className="flex gap-4 justify-center mb-12">
-            <Button 
-              size="lg"
-              className="bg-green-600 hover:bg-green-700 text-lg px-8 py-6"
-              onClick={() => {
-                // Navigate to public map page
-                window.location.href = '/test-map';
-              }}
-            >
-              <Navigation className="w-5 h-5 mr-2" />
-              Разгледай картата
-            </Button>
+            <a href="/test-map">
+              <Button 
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 text-lg px-8 py-6"
+              >
+                <Navigation className="w-5 h-5 mr-2" />
+                Разгледай картата
+              </Button>
+            </a>
             <Button 
               size="lg"
               variant="outline"
