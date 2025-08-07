@@ -114,7 +114,7 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
           )}
         </div>
         
-        {/* Navigation Icons */}
+        {/* Navigation Icons - Премахнат син BK бутон */}
         <div className="flex items-center space-x-2">
           <a href="/ai-chat">
             <button className="w-9 h-9 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105" title="AI Assistant">
@@ -123,11 +123,14 @@ export function MobileHeader({ searchQuery, onSearchChange, showSuggestions, onS
               </svg>
             </button>
           </a>
+          {/* ПРЕМАХНАТ СИН БУТОН - BK профил */}
+          {/* 
           <a href="/profile">
             <button className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105">
               BK
             </button>
-          </a>
+          </a> 
+          */}
         </div>
       </div>
     </header>
