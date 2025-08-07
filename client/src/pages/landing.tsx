@@ -107,14 +107,8 @@ export default function Landing() {
               size="lg"
               className="bg-green-600 hover:bg-green-700 text-lg px-8 py-6"
               onClick={() => {
-                // Try to view the map without auth
-                window.location.href = '/';
-                setTimeout(() => {
-                  const mapSection = document.querySelector('.leaflet-container');
-                  if (mapSection) {
-                    mapSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }, 500);
+                // Navigate to public map page
+                window.location.href = '/test-map';
               }}
             >
               <Navigation className="w-5 h-5 mr-2" />
