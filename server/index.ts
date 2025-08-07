@@ -99,6 +99,11 @@ app.use((req, res, next) => {
 app.use('/api', testGBGPTRouter);
 app.use('/api', bulkTestGBGPTRouter);
 
+// Add public test map route
+app.get('/test-map', (_req: Request, res: Response) => {
+  res.sendFile(path.join(process.cwd(), 'test-map-public.html'));
+});
+
 (async () => {
   const server = await registerRoutes(app);
   
