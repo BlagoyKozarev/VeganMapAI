@@ -35,6 +35,10 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
     - **Public Map Access**: Provides an unauthenticated endpoint (`/api/restaurants/public/map-data`) for public map viewing with limited data, allowing users to explore the map before logging in.
 
 ## Recent Changes
+- **Landing Page Button Fix (January 8, 2025)**: Fixed "View Map" button on landing page to properly navigate to public map
+  - Changed button from JavaScript navigation to standard HTML link
+  - Button now correctly navigates to `/test-map` route showing all 478 restaurants
+  - Public map accessible without authentication requirement
 - **GBGPT Test Report System Implementation (August 6, 2025)**: Created comprehensive analytics and reporting system for GBGPT performance testing
   - Built `GBGPTTestReporter` class with full performance, cost, and quality analysis capabilities
   - Created enhanced test endpoint `/api/bulk-test-gbgpt-with-report` with automatic report generation
