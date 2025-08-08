@@ -36,13 +36,20 @@ git add test-map-public.html
 git add server/index.ts
 git add GIT-COMMIT-2025-08-08.md
 git add replit.md
+git add context/master.md
+git add api/openapi.yml
+git add docs/README.md
+git add git-commit-instructions.sh
 
 # Направи commit
-git commit -m "fix: Fixed landing page map button and improved public map access
+git commit -m "fix: Fixed landing page map button and added project structure
 
 - Fixed 'View Map' button to navigate to /test-map route
 - Improved public map access without authentication
 - Showing all 478 restaurants on public map
+- Added project structure with context, api, and docs folders
+- Created master context file for Vegan Score Agent
+- Added OpenAPI specification and documentation
 - Updated documentation"
 
 # Push към repository (ако е настроен)
@@ -55,6 +62,11 @@ git push origin main
 3. `server/index.ts` - Сървър с public endpoints
 4. `replit.md` - Актуализирана документация
 5. `GIT-COMMIT-2025-08-08.md` - Този файл
+
+## 📂 Нови папки и файлове за проектна организация
+1. `context/master.md` - Единен контекст за Vegan Score Agent
+2. `api/openapi.yml` - OpenAPI 3.0.3 спецификация
+3. `docs/README.md` - Техническа документация
 
 ## ✨ Резултати
 - Потребителите могат да разгледат картата без регистрация
