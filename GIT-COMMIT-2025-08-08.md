@@ -68,6 +68,7 @@ git push origin main
 2. `api/openapi.yml` - OpenAPI 3.0.3 спецификация
 3. `docs/README.md` - Техническа документация
 4. `.github/CODEOWNERS` - Дефиниране на отговорници за кода
+5. `.github/pull_request_template.md` - Template за pull requests
 
 ## ✨ Резултати
 - Потребителите могат да разгледат картата без регистрация
