@@ -1,10 +1,10 @@
 {
-  "last_update": "<авто се попълва ръчно засега: YYYY-MM-DDTHH:MM:SSZ>",
+  "last_update": "2025-08-08T00:00:00Z",
   "entries": [
     {
       "by": "chatgpt",
-      "area": "scoring",
-      "summary": "Initial context structure and mirror workflow",
+      "area": "initial-setup",
+      "summary": "Initial context structure, mirror workflow enabled",
       "link": ""
     }
   ]
