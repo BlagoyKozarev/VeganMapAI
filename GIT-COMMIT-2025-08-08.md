@@ -69,6 +69,7 @@ git push origin main
 3. `docs/README.md` - Техническа документация
 4. `.github/CODEOWNERS` - Дефиниране на отговорници за кода
 5. `.github/pull_request_template.md` - Template за pull requests
+6. `.github/workflows/mirror-context.yml` - GitHub Actions workflow за публично огледало
 
 ## ✨ Резултати
 - Потребителите могат да разгледат картата без регистрация
