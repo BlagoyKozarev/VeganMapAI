@@ -67,6 +67,7 @@ git push origin main
 1. `context/master.md` - Единен контекст за Vegan Score Agent
 2. `api/openapi.yml` - OpenAPI 3.0.3 спецификация
 3. `docs/README.md` - Техническа документация
+4. `.github/CODEOWNERS` - Дефиниране на отговорници за кода
 
 ## ✨ Резултати
 - Потребителите могат да разгледат картата без регистрация
