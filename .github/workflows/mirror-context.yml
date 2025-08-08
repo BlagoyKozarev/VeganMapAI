@@ -9,6 +9,9 @@ on:
       - 'api/openapi.yml'
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 jobs:
   mirror:
     runs-on: ubuntu-latest
@@ -26,15 +29,16 @@ jobs:
           find mirror -type f -exec sed -i \
             -e 's/[A-Z0-9_]*API_KEY\=[^ ]\+/API_KEY=REDACTED/g' {} \;
 
-      - name: Publish to public mirror
+      - name: Push to public mirror
         env:
           GH_TOKEN: ${{ secrets.CONTEXT_MIRROR_TOKEN }}
         run: |
           git config --global user.email "mirror-bot@users.noreply.github.com"
           git config --global user.name "mirror-bot"
+
           rm -rf pub && mkdir pub
           cd pub
-          gh repo clone BlagoyKozarev/VeganMapAI-context-mirror .
+          git clone https://x-access-token:${GH_TOKEN}@github.com/BlagoyKozarev/VeganMapAI-context-mirror.git .
           rm -rf *
           cp -r ../mirror/* .
           git add .
