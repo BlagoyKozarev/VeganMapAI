@@ -70,6 +70,7 @@ git push origin main
 4. `.github/CODEOWNERS` - Дефиниране на отговорници за кода
 5. `.github/pull_request_template.md` - Template за pull requests
 6. `.github/workflows/mirror-context.yml` - GitHub Actions workflow за публично огледало
+7. `PROJECT-STRUCTURE-SUMMARY.md` - Обобщение на проектната структура
 
 ## ✨ Резултати
 - Потребителите могат да разгледат картата без регистрация
