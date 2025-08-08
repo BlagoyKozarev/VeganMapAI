@@ -26,27 +26,18 @@ jobs:
           [ -d context ] && cp -r context/* mirror/context/ || true
           [ -d docs ] && cp -r docs/* mirror/docs/ || true
           [ -f api/openapi.yml ] && cp api/openapi.yml mirror/api/openapi.yml || true
-          # sanitize
           find mirror -type f -exec sed -i 's/[A-Z0-9_]*API_KEY\=[^ ]\+/API_KEY=REDACTED/g' {} \;
 
-      - name: Push to public mirror (init-safe)
+      - name: Push to public mirror (no-remote, explicit URL)
         env:
           GH_TOKEN: ${{ secrets.CONTEXT_MIRROR_TOKEN }}
         run: |
           set -euo pipefail
-          set -x
-          WORKDIR=$(pwd)
-          rm -rf pub && mkdir pub && cd pub
+          cd mirror
           git init
           git config user.email "mirror-bot@users.noreply.github.com"
           git config user.name "mirror-bot"
-          git remote add origin https://x-access-token:${GH_TOKEN}@github.com/BlagoyKozarev/VeganMapAI-context-mirror.git
-          # опитай да дръпнеш main ако съществува, игнорирай грешка
-          git fetch origin main || true
-          git checkout -B main
-          # изчисти и копирай новото съдържание
-          rm -rf ./*
-          cp -r "${WORKDIR}/mirror/"* .
           git add .
           git commit -m "chore: mirror context from core" || true
-          git push -u origin main
+          # директен push към URL с токен; без remote/clone
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/BlagoyKozarev/VeganMapAI-context-mirror.git" HEAD:main
