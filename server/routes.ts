@@ -207,8 +207,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: r.id,
         name: r.name,
         address: r.address || 'No address',
-        lat: r.lat,
-        lng: r.lng,
+        lat: parseFloat(r.latitude || r.lat),
+        lng: parseFloat(r.longitude || r.lng),
         vegan_full: r.isFullyVegan || false,
         cuisines: r.cuisineTypes || [],
         price: r.priceLevel || '$',
@@ -221,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { k: 'Sustainability', w: 0.1, v: 0.7 },
           { k: 'Consistency', w: 0.05, v: 0.8 }
         ] : []
-      })).filter(p => p.lat && p.lng); // Only include places with coordinates
+      })).filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng)); // Only include valid coordinates
       
       res.json(places);
     } catch (error) {
