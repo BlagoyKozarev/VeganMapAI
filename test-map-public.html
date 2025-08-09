@@ -109,6 +109,13 @@
         // Initialize map centered on Sofia
         const map = L.map('map').setView([42.6977, 23.3219], 13);
         
+        // Expose map instance for integration
+        window.VM_MAP = { 
+            map: map,
+            markers: [],
+            places: []
+        };
+        
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
@@ -142,11 +149,36 @@
                     <strong>${data.restaurants.filter(r => r.veganScore).length}</strong> с vegan scores
                 `;
                 
+                // Store places for wire integration
+                window.VM_MAP.places = data.restaurants.map(r => ({
+                    id: r.id,
+                    name: r.name,
+                    address: r.address,
+                    lat: r.lat,
+                    lng: r.lng,
+                    score: r.veganScore ? parseFloat(r.veganScore) : null,
+                    vegan_full: r.isFullyVegan || false,
+                    cuisines: r.cuisineTypes || [],
+                    price: r.priceLevel || '$',
+                    components: r.veganScore ? [
+                        {k:'Purity (Fully Vegan)', w:0.25, v:0.9},
+                        {k:'Menu Breadth', w:0.20, v:0.8},
+                        {k:'Ingredient Transparency', w:0.20, v:0.85},
+                        {k:'User Sentiment', w:0.20, v:0.82},
+                        {k:'Sustainability', w:0.10, v:0.7},
+                        {k:'Consistency', w:0.05, v:0.8},
+                    ] : []
+                }));
+                
                 // Add markers for each restaurant
-                data.restaurants.forEach(restaurant => {
+                data.restaurants.forEach((restaurant, idx) => {
                     if (restaurant.lat && restaurant.lng) {
                         const marker = L.marker([restaurant.lat, restaurant.lng])
                             .addTo(map);
+                        
+                        // Store reference to place data
+                        marker.__place = window.VM_MAP.places[idx];
+                        window.VM_MAP.markers.push(marker);
                         
                         // Create popup content
                         let popupContent = `
@@ -194,19 +226,24 @@
     <!-- Map UX Layer -->
     <link rel="stylesheet" href="/assets/css/map-ux.css">
     <script src="/assets/js/map-ux.js"></script>
+    <script src="/assets/js/map-wire.js"></script>
     <script>
+        // Initialize overlay UI
         if (window.VM_UX) {
             window.VM_UX.init();
-            // Demo: open place after 1 second for testing
-            setTimeout(() => {
-                window.VM_UX.openPlace({
-                    id: 'demo-1',
-                    name: 'Demo Restaurant',
-                    address: '123 Main Street, Sofia',
-                    score: 8.4
-                });
-            }, 1000);
         }
+        
+        // Initialize wire bridge for map integration
+        if (window.VM_WIRE) {
+            window.VM_WIRE.init();
+        }
+        
+        // Demo: open place after 1 second for testing (optional)
+        // setTimeout(() => {
+        //     if (window.VM_MAP.places && window.VM_MAP.places[0]) {
+        //         window.VM_UX.openPlace(window.VM_MAP.places[0]);
+        //     }
+        // }, 1000);
     </script>
 </body>
 </html>

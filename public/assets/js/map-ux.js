@@ -131,29 +131,27 @@
   function closeScorePanel(){ $('#vm-score').classList.remove('open'); }
 
   function wireEvents(){
-    // Search
-    $('#vm-q-go')?.addEventListener('click', ()=>{
-      const q = $('#vm-q').value.trim();
-      if (!q) return;
-      alert('Search: '+q); // TODO: hook to real map search
-    });
+    // Search - removed duplicate handler since map-wire.js will handle it
+    // $('#vm-q-go')?.addEventListener('click', ()=>{
+    //   const q = $('#vm-q').value.trim();
+    //   if (!q) return;
+    //   alert('Search: '+q); // Handled by map-wire.js
+    // });
 
-    // Chips
+    // Chips - removed duplicate handler for only-vegan since map-wire.js will handle it
     $('#vm-chips')?.addEventListener('click', (e)=>{
       const chip = e.target.closest('.vm-chip'); if (!chip) return;
       const key = chip.dataset.chip;
-      if (key === 'only-vegan'){
-        chip.dataset.on = chip.dataset.on === '1' ? '0' : '1';
-        // TODO: apply filter
-      } else {
-        alert('Open filters: '+key); // TODO
+      // only-vegan is handled by map-wire.js
+      if (key !== 'only-vegan' && key) {
+        alert('Open filters: '+key); // TODO for other filters
       }
     });
 
-    // FABS
-    $('#vm-fab-loc')?.addEventListener('click', ()=>{
-      alert('Would request geolocation and center the map.'); // TODO
-    });
+    // FABS - removed duplicate handlers since map-wire.js will handle them
+    // $('#vm-fab-loc')?.addEventListener('click', ()=>{
+    //   alert('Would request geolocation and center the map.'); // Handled by map-wire.js
+    // });
     $('#vm-fab-prof')?.addEventListener('click', ()=>{
       window.location.href = '/auth?next=/test-map';
     });
