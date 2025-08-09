@@ -119,6 +119,10 @@ app.get('/test-map-v70', (_req: Request, res: Response) => {
   res.sendFile(path.join(process.cwd(), 'test-map-v70.html'));
 });
 
+app.get('/test-map-v75', (_req: Request, res: Response) => {
+  res.sendFile(path.join(process.cwd(), 'test-map-v75.html'));
+});
+
 (async () => {
   const server = await registerRoutes(app);
   
