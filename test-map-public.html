@@ -222,32 +222,12 @@
     </script>
 
     <!-- Map UX Layer -->
-    <link rel="stylesheet" href="/assets/css/map-ux.css">
-    <script src="/assets/js/map-ux.js"></script>
-    <script src="/assets/js/map-wire.js"></script>
+    <link rel="stylesheet" href="/assets/css/map-ux.css?v=60">
+    <script src="/assets/js/map-ux.js?v=60"></script>
+    <script src="/assets/js/map-wire.js?v=60"></script>
     <script>
-        // Initialize overlay UI
-        if (window.VM_UX) {
-            window.VM_UX.init();
-        }
-        
-        // Initialize wire bridge for map integration after data loads
-        // Wait for data to be loaded
-        const waitForData = setInterval(() => {
-            if (window.VM_MAP && window.VM_MAP.places && window.VM_MAP.places.length > 0) {
-                clearInterval(waitForData);
-                if (window.VM_WIRE) {
-                    window.VM_WIRE.init();
-                }
-            }
-        }, 100);
-        
-        // Demo: open place after 1 second for testing (optional)
-        // setTimeout(() => {
-        //     if (window.VM_MAP.places && window.VM_MAP.places[0]) {
-        //         window.VM_UX.openPlace(window.VM_MAP.places[0]);
-        //     }
-        // }, 1000);
+        window.VM_UX && window.VM_UX.init();
+        window.VM_WIRE && window.VM_WIRE.init();
     </script>
 </body>
 </html>

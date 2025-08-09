@@ -1,88 +1,153 @@
-// Minimal bridge between the Map and the overlay UI (VM_UX).
-// Works with Leaflet if available; otherwise falls back to demo DOM markers.
+// Bridge between the map and the overlay UI (VM_UX).
+// Loads places from API or local JSON, renders markers (Leaflet), filters & search, and fits bounds.
 
 (function(){
   const WIRE = {};
   const $ = (q,root=document)=>root.querySelector(q);
-  const hasLeaflet = !!(window.L || (window.VM_MAP && window.VM_MAP.map));
 
-  // --- DATA STORE ---
+  // Toggle for extra logs: set window.VM_DEBUG = true in console if needed
+  const log = (...args)=> { if (window.VM_DEBUG) console.log('[VM]', ...args); };
+  const warn = (...args)=> console.warn('[VM]', ...args);
+  const err = (...args)=> console.error('[VM]', ...args);
+
+  // ---------------- Store ----------------
   const store = {
     all: [],
     filtered: [],
     filters: { onlyVegan:false, q:'' },
   };
 
-  // --- FETCH DATA ---
-  async function fetchData(){
-    let data = [];
+  // ---------------- Map helpers (Leaflet) ----------------
+  function leaflet() { return !!(window.VM_MAP?.map && window.L); }
+  function getMap(){ return window.VM_MAP?.map || null; }
+
+  function setCenter(lat, lng, zoom){
+    const m = getMap();
+    if (leaflet()) m.setView([lat, lng], zoom ?? (m.getZoom() || 13));
+  }
+
+  function addMarker(place){
+    if (!leaflet()) return null;
+    const m = getMap();
+    if (!m) return null;
     try {
-      // Try API endpoint first
-      const apiRes = await fetch('/api/places');
-      if (apiRes.ok) {
-        const apiData = await apiRes.json();
-        if (Array.isArray(apiData) && apiData.length) {
-          data = apiData;
-        }
-      }
-    } catch(e) {
-      console.warn('API fetch failed, falling back to local JSON.', e);
-    }
-    
-    if (!data.length) {
-      try {
-        const localRes = await fetch('/assets/data/places.json');
-        if (localRes.ok) {
-          const localData = await localRes.json();
-          if (Array.isArray(localData)) data = localData;
-        }
-      } catch(e) {
-        console.error('Local JSON fetch failed.', e);
-      }
-    }
-    
-    if (data.length) {
-      window.VM_WIRE.setPlaces(data);
-    } else {
-      console.warn('No place data loaded.');
+      const marker = window.L.marker([place.lat, place.lng]).addTo(m);
+      marker.__place = place;
+      marker.on('click', ()=> openPlace(place));
+      window.VM_MAP.markers = window.VM_MAP.markers || [];
+      window.VM_MAP.markers.push(marker);
+      return marker;
+    } catch (e) {
+      err('Failed to add marker', e, place);
+      return null;
     }
   }
 
-  // --- MAP HELPERS (Leaflet-first; otherwise no-op) ---
-  function getMap(){
-    if (window.VM_MAP && window.VM_MAP.map) return window.VM_MAP.map;
-    return null;
-  }
-  function setCenter(lat, lng, zoom){
-    const m = getMap();
-    if (m && m.setView) { m.setView([lat, lng], zoom || m.getZoom() || 13); }
-  }
-  function addMarker(place){
-    const m = getMap();
-    if (!m || !window.L) return null;
-    const marker = window.L.marker([place.lat, place.lng]).addTo(m);
-    marker.__place = place;
-    marker.on('click', ()=> openPlace(place));
-    window.VM_MAP.markers = window.VM_MAP.markers || [];
-    window.VM_MAP.markers.push(marker);
-    return marker;
-  }
   function clearMarkers(){
+    if (!leaflet() || !window.VM_MAP?.markers) return;
     const m = getMap();
-    if (!m || !window.L || !window.VM_MAP?.markers) return;
     window.VM_MAP.markers.forEach(x => { try { m.removeLayer(x); } catch(_){} });
     window.VM_MAP.markers = [];
   }
 
-  // --- FILTERING & SEARCH ---
+  function fitToPlaces(places){
+    if (!leaflet()) return;
+    const m = getMap();
+    const pts = (places || []).filter(p=> isFinite(p.lat) && isFinite(p.lng));
+    if (!pts.length) { log('fitToPlaces: nothing to fit'); return; }
+    try {
+      const bounds = window.L.latLngBounds(pts.map(p => [p.lat, p.lng]));
+      m.fitBounds(bounds.pad(0.12)); // add a bit of padding
+    } catch(e) {
+      warn('fitBounds failed', e);
+    }
+  }
+
+  // ---------------- Data loading ----------------
+  function isPlace(obj){
+    return obj && typeof obj.id==='string'
+      && typeof obj.name==='string'
+      && typeof obj.address==='string'
+      && typeof obj.lat==='number'
+      && typeof obj.lng==='number';
+  }
+
+  function normalizePlace(p){
+    // Ensure required fields & sane defaults
+    return {
+      id: String(p.id),
+      name: String(p.name || 'Unknown'),
+      address: String(p.address || ''),
+      lat: Number(p.lat),
+      lng: Number(p.lng),
+      vegan_full: !!p.vegan_full,
+      cuisines: Array.isArray(p.cuisines) ? p.cuisines.map(String) : [],
+      price: p.price || '',
+      score: (typeof p.score==='number' ? p.score : null),
+      components: Array.isArray(p.components) ? p.components : [],
+    };
+  }
+
+  async function fetchJson(url){
+    const res = await fetch(url, { credentials:'same-origin' });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return res.json();
+  }
+
+  async function fetchData(){
+    let data = [];
+    // 1) Try API first
+    try {
+      const apiRes = await fetch('/api/places', { credentials:'same-origin' });
+      if (apiRes.ok) {
+        const apiData = await apiRes.json();
+        if (Array.isArray(apiData) && apiData.length) {
+          data = apiData;
+          log('Loaded from API:', data.length);
+          console.log('Loaded from API:', data.length); // Always log this
+        } else {
+          log('API returned no data, will fallback to local JSON.');
+        }
+      } else {
+        log('API not OK:', apiRes.status);
+      }
+    } catch (e) {
+      log('API fetch failed, falling back to local JSON.', e);
+    }
+
+    // 2) Fallback to local JSON
+    if (!data.length) {
+      try {
+        const localData = await fetchJson('/assets/data/places.json');
+        if (Array.isArray(localData)) {
+          data = localData;
+          log('Loaded from local JSON:', data.length);
+          console.log('Loaded from local JSON:', data.length); // Always log this
+        }
+      } catch (e) {
+        err('Local JSON fetch failed.', e);
+      }
+    }
+
+    // 3) Validate & normalize
+    const good = (data || []).filter(isPlace).map(normalizePlace);
+    if (!good.length) {
+      warn('No valid places loaded. Check /api/places or /assets/data/places.json and schema.');
+    }
+    console.log('[VM] Loaded', good.length, 'valid places'); // Always log
+    // Update store via public API (keeps filters & rerenders)
+    WIRE.setPlaces(good);
+  }
+
+  // ---------------- Filters & rendering ----------------
   function applyFilters(){
     const { onlyVegan, q } = store.filters;
-    const qn = (q||'').trim().toLowerCase();
+    const needle = (q||'').trim().toLowerCase();
     store.filtered = store.all.filter(p=>{
       if (onlyVegan && !p.vegan_full) return false;
-      if (qn) {
+      if (needle) {
         const hay = [p.name, p.address, ...(p.cuisines||[])].join(' ').toLowerCase();
-        if (!hay.includes(qn)) return false;
+        if (!hay.includes(needle)) return false;
       }
       return true;
     });
@@ -90,43 +155,67 @@
   }
 
   function renderMarkers(){
-    // If host already provides markers, we only hide/show via opacity;
-    // else we create Leaflet markers here.
-    if (getMap() && window.L) {
+    if (leaflet()) {
       clearMarkers();
       store.filtered.forEach(addMarker);
+      fitToPlaces(store.filtered.length ? store.filtered : store.all);
     } else {
-      // Fallback: bind to DOM nodes if any are present with data attrs (optional)
-      // Or do nothing — the UX layer still works with VM_UX.openPlace(demo).
+      // No Leaflet present — nothing to draw, but UI (sheet/score) still works if openPlace() is called elsewhere.
+      log('Leaflet map not detected; renderMarkers skipped.');
     }
   }
 
-  // --- OPEN PLACE (→ bottom sheet) ---
+  // ---------------- UI glue ----------------
   function openPlace(place){
-    if (window.VM_UX && window.VM_UX.openPlace) window.VM_UX.openPlace(place);
+    if (window.VM_UX?.openPlace) window.VM_UX.openPlace(place);
   }
 
-  // --- A) Use my location ---
+  function wireOnlyVeganChip(){
+    const chips = $('#vm-chips');
+    if (!chips) return;
+    chips.addEventListener('click', (e)=>{
+      const chip = e.target.closest('.vm-chip'); if (!chip) return;
+      if (chip.dataset.chip === 'only-vegan'){
+        chip.dataset.on = (chip.dataset.on === '1') ? '0' : '1';
+        store.filters.onlyVegan = (chip.dataset.on === '1');
+        applyFilters();
+      }
+    });
+  }
+
+  function wireSearch(){
+    const btn = $('#vm-q-go');
+    const inp = $('#vm-q');
+    if (!btn || !inp) return;
+    const run = ()=>{
+      store.filters.q = inp.value || '';
+      applyFilters();
+    };
+    btn.addEventListener('click', run);
+    inp.addEventListener('keydown', e=>{ if (e.key === 'Enter') run(); });
+  }
+
   function onUseMyLocation(){
-    if (!navigator.geolocation) return alert('Geolocation not supported.');
-    $('#vm-fab-loc')?.classList.add('loading');
+    if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+    const btn = $('#vm-fab-loc'); 
+    btn && btn.classList.add('loading');
     navigator.geolocation.getCurrentPosition(
       pos=>{
         const { latitude, longitude } = pos.coords;
         setCenter(latitude, longitude, 15);
-        $('#vm-fab-loc')?.classList.remove('loading');
+        btn && btn.classList.remove('loading');
       },
-      err=>{
+      e=>{
         alert('Location permission denied or unavailable.');
-        $('#vm-fab-loc')?.classList.remove('loading');
+        btn && btn.classList.remove('loading');
       },
       { enableHighAccuracy:true, timeout:10000, maximumAge:60000 }
     );
   }
 
-  // --- B) Wire marker clicks (if host already has markers) ---
+  // If host already has Leaflet markers and set marker.__place, hook clicks:
   function hookExistingMarkers(){
-    if (!window.VM_MAP?.markers) return;
+    if (!leaflet() || !window.VM_MAP?.markers) return;
     window.VM_MAP.markers.forEach(m=>{
       if (m && m.on && !m.__vm_hooked) {
         m.on('click', ()=> openPlace(m.__place || {}));
@@ -135,70 +224,41 @@
     });
   }
 
-  // --- C) Only fully vegan chip ---
-  function wireOnlyVeganChip(){
-    const chips = document.getElementById('vm-chips');
-    if (!chips) return;
-    chips.addEventListener('click', (e)=>{
-      const chip = e.target.closest('.vm-chip'); if (!chip) return;
-      if (chip.dataset.chip === 'only-vegan'){
-        chip.dataset.on = chip.dataset.on === '1' ? '0' : '1';
-        store.filters.onlyVegan = (chip.dataset.on === '1');
-        applyFilters();
-      }
-    });
-  }
-
-  // --- D) Search ---
-  function wireSearch(){
-    const btn = document.getElementById('vm-q-go');
-    const inp = document.getElementById('vm-q');
-    if (!btn || !inp) return;
-    const run = ()=>{ store.filters.q = inp.value || ''; applyFilters(); };
-    btn.addEventListener('click', run);
-    inp.addEventListener('keydown', e=>{ if (e.key === 'Enter') run(); });
-  }
-
-  // --- E) Score panel: done in VM_UX.openPlace (uses place.components/score) ---
-
-  // --- INIT ---
+  // ---------------- Public API ----------------
   WIRE.init = function(){
-    // Expose helpers for future integration first
-    window.VM_WIRE = window.VM_WIRE || {};
-    window.VM_WIRE.refresh = applyFilters;
-    window.VM_WIRE.openPlace = openPlace;
-    window.VM_WIRE.setPlaces = (arr)=>{ store.all = Array.isArray(arr)? arr:[]; applyFilters(); };
+    console.log('[VM] map-wire init starting...');
     
-    // If host provides initial places, merge them in
-    if (window.VM_MAP?.places && Array.isArray(window.VM_MAP.places)) {
-      store.all = window.VM_MAP.places;
-    }
-
-    // Wire UI events
+    // Wire UI
     wireOnlyVeganChip();
     wireSearch();
+    $('#vm-fab-loc')?.addEventListener('click', onUseMyLocation);
 
-    // "Use my location"
-    document.getElementById('vm-fab-loc')?.addEventListener('click', onUseMyLocation);
-
-    // Fetch data and render
-    if (store.all.length === 0) {
-      // No initial data, fetch from API/JSON
-      fetchData().then(()=>{
-        store.filtered = store.all.slice(0);
-        renderMarkers();
-        hookExistingMarkers();
-      });
+    // If host already provided places before init:
+    if (Array.isArray(window.VM_MAP?.places) && window.VM_MAP.places.length) {
+      console.log('[VM] Using pre-loaded places:', window.VM_MAP.places.length);
+      WIRE.setPlaces(window.VM_MAP.places);
     } else {
-      // Use existing data from VM_MAP
-      store.filtered = store.all.slice(0);
-      renderMarkers();
-      hookExistingMarkers();
+      console.log('[VM] Fetching places from API/JSON...');
+      // Load from API/local
+      fetchData();
     }
 
-    // If you want to open a demo place immediately (dev):
-    // setTimeout(()=> openPlace(store.all[0]), 800);
+    // If host already has markers, hook their clicks
+    hookExistingMarkers();
+
+    log('map-wire init done');
   };
+
+  WIRE.setPlaces = function(arr){
+    if (!Array.isArray(arr)) { warn('setPlaces: not an array'); return; }
+    store.all = arr.map(normalizePlace);
+    // preserve current filters on refresh
+    applyFilters();
+  };
+
+  WIRE.refresh = applyFilters;
+  WIRE.openPlace = openPlace;
+  WIRE.store = store; // Expose store for debugging/stats
 
   window.VM_WIRE = WIRE;
 })();
