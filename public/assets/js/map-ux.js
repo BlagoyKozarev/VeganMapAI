@@ -16,32 +16,16 @@
   };
 
   /* ---------- UI builders ---------- */
-  function iconSearch(){
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8"></circle>
-      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-    </svg>`;
+  // Helper function for icon sprite system
+  function icon(name){
+    return `<svg class="vm-ico"><use href="/assets/icons.svg#${name}"></use></svg>`;
   }
   
-  function iconTarget(){
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="3"></circle>
-      <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
-      <circle cx="12" cy="12" r="9" stroke-opacity=".25"></circle>
-    </svg>`;
-  }
-  function iconUser(){
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="8" r="4"></circle>
-      <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
-    </svg>`;
-  }
-  function iconSparkles(){
-    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"></path>
-      <path d="M18 14l.8 1.8L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-1.2L18 14z"></path>
-    </svg>`;
-  }
+  // Thin wrappers for compatibility
+  function iconSearch(){ return icon('search'); }
+  function iconTarget(){ return icon('target'); }
+  function iconUser(){ return icon('user'); }
+  function iconSparkles(){ return icon('sparkles'); }
 
   function buildOverlay(){
     const host = document.createElement('div');
@@ -49,7 +33,7 @@
     host.innerHTML = `
       <div class="row">
         <div class="vm-search">
-          <span class="vm-fab-icon" aria-hidden="true">${iconSearch()}</span>
+          <span class="vm-fab-icon" aria-hidden="true">${icon('search')}</span>
           <input id="vm-q" placeholder="Search restaurants, cuisines…" />
           <button id="vm-q-go" class="vm-chip" style="box-shadow:none;">Search</button>
         </div>
@@ -66,9 +50,9 @@
 
       <!-- FABS stack -->
       <div id="vm-fabs">
-        <button class="vm-fab" id="vm-fab-loc" title="Use my location"><span class="vm-fab-icon">${iconTarget()}</span></button>
-        <button class="vm-fab" id="vm-fab-prof" title="Profile"><span class="vm-fab-icon">${iconUser()}</span></button>
-        <button class="vm-fab" id="vm-fab-ai" title="AI Assistant"><span class="vm-fab-icon">${iconSparkles()}</span></button>
+        <button class="vm-fab" id="vm-fab-loc" title="Use my location"><span class="vm-fab-icon">${icon('target')}</span></button>
+        <button class="vm-fab" id="vm-fab-prof" title="Profile"><span class="vm-fab-icon">${icon('user')}</span></button>
+        <button class="vm-fab" id="vm-fab-ai" title="AI Assistant"><span class="vm-fab-icon">${icon('sparkles')}</span></button>
       </div>
     `;
     return host;
