@@ -39,6 +39,16 @@
       marker.on('click', ()=> openPlace(place));
 
       if (!cluster) {
+        // Check if markerClusterGroup exists
+        if (!window.L.markerClusterGroup) {
+          console.error('[VM] MarkerCluster library not loaded! Falling back to regular markers.');
+          // Fallback: add marker directly to map
+          marker.addTo(m);
+          window.VM_MAP.markers = window.VM_MAP.markers || [];
+          window.VM_MAP.markers.push(marker);
+          return marker;
+        }
+        
         cluster = window.L.markerClusterGroup({
           showCoverageOnHover: false,
           removeOutsideVisibleBounds: true,
@@ -53,7 +63,7 @@
       window.VM_MAP.markers.push(marker);
       return marker;
     } catch (e) {
-      err('Failed to add marker', e, place);
+      console.error('[VM] Failed to add marker - Error:', e.message || e, 'Place:', place.name);
       return null;
     }
   }
