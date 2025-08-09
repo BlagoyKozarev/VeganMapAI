@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VeganMapAI - Test Map v97 (Fixed Clustering)</title>
+    <title>VeganMapAI - Test Map v98 (Fixed Clustering)</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
@@ -79,7 +79,7 @@
 </head>
 <body class="vm-compact">
     <div id="header">
-        <h1>🌱 VeganMapAI v97 - Fixed Clustering</h1>
+        <h1>🌱 VeganMapAI v98 - Fixed Clustering</h1>
         <div id="stats">Loading restaurants...</div>
     </div>
     
@@ -95,18 +95,34 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script>
-        // Initialize map centered on Sofia
-        const map = L.map('map').setView([42.6977, 23.3219], 13);
+        // Wait for Leaflet AND MarkerCluster to load
+        function initMap() {
+            if (!window.L || !window.L.markerClusterGroup) {
+                console.warn('[VM] Waiting for libraries to load...');
+                setTimeout(initMap, 100);
+                return;
+            }
+            
+            // Initialize map centered on Sofia
+            const map = L.map('map').setView([42.6977, 23.3219], 13);
+            
+            // Expose map instance for wire integration
+            window.VM_MAP = window.VM_MAP || {};
+            window.VM_MAP.map = map;
+            window.VM_MAP.markers = [];
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Initialize UX and WIRE after map is ready
+            if (window.VM_UX) window.VM_UX.init();
+            if (window.VM_WIRE) window.VM_WIRE.init();
+        }
         
-        // Expose map instance for wire integration
-        window.VM_MAP = window.VM_MAP || {};
-        window.VM_MAP.map = map;
-        window.VM_MAP.markers = [];
-        
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        // Start initialization
+        window.addEventListener('load', initMap);
         
         // Monitor data loading
         let checkInterval = setInterval(() => {
@@ -135,12 +151,8 @@
     </script>
 
     <!-- Map UX Layer -->
-    <link rel="stylesheet" href="/assets/css/map-ux.css?v=97">
-    <script src="/assets/js/map-ux.js?v=97"></script>
-    <script src="/assets/js/map-wire.js?v=97"></script>
-    <script>
-        window.VM_UX && window.VM_UX.init();
-        window.VM_WIRE && window.VM_WIRE.init();
-    </script>
+    <link rel="stylesheet" href="/assets/css/map-ux.css?v=98">
+    <script src="/assets/js/map-ux.js?v=98"></script>
+    <script src="/assets/js/map-wire.js?v=98"></script>
 </body>
 </html>
