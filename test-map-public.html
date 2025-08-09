@@ -94,7 +94,9 @@
         <div>Зареждане на картата...</div>
     </div>
     
-    <div id="map"></div>
+    <div id="map-root">
+        <div id="map"></div>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
@@ -182,5 +184,10 @@
                 `;
             });
     </script>
+
+    <!-- Map UX Layer -->
+    <link rel="stylesheet" href="/assets/css/map-ux.css">
+    <script src="/assets/js/map-ux.js"></script>
+    <script>window.VM_UX && window.VM_UX.init();</script>
 </body>
 </html>
