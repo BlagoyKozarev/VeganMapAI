@@ -69,3 +69,69 @@
 .vm-kv{display:grid; grid-template-columns:1fr auto; gap:8px; margin:4px 0}
 .vm-meter{height:8px; background:var(--elev); border-radius:6px; overflow:hidden}
 .vm-meter > span{display:block; height:100%; background:var(--accent)}
+
+/* -------- Responsive adjustments -------- */
+
+/* На малки екрани, search pill заема почти цялата ширина */
+@media (max-width: 640px) {
+  .vm-search {
+    max-width: none;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  .vm-search input {
+    font-size: 14px;
+  }
+  /* Chips: по-компактни и по-малък gap */
+  .vm-chips {
+    gap: 6px;
+    padding: 6px 8px 0;
+  }
+  .vm-chip {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  /* FAB stack: по-малки бутони и по-близко един до друг */
+  #vm-fabs {
+    top: 80px;
+    gap: 8px;
+  }
+  .vm-fab {
+    width: 42px;
+    height: 42px;
+  }
+  .vm-fab svg {
+    width: 20px;
+    height: 20px;
+  }
+  /* Bottom sheet: почти цялата височина на екрана, по-големи тап зони */
+  #vm-sheet.open .vm-sheet-card {
+    padding: 16px 12px 24px;
+  }
+  .vm-title h4 {
+    font-size: 15px;
+  }
+  .vm-actions {
+    gap: 6px;
+  }
+  .vm-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .vm-btn-primary {
+    font-size: 13px;
+  }
+}
+
+/* На съвсем малки екрани (< 400px) — още по-компактно */
+@media (max-width: 400px) {
+  .vm-chip {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  .vm-btn {
+    font-size: 12px;
+    padding: 7px 10px;
+  }
+}
