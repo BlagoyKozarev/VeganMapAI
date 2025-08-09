@@ -16,6 +16,13 @@
   };
 
   /* ---------- UI builders ---------- */
+  function iconSearch(){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>`;
+  }
+  
   function iconTarget(){
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="3"></circle>
@@ -42,7 +49,7 @@
     host.innerHTML = `
       <div class="row">
         <div class="vm-search">
-          <span class="vm-icon" aria-hidden="true"></span>
+          <span class="vm-fab-icon" aria-hidden="true">${iconSearch()}</span>
           <input id="vm-q" placeholder="Search restaurants, cuisines…" />
           <button id="vm-q-go" class="vm-chip" style="box-shadow:none;">Search</button>
         </div>
@@ -59,9 +66,9 @@
 
       <!-- FABS stack -->
       <div id="vm-fabs">
-        <button class="vm-fab" id="vm-fab-loc" title="Use my location">${iconTarget()}</button>
-        <button class="vm-fab" id="vm-fab-prof" title="Profile">${iconUser()}</button>
-        <button class="vm-fab" id="vm-fab-ai" title="AI Assistant">${iconSparkles()}</button>
+        <button class="vm-fab" id="vm-fab-loc" title="Use my location"><span class="vm-fab-icon">${iconTarget()}</span></button>
+        <button class="vm-fab" id="vm-fab-prof" title="Profile"><span class="vm-fab-icon">${iconUser()}</span></button>
+        <button class="vm-fab" id="vm-fab-ai" title="AI Assistant"><span class="vm-fab-icon">${iconSparkles()}</span></button>
       </div>
     `;
     return host;
