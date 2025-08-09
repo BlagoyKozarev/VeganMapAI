@@ -1,0 +1,23 @@
+# КОПИРАЙТЕ И ИЗПЪЛНЕТЕ В SHELL (ЕДНА ПО ЕДНА):
+
+# 1. Почистете блокировките
+rm -f .git/config.lock
+rm -f .git/index.lock
+
+# 2. Добавете public папката
+git add -f public/
+
+# 3. Добавете важните файлове
+git add server.js
+git add README.md
+git add .gitignore
+
+# 4. Направете commit
+git commit -m "Add public folder with landing page and all assets"
+
+# 5. Push към GitHub
+git push origin main
+
+# АКО ИМА ГРЕШКА ПРИ PUSH, пробвайте:
+git pull --rebase origin main
+git push origin main
