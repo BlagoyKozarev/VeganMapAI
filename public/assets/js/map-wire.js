@@ -16,6 +16,9 @@
     filtered: [],
     filters: { onlyVegan:false, q:'' },
   };
+  
+  // Cluster group for markers
+  let cluster = null;
 
   // ---------------- Map helpers (Leaflet) ----------------
   function leaflet() { return !!(window.VM_MAP?.map && window.L); }
@@ -31,9 +34,21 @@
     const m = getMap();
     if (!m) return null;
     try {
-      const marker = window.L.marker([place.lat, place.lng]).addTo(m);
+      const marker = window.L.marker([place.lat, place.lng], { title: place.name });
       marker.__place = place;
       marker.on('click', ()=> openPlace(place));
+
+      if (!cluster) {
+        cluster = window.L.markerClusterGroup({
+          showCoverageOnHover: false,
+          removeOutsideVisibleBounds: true,
+          spiderfyOnMaxZoom: true,
+          maxClusterRadius: 50
+        });
+        m.addLayer(cluster);
+      }
+      cluster.addLayer(marker);
+
       window.VM_MAP.markers = window.VM_MAP.markers || [];
       window.VM_MAP.markers.push(marker);
       return marker;
@@ -44,20 +59,27 @@
   }
 
   function clearMarkers(){
-    if (!leaflet() || !window.VM_MAP?.markers) return;
-    const m = getMap();
-    window.VM_MAP.markers.forEach(x => { try { m.removeLayer(x); } catch(_){} });
-    window.VM_MAP.markers = [];
+    if (!leaflet()) return;
+    if (cluster) {
+      try { cluster.clearLayers(); } catch(_) {}
+    }
+    if (window.VM_MAP?.markers && Array.isArray(window.VM_MAP.markers)) {
+      window.VM_MAP.markers.length = 0;
+    }
   }
 
   function fitToPlaces(places){
     if (!leaflet()) return;
     const m = getMap();
-    const pts = (places || []).filter(p=> isFinite(p.lat) && isFinite(p.lng));
-    if (!pts.length) { log('fitToPlaces: nothing to fit'); return; }
     try {
+      if (cluster && cluster.getLayers().length) {
+        const cb = cluster.getBounds();
+        if (cb && cb.isValid()) { m.fitBounds(cb.pad(0.12)); return; }
+      }
+      const pts = (places || []).filter(p=> isFinite(p.lat) && isFinite(p.lng));
+      if (!pts.length) { log('fitToPlaces: nothing to fit'); return; }
       const bounds = window.L.latLngBounds(pts.map(p => [p.lat, p.lng]));
-      m.fitBounds(bounds.pad(0.12)); // add a bit of padding
+      m.fitBounds(bounds.pad(0.12));
     } catch(e) {
       warn('fitBounds failed', e);
     }
