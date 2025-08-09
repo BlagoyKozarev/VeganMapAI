@@ -102,9 +102,13 @@ app.use((req, res, next) => {
 app.use('/api', testGBGPTRouter);
 app.use('/api', bulkTestGBGPTRouter);
 
-// Add public test map route
+// Add public test map routes
 app.get('/test-map', (_req: Request, res: Response) => {
   res.sendFile(path.join(process.cwd(), 'test-map-public.html'));
+});
+
+app.get('/test-map-v50', (_req: Request, res: Response) => {
+  res.sendFile(path.join(process.cwd(), 'test-map-v50.html'));
 });
 
 (async () => {

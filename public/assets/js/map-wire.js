@@ -6,25 +6,47 @@
   const $ = (q,root=document)=>root.querySelector(q);
   const hasLeaflet = !!(window.L || (window.VM_MAP && window.VM_MAP.map));
 
-  // --- DATA STORE (replace with your real data feed later) ---
+  // --- DATA STORE ---
   const store = {
-    all: [
-      // Demo examples; agent can replace/extend from your dataset
-      { id:'p1', name:'Demo Restaurant', address:'123 Main Street, Sofia', lat:42.6977, lng:23.3219, score:8.4,
-        vegan_full:true, cuisines:['vegan','european'], price:'$$',
-        components:[
-          {k:'Purity (Fully Vegan)', w:0.25, v:0.9},
-          {k:'Menu Breadth', w:0.20, v:0.8},
-          {k:'Ingredient Transparency', w:0.20, v:0.85},
-          {k:'User Sentiment', w:0.20, v:0.82},
-          {k:'Sustainability', w:0.10, v:0.7},
-          {k:'Consistency', w:0.05, v:0.8},
-        ]
-      },
-    ],
+    all: [],
     filtered: [],
     filters: { onlyVegan:false, q:'' },
   };
+
+  // --- FETCH DATA ---
+  async function fetchData(){
+    let data = [];
+    try {
+      // Try API endpoint first
+      const apiRes = await fetch('/api/places');
+      if (apiRes.ok) {
+        const apiData = await apiRes.json();
+        if (Array.isArray(apiData) && apiData.length) {
+          data = apiData;
+        }
+      }
+    } catch(e) {
+      console.warn('API fetch failed, falling back to local JSON.', e);
+    }
+    
+    if (!data.length) {
+      try {
+        const localRes = await fetch('/assets/data/places.json');
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          if (Array.isArray(localData)) data = localData;
+        }
+      } catch(e) {
+        console.error('Local JSON fetch failed.', e);
+      }
+    }
+    
+    if (data.length) {
+      window.VM_WIRE.setPlaces(data);
+    } else {
+      console.warn('No place data loaded.');
+    }
+  }
 
   // --- MAP HELPERS (Leaflet-first; otherwise no-op) ---
   function getMap(){
@@ -141,15 +163,16 @@
 
   // --- INIT ---
   WIRE.init = function(){
+    // Expose helpers for future integration first
+    window.VM_WIRE = window.VM_WIRE || {};
+    window.VM_WIRE.refresh = applyFilters;
+    window.VM_WIRE.openPlace = openPlace;
+    window.VM_WIRE.setPlaces = (arr)=>{ store.all = Array.isArray(arr)? arr:[]; applyFilters(); };
+    
     // If host provides initial places, merge them in
     if (window.VM_MAP?.places && Array.isArray(window.VM_MAP.places)) {
       store.all = window.VM_MAP.places;
     }
-
-    // First render
-    store.filtered = store.all.slice(0);
-    renderMarkers();
-    hookExistingMarkers();
 
     // Wire UI events
     wireOnlyVeganChip();
@@ -158,14 +181,23 @@
     // "Use my location"
     document.getElementById('vm-fab-loc')?.addEventListener('click', onUseMyLocation);
 
+    // Fetch data and render
+    if (store.all.length === 0) {
+      // No initial data, fetch from API/JSON
+      fetchData().then(()=>{
+        store.filtered = store.all.slice(0);
+        renderMarkers();
+        hookExistingMarkers();
+      });
+    } else {
+      // Use existing data from VM_MAP
+      store.filtered = store.all.slice(0);
+      renderMarkers();
+      hookExistingMarkers();
+    }
+
     // If you want to open a demo place immediately (dev):
     // setTimeout(()=> openPlace(store.all[0]), 800);
-
-    // Expose helpers for future integration
-    window.VM_WIRE = window.VM_WIRE || {};
-    window.VM_WIRE.refresh = applyFilters;
-    window.VM_WIRE.openPlace = openPlace;
-    window.VM_WIRE.setPlaces = (arr)=>{ store.all = Array.isArray(arr)? arr:[]; applyFilters(); };
   };
 
   window.VM_WIRE = WIRE;

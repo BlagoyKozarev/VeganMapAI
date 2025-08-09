@@ -1,0 +1,40 @@
+[
+  {
+    "id": "p1",
+    "name": "Green Fork Diner",
+    "address": "123 Main Street, Sofia",
+    "lat": 42.6977,
+    "lng": 23.3219,
+    "vegan_full": true,
+    "cuisines": ["vegan", "european"],
+    "price": "$$",
+    "score": 8.4,
+    "components": [
+      { "k": "Purity (Fully Vegan)", "w": 0.25, "v": 0.9 },
+      { "k": "Menu Breadth", "w": 0.2, "v": 0.8 },
+      { "k": "Ingredient Transparency", "w": 0.2, "v": 0.85 },
+      { "k": "User Sentiment", "w": 0.2, "v": 0.82 },
+      { "k": "Sustainability", "w": 0.1, "v": 0.7 },
+      { "k": "Consistency", "w": 0.05, "v": 0.8 }
+    ]
+  },
+  {
+    "id": "p2",
+    "name": "Plant Power Café",
+    "address": "456 Vegan Blvd, Sofia",
+    "lat": 42.695,
+    "lng": 23.325,
+    "vegan_full": false,
+    "cuisines": ["vegetarian", "international"],
+    "price": "$",
+    "score": 7.5,
+    "components": [
+      { "k": "Purity (Fully Vegan)", "w": 0.25, "v": 0.6 },
+      { "k": "Menu Breadth", "w": 0.2, "v": 0.7 },
+      { "k": "Ingredient Transparency", "w": 0.2, "v": 0.75 },
+      { "k": "User Sentiment", "w": 0.2, "v": 0.8 },
+      { "k": "Sustainability", "w": 0.1, "v": 0.65 },
+      { "k": "Consistency", "w": 0.05, "v": 0.75 }
+    ]
+  }
+]

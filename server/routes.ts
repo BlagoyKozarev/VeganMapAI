@@ -197,6 +197,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public places endpoint for map-wire.js (no auth required)
+  app.get('/api/places', async (req, res) => {
+    try {
+      const restaurants = await storage.getAllRestaurantsWithScores();
+      
+      // Convert to places format expected by map-wire.js
+      const places = restaurants.map(r => ({
+        id: r.id,
+        name: r.name,
+        address: r.address || 'No address',
+        lat: r.lat,
+        lng: r.lng,
+        vegan_full: r.isFullyVegan || false,
+        cuisines: r.cuisineTypes || [],
+        price: r.priceLevel || '$',
+        score: r.veganScore ? parseFloat(r.veganScore) : null,
+        components: r.veganScore ? [
+          { k: 'Purity (Fully Vegan)', w: 0.25, v: r.isFullyVegan ? 0.9 : 0.6 },
+          { k: 'Menu Breadth', w: 0.2, v: 0.8 },
+          { k: 'Ingredient Transparency', w: 0.2, v: 0.85 },
+          { k: 'User Sentiment', w: 0.2, v: 0.82 },
+          { k: 'Sustainability', w: 0.1, v: 0.7 },
+          { k: 'Consistency', w: 0.05, v: 0.8 }
+        ] : []
+      })).filter(p => p.lat && p.lng); // Only include places with coordinates
+      
+      res.json(places);
+    } catch (error) {
+      console.error("Error getting places data:", error);
+      res.status(500).json([]);
+    }
+  });
+
   // Debug endpoint to test production database
   app.get('/api/debug/production-db', async (req, res) => {
     try {
