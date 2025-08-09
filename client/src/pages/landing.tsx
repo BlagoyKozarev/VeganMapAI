@@ -73,7 +73,7 @@ export default function Landing() {
             href="/pages/mock-step1.html" 
             className="text-blue-700 hover:text-blue-900 font-medium flex items-center gap-2"
           >
-            ➡ Мокъп Стъпка 1 (CTA + Навигация)
+            ➡ Mock Step 1 (CTA + Navigation)
           </a>
         </div>
       </div>
@@ -87,16 +87,16 @@ export default function Landing() {
               <h1 className="text-2xl font-bold text-gray-800">VeganMapAI</h1>
             </div>
             <nav className="hidden md:flex items-center gap-6">
-              <a href="#features" className="text-gray-600 hover:text-green-600 transition-colors">Функции</a>
-              <a href="#about" className="text-gray-600 hover:text-green-600 transition-colors">За нас</a>
-              <a href="#api" className="text-gray-600 hover:text-green-600 transition-colors">API достъп</a>
-              <a href="#contact" className="text-gray-600 hover:text-green-600 transition-colors">Контакт</a>
+              <a href="#features" className="text-gray-600 hover:text-green-600 transition-colors">Features</a>
+              <a href="#about" className="text-gray-600 hover:text-green-600 transition-colors">About</a>
+              <a href="#api" className="text-gray-600 hover:text-green-600 transition-colors">API Access</a>
+              <a href="#contact" className="text-gray-600 hover:text-green-600 transition-colors">Contact</a>
             </nav>
             <Button 
               className="bg-green-600 hover:bg-green-700"
               onClick={handleLogin}
             >
-              Влизане
+              Sign in
             </Button>
           </div>
         </div>
