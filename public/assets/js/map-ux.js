@@ -165,18 +165,34 @@
 
   // PUBLIC API
   UX.init = function(){
-    const mapRoot = document.getElementById('map-root') || document.querySelector('.map-root') || document.body;
-    // Position overlay relative to map root
-    mapRoot.style.position = mapRoot.style.position || 'relative';
+    // Prefer an explicit outer wrapper:
+    const outer = document.getElementById('map-root')
+               || document.querySelector('.vm-map-root')
+               || document.querySelector('.leaflet-container')?.parentElement
+               || document.body;
+    
+    if (!outer) return;
+    if (getComputedStyle(outer).position === 'static') { 
+      outer.style.position = 'relative'; 
+    }
 
-    // Insert overlay controls
-    if (!document.getElementById('vm-overlay')) mapRoot.appendChild(buildOverlay());
-    // FAB already inside overlay
-    // Bottom sheet + score panel at body level
+    // Insert overlay into OUTER wrapper only:
+    if (!document.getElementById('vm-overlay')) outer.appendChild(buildOverlay());
+    
+    // Bottom sheet + score panel at BODY level (fixed):
     if (!document.getElementById('vm-sheet')) document.body.appendChild(buildSheet());
     if (!document.getElementById('vm-score')) document.body.appendChild(buildScorePanel());
 
     wireEvents();
+
+    // Guard: if the map library re-parents nodes, re-attach overlay back to OUTER
+    const mo = new MutationObserver(()=>{
+      const ov = document.getElementById('vm-overlay');
+      if (ov && ov.parentElement !== outer) { 
+        outer.appendChild(ov); 
+      }
+    });
+    mo.observe(outer, { childList:true, subtree:true });
 
     // For quick manual test without markers:
     // setTimeout(()=> UX.openPlace(demoPlace), 800);
