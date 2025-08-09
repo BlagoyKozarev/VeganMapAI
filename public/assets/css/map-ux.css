@@ -135,3 +135,35 @@
     padding: 7px 10px;
   }
 }
+
+/* Drawer (More filters) */
+#vm-drawer {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh; width: 320px; max-width: 90vw;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: -8px 0 20px rgba(0,0,0,0.12);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 10050;
+  display: flex; flex-direction: column;
+}
+#vm-drawer.open { transform: translateX(0); }
+#vm-drawer header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+#vm-drawer .panel { flex: 1; overflow: auto; padding: 12px 14px; }
+#vm-drawer label { display: block; font-weight: 600; margin-top: 14px; }
+#vm-drawer select, #vm-drawer input {
+  width: 100%; padding: 8px;
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--elev);
+  color: var(--text);
+}
+#vm-drawer .actions { padding: 12px 14px; border-top: 1px solid var(--line); }
+#vm-drawer .vm-btn { width: 100%; justify-content: center; }

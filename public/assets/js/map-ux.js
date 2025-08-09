@@ -55,6 +55,57 @@
         <button class="vm-fab" id="vm-fab-ai" title="AI Assistant"><span class="vm-fab-icon">${icon('sparkles')}</span></button>
       </div>
     `;
+    
+    // Drawer (hidden by default)
+    if (!document.getElementById('vm-drawer')) {
+      const drawer = document.createElement('aside');
+      drawer.id = 'vm-drawer';
+      drawer.innerHTML = `
+        <header>
+          <strong>More filters</strong>
+          <button class="vm-btn" id="vm-drawer-close">Close</button>
+        </header>
+        <div class="panel">
+          <label>Price</label>
+          <select id="mf-price">
+            <option value="">Any</option>
+            <option value="$">$</option>
+            <option value="$$">$$</option>
+            <option value="$$$">$$$</option>
+          </select>
+
+          <label>Cuisine</label>
+          <select id="mf-cuisine">
+            <option value="">Any</option>
+            <option value="american">American</option>
+            <option value="asian">Asian</option>
+            <option value="italian">Italian</option>
+            <option value="mexican">Mexican</option>
+          </select>
+
+          <label>Allergens</label>
+          <select id="mf-allergens">
+            <option value="">Any</option>
+            <option value="gluten-free">Gluten-free</option>
+            <option value="nut-free">Nut-free</option>
+            <option value="soy-free">Soy-free</option>
+          </select>
+
+          <label>Min. Rating</label>
+          <select id="mf-rating">
+            <option value="">Any</option>
+            <option value="9">9+</option>
+            <option value="8">8+</option>
+            <option value="7">7+</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="vm-btn vm-btn-primary" id="mf-apply">Apply Filters</button>
+        </div>
+      `;
+      document.body.appendChild(drawer);
+    }
+    
     return host;
   }
 
@@ -143,7 +194,9 @@
       const chip = e.target.closest('.vm-chip'); if (!chip) return;
       const key = chip.dataset.chip;
       // only-vegan is handled by map-wire.js
-      if (key !== 'only-vegan' && key) {
+      if (key === 'more') {
+        document.getElementById('vm-drawer')?.classList.add('open');
+      } else if (key !== 'only-vegan' && key) {
         alert('Open filters: '+key); // TODO for other filters
       }
     });
@@ -174,6 +227,15 @@
       if (e.target?.id === 'vm-score') closeScorePanel();
     });
     $('#vm-score-close')?.addEventListener('click', closeScorePanel);
+    
+    // Drawer events
+    $('#vm-drawer-close')?.addEventListener('click', ()=>{
+      document.getElementById('vm-drawer')?.classList.remove('open');
+    });
+    $('#mf-apply')?.addEventListener('click', ()=>{
+      alert('Filters applied (wire to map filtering logic)');
+      document.getElementById('vm-drawer')?.classList.remove('open');
+    });
   }
 
   /* ---------- Public API ---------- */
