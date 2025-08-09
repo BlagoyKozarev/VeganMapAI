@@ -66,6 +66,18 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
+      {/* Temporary Link to Mock Page */}
+      <div className="bg-blue-100 border-b border-blue-200 py-2">
+        <div className="container mx-auto px-4">
+          <a 
+            href="/pages/mock-step1.html" 
+            className="text-blue-700 hover:text-blue-900 font-medium flex items-center gap-2"
+          >
+            ➡ Мокъп Стъпка 1 (CTA + Навигация)
+          </a>
+        </div>
+      </div>
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">

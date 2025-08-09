@@ -65,6 +65,9 @@ app.use(compression({
 app.use(express.json({ limit: '1mb' })); // Limit JSON payload size
 app.use(express.urlencoded({ extended: false }));
 
+// Serve static files from public directory
+app.use(express.static(path.join(process.cwd(), 'public')));
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
