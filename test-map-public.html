@@ -151,9 +151,9 @@
                 
                 // Store places for wire integration
                 window.VM_MAP.places = data.restaurants.map(r => ({
-                    id: r.id,
-                    name: r.name,
-                    address: r.address,
+                    id: r.id || Math.random().toString(36),
+                    name: r.name || 'Restaurant',
+                    address: r.address || 'No address',
                     lat: r.lat,
                     lng: r.lng,
                     score: r.veganScore ? parseFloat(r.veganScore) : null,
@@ -168,47 +168,45 @@
                         {k:'Sustainability', w:0.10, v:0.7},
                         {k:'Consistency', w:0.05, v:0.8},
                     ] : []
-                }));
+                })).filter(p => p.lat && p.lng); // Only include places with coordinates
                 
                 // Add markers for each restaurant
-                data.restaurants.forEach((restaurant, idx) => {
-                    if (restaurant.lat && restaurant.lng) {
-                        const marker = L.marker([restaurant.lat, restaurant.lng])
-                            .addTo(map);
+                window.VM_MAP.places.forEach(place => {
+                    const marker = L.marker([place.lat, place.lng])
+                        .addTo(map);
+                    
+                    // Store reference to place data
+                    marker.__place = place;
+                    window.VM_MAP.markers.push(marker);
                         
-                        // Store reference to place data
-                        marker.__place = window.VM_MAP.places[idx];
-                        window.VM_MAP.markers.push(marker);
-                        
-                        // Create popup content
-                        let popupContent = `
-                            <div class="restaurant-popup">
-                                <h3>${restaurant.name}</h3>
-                        `;
-                        
-                        if (restaurant.veganScore) {
-                            const score = parseFloat(restaurant.veganScore);
-                            popupContent += `
-                                <div class="score ${getScoreClass(score)}">
-                                    Vegan Score: ${score.toFixed(1)} - ${getScoreText(score)}
-                                </div>
-                            `;
-                        }
-                        
+                    // Create popup content
+                    let popupContent = `
+                        <div class="restaurant-popup">
+                            <h3>${place.name}</h3>
+                    `;
+                    
+                    if (place.score) {
+                        const score = place.score;
                         popupContent += `
-                                <div class="address">${restaurant.address || 'Няма адрес'}</div>
+                            <div class="score ${getScoreClass(score)}">
+                                Vegan Score: ${score.toFixed(1)} - ${getScoreText(score)}
+                            </div>
                         `;
-                        
-                        if (restaurant.cuisineTypes && restaurant.cuisineTypes.length > 0) {
-                            popupContent += `
-                                <div class="cuisine">${restaurant.cuisineTypes.join(', ')}</div>
-                            `;
-                        }
-                        
-                        popupContent += `</div>`;
-                        
-                        marker.bindPopup(popupContent);
                     }
+                    
+                    popupContent += `
+                            <div class="address">${place.address}</div>
+                    `;
+                    
+                    if (place.cuisines && place.cuisines.length > 0) {
+                        popupContent += `
+                            <div class="cuisine">${place.cuisines.join(', ')}</div>
+                        `;
+                    }
+                    
+                    popupContent += `</div>`;
+                    
+                    marker.bindPopup(popupContent);
                 });
                 
                 // Hide loading
@@ -233,10 +231,16 @@
             window.VM_UX.init();
         }
         
-        // Initialize wire bridge for map integration
-        if (window.VM_WIRE) {
-            window.VM_WIRE.init();
-        }
+        // Initialize wire bridge for map integration after data loads
+        // Wait for data to be loaded
+        const waitForData = setInterval(() => {
+            if (window.VM_MAP && window.VM_MAP.places && window.VM_MAP.places.length > 0) {
+                clearInterval(waitForData);
+                if (window.VM_WIRE) {
+                    window.VM_WIRE.init();
+                }
+            }
+        }, 100);
         
         // Demo: open place after 1 second for testing (optional)
         // setTimeout(() => {
