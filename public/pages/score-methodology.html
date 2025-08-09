@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VeganMapAI – Score Methodology</title>
+  <script>(function(){try{var t=localStorage.getItem('theme')||'light';document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){}})();</script>
+  <style>
+    :root[data-theme="light"]{--bg-top:#f7fafc;--bg-bot:#eef2f7;--surface:#fff;--elev:#f5f7fb;--text:#0f1720;--muted:#4b5563;--line:rgba(15,23,32,.08);--accent:#22c55e;--accent-600:#16a34a}
+    :root[data-theme="dark"]{--bg-top:#0b0f14;--bg-bot:#0e141c;--surface:#121821;--elev:#0f1520;--text:#e8f0f7;--muted:#9fb0c3;--line:rgba(255,255,255,.08);--accent:#22c55e;--accent-600:#16a34a}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text);min-height:100vh}
+    .wrap{max-width:860px;margin:0 auto;padding:24px 16px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+    h1{margin:0 0 12px} h2{margin:24px 0 12px;color:var(--accent)}
+    .score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+    .score-item{background:var(--elev);border:1px solid var(--line);border-radius:10px;padding:12px}
+    .score-label{font-weight:700;margin-bottom:4px}
+    .score-desc{color:var(--muted);font-size:14px}
+    .btn{display:inline-flex;gap:8px;align-items:center;border-radius:999px;padding:10px 16px;border:1px solid var(--line);background:transparent;color:var(--text);font-weight:700;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Vegan Score Methodology</h1>
+    <div class="card">
+      <p>Our AI-powered scoring system evaluates restaurants across 6 key dimensions to provide transparent, reliable vegan-friendliness ratings.</p>
+    </div>
+    
+    <h2>Scoring Dimensions</h2>
+    <div class="score-grid">
+      <div class="score-item">
+        <div class="score-label">🌱 Menu Variety</div>
+        <div class="score-desc">Number and quality of vegan options available</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">🏷️ Clear Labeling</div>
+        <div class="score-desc">How well vegan items are marked and identified</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">👨‍🍳 Staff Knowledge</div>
+        <div class="score-desc">Staff understanding of vegan requirements</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">🛡️ Cross-Contamination Prevention</div>
+        <div class="score-desc">Measures to avoid mixing with non-vegan items</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">📱 Online Information</div>
+        <div class="score-desc">Availability of vegan info on website/apps</div>
+      </div>
+      <div class="score-item">
+        <div class="score-label">🎨 Creativity & Innovation</div>
+        <div class="score-desc">Unique and creative plant-based offerings</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px">
+      <h2 style="margin-top:0">Score Ranges</h2>
+      <ul>
+        <li><strong>8.0-10.0:</strong> Excellent vegan destination</li>
+        <li><strong>6.0-7.9:</strong> Good vegan options available</li>
+        <li><strong>4.0-5.9:</strong> Limited but acceptable choices</li>
+        <li><strong>2.0-3.9:</strong> Minimal vegan options</li>
+        <li><strong>0.0-1.9:</strong> Not recommended for vegans</li>
+      </ul>
+    </div>
+
+    <div style="margin-top:24px">
+      <a class="btn" href="/pages/mock-step1.html">← Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>
