@@ -232,10 +232,7 @@
     $('#vm-drawer-close')?.addEventListener('click', ()=>{
       document.getElementById('vm-drawer')?.classList.remove('open');
     });
-    $('#mf-apply')?.addEventListener('click', ()=>{
-      alert('Filters applied (wire to map filtering logic)');
-      document.getElementById('vm-drawer')?.classList.remove('open');
-    });
+    // Apply filters button is now handled by map-wire.js
   }
 
   /* ---------- Public API ---------- */

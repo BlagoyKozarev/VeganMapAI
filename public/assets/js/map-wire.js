@@ -14,7 +14,7 @@
   const store = {
     all: [],
     filtered: [],
-    filters: { onlyVegan:false, q:'' },
+    filters: { onlyVegan:false, q:'', price:'', cuisine:'', allergen:'', minRating:'' },
   };
   
   // Cluster group for markers
@@ -161,16 +161,44 @@
     WIRE.setPlaces(good);
   }
 
+  // ---------------- Filter helpers ----------------
+  function hasCuisine(p, wanted){
+    if (!wanted) return true;
+    return (p.cuisines||[]).map(x=>String(x).toLowerCase()).includes(String(wanted).toLowerCase());
+  }
+  function passPrice(p, wanted){
+    if (!wanted) return true;               // '' => Any
+    return String(p.price||'') === String(wanted);
+  }
+  function passAllergen(p, wanted){
+    if (!wanted) return true;               // демо: няма реални полета -> винаги true
+    // TODO: когато има реални данни: проверка по p.allergens и т.н.
+    return true;
+  }
+  function passRating(p, min){
+    if (!min) return true;
+    const s = typeof p.score==='number' ? p.score : null;
+    return s==null ? false : (s >= Number(min));
+  }
+
   // ---------------- Filters & rendering ----------------
   function applyFilters(){
-    const { onlyVegan, q } = store.filters;
-    const needle = (q||'').trim().toLowerCase();
     store.filtered = store.all.filter(p=>{
-      if (onlyVegan && !p.vegan_full) return false;
-      if (needle) {
+      if (store.filters.onlyVegan && !p.vegan_full) return false;
+
+      // Search по name / address / cuisines
+      const needle = (store.filters.q||'').trim().toLowerCase();
+      if (needle){
         const hay = [p.name, p.address, ...(p.cuisines||[])].join(' ').toLowerCase();
         if (!hay.includes(needle)) return false;
       }
+
+      // NEW: Price / Cuisine / Allergen / Rating
+      if (!passPrice(p, store.filters.price)) return false;
+      if (!hasCuisine(p, store.filters.cuisine)) return false;
+      if (!passAllergen(p, store.filters.allergen)) return false;
+      if (!passRating(p, store.filters.minRating)) return false;
+
       return true;
     });
     renderMarkers();
@@ -254,6 +282,25 @@
     wireOnlyVeganChip();
     wireSearch();
     $('#vm-fab-loc')?.addEventListener('click', onUseMyLocation);
+
+    // Drawer → прочитаме стойности и прилагаме
+    const mfApply = document.getElementById('mf-apply');
+    if (mfApply){
+      mfApply.addEventListener('click', ()=>{
+        const price   = (document.getElementById('mf-price')||{}).value || '';
+        const cuisine = (document.getElementById('mf-cuisine')||{}).value || '';
+        const allerg  = (document.getElementById('mf-allergens')||{}).value || '';
+        const rating  = (document.getElementById('mf-rating')||{}).value || '';
+
+        store.filters.price     = price;
+        store.filters.cuisine   = cuisine;
+        store.filters.allergen  = allerg;
+        store.filters.minRating = rating;
+
+        applyFilters();
+        document.getElementById('vm-drawer')?.classList.remove('open');
+      });
+    }
 
     // If host already provided places before init:
     if (Array.isArray(window.VM_MAP?.places) && window.VM_MAP.places.length) {
