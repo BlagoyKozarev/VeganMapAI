@@ -1,0 +1,148 @@
+// frontend-auth-fix.ts - Update frontend to use public endpoints
+
+// SOLUTION 1: Update API calls to use public endpoint
+// Update in client/src/hooks/useRestaurants.ts or similar
+
+interface UseRestaurantsOptions {
+  lat?: number;
+  lng?: number;
+  radius?: number;
+  requireAuth?: boolean;
+}
+
+export const useRestaurants = ({ 
+  lat, 
+  lng, 
+  radius = 50000,
+  requireAuth = false 
+}: UseRestaurantsOptions = {}) => {
+  
+  const fetchRestaurants = async () => {
+    try {
+      // Try authenticated endpoint first if auth is required
+      if (requireAuth) {
+        const authResponse = await fetch('/api/restaurants/all-available?' + new URLSearchParams({
+          lat: lat?.toString() || '',
+          lng: lng?.toString() || '',
+          radius: radius.toString()
+        }));
+        
+        if (authResponse.ok) {
+          const data = await authResponse.json();
+          return data.restaurants;
+        }
+      }
+      
+      // Fall back to public endpoint for map data
+      const publicResponse = await fetch('/api/restaurants/public/map-data?' + new URLSearchParams({
+        lat: lat?.toString() || '',
+        lng: lng?.toString() || '',
+        radius: radius.toString()
+      }));
+      
+      if (!publicResponse.ok) {
+        throw new Error(`HTTP error! status: ${publicResponse.status}`);
+      }
+      
+      const data = await publicResponse.json();
+      return data.restaurants || [];
+      
+    } catch (error) {
+      console.error('Failed to fetch restaurants:', error);
+      
+      // Return Sofia fallback data if API fails
+      return getSofiaFallbackData();
+    }
+  };
+  
+  return useQuery({
+    queryKey: ['restaurants', lat, lng, radius],
+    queryFn: fetchRestaurants,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 30 * 60 * 1000, // 30 minutes
+  });
+};
+
+// SOLUTION 2: Add fallback Sofia data for immediate testing
+function getSofiaFallbackData() {
+  return [
+    {
+      id: "fallback-1",
+      name: "Фалафел Kingdom",
+      latitude: 42.6977,
+      longitude: 23.3219,
+      veganScore: "4.5",
+      cuisineTypes: ["Mediterranean", "Vegan"],
+      rating: 4.2,
+      address: "София, център"
+    },
+    {
+      id: "fallback-2", 
+      name: "Веган Бистро",
+      latitude: 42.7014,
+      longitude: 23.3176,
+      veganScore: "5.0",
+      cuisineTypes: ["Bulgarian", "Vegan"],
+      rating: 4.8,
+      address: "София, Лозенец"
+    },
+    {
+      id: "fallback-3",
+      name: "Green Garden",
+      latitude: 42.6892,
+      longitude: 23.3394,
+      veganScore: "3.8",
+      cuisineTypes: ["International", "Vegetarian"],
+      rating: 4.0,
+      address: "София, Витоша"
+    }
+  ];
+}
+
+// SOLUTION 3: Add authentication status check
+export const useAuthStatus = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
+        setIsAuthenticated(data.authenticated || false);
+      } catch (error) {
+        console.log('Auth check failed, assuming not authenticated');
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+  
+  return { isAuthenticated, loading };
+};
+
+// SOLUTION 4: Update Map component to handle public access
+export const MapComponent = () => {
+  const { isAuthenticated } = useAuthStatus();
+  const { data: restaurants, isLoading, error } = useRestaurants({
+    lat: 42.6977, // Sofia center
+    lng: 23.3219,
+    radius: 50000,
+    requireAuth: false // Allow public access for map viewing
+  });
+  
+  // Show authentication prompt only for advanced features
+  const showAuthPrompt = !isAuthenticated && (
+    // User tries to use premium features
+    window.location.pathname.includes('/profile') ||
+    window.location.search.includes('save=true')
+  );
+  
+  if (showAuthPrompt) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="mb-4">Влезте в профила си за пълен достъп</p>

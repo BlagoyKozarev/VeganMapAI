@@ -1,0 +1,264 @@
+# 🤖 AI SCORE EXPLANATIONS - REPLIT AGENT INSTRUCTIONS
+
+## OBJECTIVE
+
+Add transparent explanations for AI vegan scores to build user trust and improve UX.
+
+## CURRENT PROBLEM
+
+Users see scores like “4.2/5 ⭐” but don’t understand how they’re calculated. Both external analyses (Perplexity + Gemini) flagged this as critical trust issue.
+
+## IMPLEMENTATION PLAN
+
+### STEP 1: Create Score Explanation Component (30 min)
+
+**Create new file: `client/src/components/ScoreExplanation.tsx`**
+
+```typescript
+import { useState } from 'react';
+import { Info, Star } from 'lucide-react';
+
+interface ScoreExplanationProps {
+  score: number;
+  breakdown?: {
+    menuVariety: number;
+    ingredientClarity: number;
+    staffKnowledge: number;
+    crossContamination: number;
+    nutritionalInfo: number;
+    allergenManagement: number;
+  };
+  restaurantName: string;
+}
+
+export function ScoreExplanation({ score, breakdown, restaurantName }: ScoreExplanationProps) {
+  const [showDetails, setShowDetails] = useState(false);
+
+  const getScoreText = (score: number) => {
+    if (score >= 4.5) return "Excellent vegan options";
+    if (score >= 3.5) return "Good vegan choices";
+    if (score >= 2.5) return "Some vegan options";
+    if (score >= 1.5) return "Limited vegan options";
+    return "Few vegan options";
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 4) return "text-green-600";
+    if (score >= 3) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  return (
+    <div className="relative inline-block">
+      <div className="flex items-center gap-2 cursor-pointer" 
+           onClick={() => setShowDetails(!showDetails)}>
+        <div className="flex items-center">
+          <Star className={`w-4 h-4 ${getScoreColor(score)} fill-current`} />
+          <span className={`ml-1 font-semibold ${getScoreColor(score)}`}>
+            {score.toFixed(1)}
+          </span>
+        </div>
+        <Info className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+      </div>
+
+      {showDetails && (
+        <div className="absolute z-10 mt-2 p-4 bg-white border rounded-lg shadow-lg w-80 left-0">
+          <div className="mb-3">
+            <h4 className="font-semibold text-gray-800">
+              Vegan Score: {getScoreText(score)}
+            </h4>
+            <p className="text-sm text-gray-600 mt-1">
+              AI analysis of {restaurantName}'s vegan-friendliness
+            </p>
+          </div>
+
+          {breakdown ? (
+            <div className="space-y-2">
+              <div className="text-sm">
+                <div className="flex justify-between">
+                  <span>Menu Variety:</span>
+                  <span className="font-medium">{breakdown.menuVariety}/5</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Clear Labeling:</span>
+                  <span className="font-medium">{breakdown.ingredientClarity}/5</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Staff Knowledge:</span>
+                  <span className="font-medium">{breakdown.staffKnowledge}/5</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Safety Measures:</span>
+                  <span className="font-medium">{breakdown.crossContamination}/5</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-600">
+              <p>Score based on:</p>
+              <ul className="mt-1 ml-4 list-disc">
+                <li>Menu analysis for vegan options</li>
+                <li>Ingredient transparency</li>
+                <li>Kitchen safety practices</li>
+                <li>Staff training on dietary needs</li>
+              </ul>
+            </div>
+          )}
+
+          <div className="mt-3 pt-3 border-t text-xs text-gray-500">
+            Powered by AI • Updated regularly
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### STEP 2: Update Restaurant Card Component (15 min)
+
+**Find and update restaurant display components to use ScoreExplanation:**
+
+```typescript
+// In restaurant card/marker popup, replace simple score display:
+
+// OLD:
+<div className="score">⭐ {restaurant.veganScore}</div>
+
+// NEW:
+<ScoreExplanation 
+  score={parseFloat(restaurant.veganScore)} 
+  breakdown={restaurant.veganScoreBreakdown}
+  restaurantName={restaurant.name}
+/>
+```
+
+### STEP 3: Update Map Markers (15 min)
+
+**In map marker popups, add explanation:**
+
+```typescript
+// Find map marker popup code and update:
+const popupContent = `
+  <div class="restaurant-popup">
+    <h3>${restaurant.name}</h3>
+    <div class="score-container">
+      <!-- Add click handler for score explanation -->
+      <div class="vegan-score" data-score="${restaurant.veganScore}" data-restaurant="${restaurant.name}">
+        ⭐ ${restaurant.veganScore}
+        <span class="info-icon">ℹ️</span>
+      </div>
+    </div>
+    <p>${restaurant.address}</p>
+  </div>
+`;
+```
+
+### STEP 4: Add CSS Styling (10 min)
+
+**Add to your main CSS file:**
+
+```css
+.score-explanation-tooltip {
+  max-width: 320px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.score-breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0;
+  padding: 2px 0;
+}
+
+.info-icon {
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.info-icon:hover {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .score-explanation-tooltip {
+    max-width: 280px;
+    font-size: 13px;
+    padding: 12px;
+  }
+}
+```
+
+## STEP 5: Test Implementation (15 min)
+
+**Testing checklist:**
+
+```bash
+# 1. Start development server
+npm run dev
+
+# 2. Open browser and check:
+# - Click on restaurant score shows explanation
+# - Tooltip appears and disappears properly
+# - Mobile responsive design works
+# - No console errors
+# - Explanation text is clear and helpful
+
+# 3. Test on different restaurants with different scores
+# 4. Verify both map markers and restaurant cards show explanations
+```
+
+## EXPECTED RESULTS
+
+### Before:
+
+```
+⭐ 4.2  [user thinks: "Why 4.2? How was this calculated?"]
+```
+
+### After:
+
+```
+⭐ 4.2 ℹ️  [click] → 
+"Excellent vegan options
+AI analysis of Restaurant Name's vegan-friendliness
+
+Menu Variety: 5/5
+Clear Labeling: 4/5  
+Staff Knowledge: 4/5
+Safety Measures: 4/5
+
+Score based on:
+• Menu analysis for vegan options
+• Ingredient transparency  
+• Kitchen safety practices
+• Staff training on dietary needs
+
+Powered by AI • Updated regularly"
+```
+
+## SUCCESS CRITERIA
+
+✅ **User Trust**: Clear explanation of how scores work
+✅ **Professional Appearance**: Polished tooltips and interactions  
+✅ **Mobile Friendly**: Works well on phones
+✅ **No Performance Impact**: Fast loading, smooth interactions
+✅ **Consistent Design**: Matches existing UI style
+
+## NEXT STEPS AFTER COMPLETION
+
+1. **Test with real users** - get feedback on explanation clarity
+1. **A/B test different explanation formats** - find most effective version
+1. **Add score confidence indicators** - show how certain AI is about score
+1. **Consider user feedback system** - let users report incorrect scores
+
+## ESTIMATED TIME: 1.5 hours total implementation
+
+This addresses the #1 user trust issue identified by both external analyses and will immediately improve the professional credibility of VeganMapAI!

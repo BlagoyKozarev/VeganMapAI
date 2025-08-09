@@ -147,6 +147,9 @@ app.get('/test-map-v98', (_req: Request, res: Response) => {
   res.sendFile(path.join(process.cwd(), 'test-map-v98.html'));
 });
 
+// Serve public directory for new structure
+app.use('/public', express.static(path.join(process.cwd(), 'public')));
+
 (async () => {
   const server = await registerRoutes(app);
   

@@ -1,0 +1,649 @@
+// Map Performance Optimization for 250K Restaurants
+// Challenge: Load massive datasets without browser crashes
+// Solution: Smart viewport-based loading + multi-tier clustering
+
+interface ViewportBounds {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+  zoom: number;
+}
+
+interface RestaurantTier {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  veganScore: number;
+  priority: 'high' | 'medium' | 'low'; // Based on user behavior
+  lastLoaded: Date;
+}
+
+interface ClusterConfig {
+  maxMarkersPerCluster: number;
+  maxMarkersOnMap: number;
+  clusterRadius: number;
+  priorityBoost: number;
+}
+
+export class MapPerformanceManager {
+  private loadedRestaurants: Map<string, RestaurantTier>;
+  private visibleMarkers: Set<string>;
+  private priorityIndex: Map<string, number>; // restaurant priority scores
+  private loadingQueue: string[]; // restaurants pending load
+  private maxLoadedMarkers: number = 2000; // Browser performance limit
+
+  constructor() {
+    this.loadedRestaurants = new Map();
+    this.visibleMarkers = new Set();
+    this.priorityIndex = new Map();
+    this.loadingQueue = [];
+  }
+
+  /**
+   * SMART LOADING STRATEGY:
+   * 1. Load high-priority restaurants first
+   * 2. Progressive loading based on zoom level  
+   * 3. Unload off-screen restaurants
+   * 4. Preload adjacent areas
+   */
+  async loadRestaurantsForViewport(bounds: ViewportBounds): Promise<RestaurantTier[]> {
+    console.log(`🗺️ Loading restaurants for zoom ${bounds.zoom}`);
+
+    // Determine loading strategy based on zoom level
+    const loadingStrategy = this.getLoadingStrategy(bounds.zoom);
+    
+    // Get restaurants by priority
+    const candidateRestaurants = await this.getCandidateRestaurants(bounds, loadingStrategy.maxResults);
+    
+    // Apply intelligent filtering
+    const filteredRestaurants = this.applyIntelligentFiltering(candidateRestaurants, bounds);
+    
+    // Memory management - unload distant restaurants
+    this.unloadDistantRestaurants(bounds);
+    
+    // Load new restaurants
+    const loadedRestaurants = await this.loadRestaurantsBatch(filteredRestaurants);
+    
+    // Preload adjacent areas if performance allows
+    this.scheduleAdjacentPreloading(bounds);
+    
+    console.log(`✅ Loaded ${loadedRestaurants.length} restaurants`);
+    return loadedRestaurants;
+  }
+
+  /**
+   * Zoom-based loading strategy
+   */
+  private getLoadingStrategy(zoomLevel: number): ClusterConfig {
+    if (zoomLevel <= 10) {
+      // City/state level - show only top restaurants
+      return {
+        maxMarkersPerCluster: 100,
+        maxMarkersOnMap: 200,
+        clusterRadius: 50,
+        priorityBoost: 2.0
+      };
+    } else if (zoomLevel <= 14) {
+      // District level - moderate detail
+      return {
+        maxMarkersPerCluster: 50,
+        maxMarkersOnMap: 1000,
+        clusterRadius: 30,
+        priorityBoost: 1.5
+      };
+    } else {
+      // Street level - high detail
+      return {
+        maxMarkersPerCluster: 20,
+        maxMarkersOnMap: 2000,
+        clusterRadius: 15,
+        priorityBoost: 1.0
+      };
+    }
+  }
+
+  /**
+   * Intelligent restaurant filtering based on multiple factors
+   */
+  private applyIntelligentFiltering(restaurants: any[], bounds: ViewportBounds): RestaurantTier[] {
+    return restaurants
+      .map(r => this.calculateRestaurantPriority(r, bounds))
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, this.maxLoadedMarkers)
+      .map(r => ({
+        id: r.placeId,
+        name: r.name,
+        lat: r.geometry.location.lat,
+        lng: r.geometry.location.lng,
+        veganScore: r.veganScore || 0,
+        priority: this.getPriorityTier(r.priority),
+        lastLoaded: new Date()
+      }));
+  }
+
+  /**
+   * Calculate restaurant priority based on multiple factors
+   */
+  private calculateRestaurantPriority(restaurant: any, bounds: ViewportBounds): any {
+    let priority = 0;
+
+    // Factor 1: Vegan score (30% weight)
+    priority += (restaurant.veganScore || 0) * 3;
+
+    // Factor 2: Distance from viewport center (25% weight)
+    const centerLat = (bounds.north + bounds.south) / 2;
+    const centerLng = (bounds.east + bounds.west) / 2;
+    const distance = this.calculateDistance(
+      restaurant.geometry.location.lat,
+      restaurant.geometry.location.lng,
+      centerLat,
+      centerLng
+    );
+    priority += Math.max(0, 10 - distance) * 2.5; // Closer = higher priority
+
+    // Factor 3: User behavior (20% weight)
+    const userInterest = this.priorityIndex.get(restaurant.placeId) || 0;
+    priority += userInterest * 2;
+
+    // Factor 4: Restaurant rating (15% weight)
+    priority += (restaurant.rating || 0) * 1.5;
+
+    // Factor 5: Recent updates (10% weight)  
+    const daysSinceUpdate = this.getDaysSinceUpdate(restaurant.lastUpdated);
+    priority += Math.max(0, 30 - daysSinceUpdate) * 0.1;
+
+    return { ...restaurant, priority };
+  }
+
+  /**
+   * Memory management - unload restaurants outside expanded viewport
+   */
+  private unloadDistantRestaurants(currentBounds: ViewportBounds): void {
+    const expandedBounds = this.expandBounds(currentBounds, 1.5); // 50% buffer
+    const toUnload: string[] = [];
+
+    for (const [restaurantId, restaurant] of this.loadedRestaurants) {
+      if (!this.isInBounds(restaurant, expandedBounds)) {
+        toUnload.push(restaurantId);
+      }
+    }
+
+    // Unload distant restaurants
+    toUnload.forEach(id => {
+      this.loadedRestaurants.delete(id);
+      this.visibleMarkers.delete(id);
+    });
+
+    if (toUnload.length > 0) {
+      console.log(`🧹 Unloaded ${toUnload.length} distant restaurants`);
+    }
+  }
+
+  /**
+   * Progressive loading system за smooth UX
+   */
+  async loadRestaurantsBatch(restaurants: RestaurantTier[]): Promise<RestaurantTier[]> {
+    const batchSize = 50; // Load в batches за smooth animation
+    const loadedBatch: RestaurantTier[] = [];
+
+    for (let i = 0; i < restaurants.length; i += batchSize) {
+      const batch = restaurants.slice(i, i + batchSize);
+      
+      // Load batch
+      batch.forEach(restaurant => {
+        this.loadedRestaurants.set(restaurant.id, restaurant);
+        this.visibleMarkers.add(restaurant.id);
+      });
+
+      loadedBatch.push(...batch);
+
+      // Small delay за smooth loading animation
+      if (i + batchSize < restaurants.length) {
+        await this.sleep(50); // 50ms между batches
+      }
+    }
+
+    return loadedBatch;
+  }
+
+  /**
+   * Preload adjacent areas за smooth panning experience
+   */
+  private scheduleAdjacentPreloading(bounds: ViewportBounds): void {
+    if (this.loadedRestaurants.size > this.maxLoadedMarkers * 0.8) {
+      return; // Skip preloading ако memory е почти пълна
+    }
+
+    const adjacentAreas = this.calculateAdjacentViewports(bounds);
+    
+    // Schedule low-priority preloading
+    setTimeout(async () => {
+      for (const area of adjacentAreas) {
+        const restaurants = await this.getCachedRestaurantsInBounds(area);
+        
+        if (restaurants.length < 10) {
+          // Low coverage - може да добавим към loading queue
+          this.addToLoadingQueue(area);
+        }
+      }
+    }, 1000); // 1 секунда delay за preloading
+  }
+
+  /**
+   * Advanced clustering за performance
+   */
+  generateOptimizedClusters(restaurants: RestaurantTier[], zoomLevel: number): any[] {
+    const clusters: any[] = [];
+    const processed = new Set<string>();
+    const clusterRadius = this.getClusterRadiusForZoom(zoomLevel);
+
+    for (const restaurant of restaurants) {
+      if (processed.has(restaurant.id)) continue;
+
+      const nearbyRestaurants = this.findNearbyRestaurants(
+        restaurant, 
+        restaurants, 
+        clusterRadius
+      );
+
+      if (nearbyRestaurants.length === 1) {
+        // Single restaurant marker
+        clusters.push({
+          type: 'single',
+          restaurant: restaurant,
+          position: [restaurant.lat, restaurant.lng],
+          veganScore: restaurant.veganScore
+        });
+      } else {
+        // Cluster marker
+        const avgScore = nearbyRestaurants.reduce((sum, r) => sum + r.veganScore, 0) / nearbyRestaurants.length;
+        const centerLat = nearbyRestaurants.reduce((sum, r) => sum + r.lat, 0) / nearbyRestaurants.length;
+        const centerLng = nearbyRestaurants.reduce((sum, r) => sum + r.lng, 0) / nearbyRestaurants.length;
+
+        clusters.push({
+          type: 'cluster',
+          count: nearbyRestaurants.length,
+          position: [centerLat, centerLng],
+          avgVeganScore: Math.round(avgScore * 10) / 10,
+          restaurants: nearbyRestaurants.map(r => r.id)
+        });
+      }
+
+      // Mark as processed
+      nearbyRestaurants.forEach(r => processed.add(r.id));
+    }
+
+    return clusters;
+  }
+
+  /**
+   * Virtual scrolling за restaurant lists
+   */
+  generateVirtualRestaurantList(restaurants: RestaurantTier[], containerHeight: number): any {
+    const itemHeight = 120; // Height of each restaurant card
+    const visibleCount = Math.ceil(containerHeight / itemHeight) + 2; // Buffer
+    
+    return {
+      totalHeight: restaurants.length * itemHeight,
+      visibleItems: restaurants.slice(0, visibleCount),
+      itemHeight,
+      renderItem: (restaurant: RestaurantTier, index: number) => ({
+        id: restaurant.id,
+        top: index * itemHeight,
+        data: restaurant
+      })
+    };
+  }
+
+  /**
+   * Performance monitoring
+   */
+  getPerformanceMetrics(): any {
+    return {
+      loadedRestaurants: this.loadedRestaurants.size,
+      visibleMarkers: this.visibleMarkers.size,
+      memoryUsage: this.estimateMemoryUsage(),
+      loadingQueueSize: this.loadingQueue.length,
+      cacheHitRate: this.calculateCacheHitRate()
+    };
+  }
+
+  /**
+   * Emergency performance mode
+   */
+  activatePerformanceMode(): void {
+    console.warn('🚨 Activating performance mode - reducing markers');
+    
+    // Drastically reduce loaded markers
+    this.maxLoadedMarkers = 500;
+    
+    // Keep only high-priority restaurants
+    const highPriorityRestaurants = Array.from(this.loadedRestaurants.values())
+      .filter(r => r.priority === 'high')
+      .slice(0, 500);
+
+    // Clear current markers
+    this.loadedRestaurants.clear();
+    this.visibleMarkers.clear();
+
+    // Reload only high-priority
+    highPriorityRestaurants.forEach(restaurant => {
+      this.loadedRestaurants.set(restaurant.id, restaurant);
+      this.visibleMarkers.add(restaurant.id);
+    });
+  }
+
+  // Utility methods
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Earth's radius in km
+    const dLat = this.deg2rad(lat2 - lat1);
+    const dLng = this.deg2rad(lng2 - lng1);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(this.deg2rad(lat1)) * Math.cos(this.deg2rad(lat2)) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  private deg2rad(deg: number): number {
+    return deg * (Math.PI/180);
+  }
+
+  private expandBounds(bounds: ViewportBounds, factor: number): ViewportBounds {
+    const latDelta = (bounds.north - bounds.south) * (factor - 1) / 2;
+    const lngDelta = (bounds.east - bounds.west) * (factor - 1) / 2;
+
+    return {
+      north: bounds.north + latDelta,
+      south: bounds.south - latDelta,
+      east: bounds.east + lngDelta,
+      west: bounds.west - lngDelta,
+      zoom: bounds.zoom
+    };
+  }
+
+  private isInBounds(restaurant: RestaurantTier, bounds: ViewportBounds): boolean {
+    return restaurant.lat >= bounds.south &&
+           restaurant.lat <= bounds.north &&
+           restaurant.lng >= bounds.west &&
+           restaurant.lng <= bounds.east;
+  }
+
+  private findNearbyRestaurants(center: RestaurantTier, all: RestaurantTier[], radius: number): RestaurantTier[] {
+    return all.filter(r => {
+      const distance = this.calculateDistance(center.lat, center.lng, r.lat, r.lng);
+      return distance <= radius;
+    });
+  }
+
+  private getClusterRadiusForZoom(zoom: number): number {
+    // Cluster radius в kilometers based on zoom
+    if (zoom <= 10) return 10; // 10km radius
+    if (zoom <= 14) return 2;  // 2km radius  
+    return 0.5; // 500m radius
+  }
+
+  private getPriorityTier(score: number): 'high' | 'medium' | 'low' {
+    if (score >= 8) return 'high';
+    if (score >= 5) return 'medium';
+    return 'low';
+  }
+
+  private getDaysSinceUpdate(lastUpdated?: Date): number {
+    if (!lastUpdated) return 999;
+    return (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
+  }
+
+  private estimateMemoryUsage(): string {
+    const restaurantMemory = this.loadedRestaurants.size * 2; // ~2KB per restaurant
+    return `${restaurantMemory}KB`;
+  }
+
+  private calculateCacheHitRate(): number {
+    // Calculate percentage of requests served from cache
+    return 0.85; // Mock value - implement real tracking
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // Mock methods - replace with real implementations
+  private async getCandidateRestaurants(bounds: ViewportBounds, maxResults: number): Promise<any[]> {
+    // Query database/cache for restaurants in bounds
+    return [];
+  }
+
+  private async getCachedRestaurantsInBounds(bounds: ViewportBounds): Promise<any[]> {
+    return [];
+  }
+
+  private calculateAdjacentViewports(bounds: ViewportBounds): ViewportBounds[] {
+    return [];
+  }
+
+  private addToLoadingQueue(area: ViewportBounds): void {
+    // Add area to background loading queue
+  }
+}
+
+// ===== LEAFLET INTEGRATION =====
+
+export class OptimizedLeafletMap {
+  private map: L.Map;
+  private markerClusterGroup: L.MarkerClusterGroup;
+  private performanceManager: MapPerformanceManager;
+  private currentBounds?: ViewportBounds;
+
+  constructor(mapElement: HTMLElement) {
+    this.performanceManager = new MapPerformanceManager();
+    this.initializeMap(mapElement);
+    this.setupEventHandlers();
+  }
+
+  private initializeMap(element: HTMLElement): void {
+    this.map = L.map(element, {
+      center: [42.7128, 23.3219], // Sofia coordinates
+      zoom: 12,
+      zoomControl: true,
+      preferCanvas: true, // Use Canvas for better performance
+      maxZoom: 18,
+      minZoom: 8
+    });
+
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(this.map);
+
+    // Initialize marker cluster group with optimized settings
+    this.markerClusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      chunkedLoading: true, // Important for performance
+      chunkProgress: this.onChunkProgress.bind(this)
+    });
+
+    this.map.addLayer(this.markerClusterGroup);
+  }
+
+  private setupEventHandlers(): void {
+    // Optimized viewport change handler
+    let moveTimeout: NodeJS.Timeout;
+    
+    this.map.on('moveend zoomend', () => {
+      clearTimeout(moveTimeout);
+      moveTimeout = setTimeout(() => {
+        this.onViewportChange();
+      }, 250); // Debounce viewport changes
+    });
+
+    // Memory cleanup when map is hidden/minimized
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.activateMemoryCleanup();
+      }
+    });
+  }
+
+  private async onViewportChange(): Promise<void> {
+    const bounds = this.getViewportBounds();
+    
+    if (this.hasSignificantChange(bounds)) {
+      console.log('🔄 Significant viewport change detected');
+      
+      const restaurants = await this.performanceManager.loadRestaurantsForViewport(bounds);
+      this.updateMapMarkers(restaurants);
+      
+      this.currentBounds = bounds;
+    }
+  }
+
+  private hasSignificantChange(newBounds: ViewportBounds): boolean {
+    if (!this.currentBounds) return true;
+
+    const zoomChanged = Math.abs(newBounds.zoom - this.currentBounds.zoom) >= 1;
+    const significantMove = this.calculateBoundsOverlap(newBounds, this.currentBounds) < 0.7;
+
+    return zoomChanged || significantMove;
+  }
+
+  private updateMapMarkers(restaurants: RestaurantTier[]): void {
+    // Clear existing markers efficiently
+    this.markerClusterGroup.clearLayers();
+
+    // Add new markers in batches for smooth animation
+    const batchSize = 20;
+    let batchIndex = 0;
+
+    const addBatch = () => {
+      const start = batchIndex * batchSize;
+      const end = Math.min(start + batchSize, restaurants.length);
+      const batch = restaurants.slice(start, end);
+
+      batch.forEach(restaurant => {
+        const marker = this.createOptimizedMarker(restaurant);
+        this.markerClusterGroup.addLayer(marker);
+      });
+
+      batchIndex++;
+
+      if (end < restaurants.length) {
+        requestAnimationFrame(addBatch); // Use RAF за smooth animation
+      }
+    };
+
+    addBatch();
+  }
+
+  private createOptimizedMarker(restaurant: RestaurantTier): L.Marker {
+    // Lightweight marker creation
+    const icon = L.divIcon({
+      html: `<div class="vegan-marker" data-score="${restaurant.veganScore}">
+               <span>${restaurant.veganScore}</span>
+             </div>`,
+      className: 'vegan-marker-container',
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+
+    const marker = L.marker([restaurant.lat, restaurant.lng], { icon });
+    
+    // Lazy load popup content
+    marker.on('click', () => {
+      this.loadRestaurantPopup(restaurant.id, marker);
+    });
+
+    return marker;
+  }
+
+  private async loadRestaurantPopup(restaurantId: string, marker: L.Marker): Promise<void> {
+    // Show loading popup first
+    marker.bindPopup('<div class="loading">Loading...</div>').openPopup();
+
+    try {
+      // Load detailed restaurant data
+      const details = await this.loadRestaurantDetails(restaurantId);
+      
+      // Update popup with actual content
+      const popupContent = this.generatePopupContent(details);
+      marker.setPopupContent(popupContent);
+      
+    } catch (error) {
+      marker.setPopupContent('<div class="error">Failed to load details</div>');
+    }
+  }
+
+  // Utility methods
+  private getViewportBounds(): ViewportBounds {
+    const bounds = this.map.getBounds();
+    return {
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest(),
+      zoom: this.map.getZoom()
+    };
+  }
+
+  private calculateBoundsOverlap(bounds1: ViewportBounds, bounds2: ViewportBounds): number {
+    // Calculate overlap percentage between two viewport bounds
+    const overlapLat = Math.max(0, Math.min(bounds1.north, bounds2.north) - Math.max(bounds1.south, bounds2.south));
+    const overlapLng = Math.max(0, Math.min(bounds1.east, bounds2.east) - Math.max(bounds1.west, bounds2.west));
+    
+    const area1 = (bounds1.north - bounds1.south) * (bounds1.east - bounds1.west);
+    const area2 = (bounds2.north - bounds2.south) * (bounds2.east - bounds2.west);
+    const overlapArea = overlapLat * overlapLng;
+    
+    return overlapArea / Math.min(area1, area2);
+  }
+
+  private onChunkProgress(processed: number, total: number): void {
+    console.log(`Loading progress: ${processed}/${total} markers`);
+  }
+
+  private activateMemoryCleanup(): void {
+    console.log('🧹 Activating memory cleanup for hidden map');
+    this.performanceManager.activatePerformanceMode();
+  }
+
+  private async loadRestaurantDetails(restaurantId: string): Promise<any> {
+    // Load from cache or API
+    return {};
+  }
+
+  private generatePopupContent(restaurant: any): string {
+    return `<div class="restaurant-popup">
+              <h3>${restaurant.name}</h3>
+              <p>Vegan Score: ${restaurant.veganScore}/10</p>
+            </div>`;
+  }
+}
+
+// ===== PERFORMANCE TARGETS =====
+
+/**
+ * PERFORMANCE TARGETS FOR 250K RESTAURANTS:
+ * 
+ * Memory Usage:
+ * - Max loaded markers: 2,000 (4MB memory)
+ * - Map tiles cache: 50MB max
+ * - Total memory footprint: <100MB
+ * 
+ * Loading Times:
+ * - Initial map load: <2 seconds
+ * - Viewport change: <500ms
+ * - Restaurant details: <300ms
+ * - Cluster animation: <100ms
+ * 
+ * Responsiveness:
+ * - 60 FPS пanning/zooming
+ * - No UI blocking operations
+ * - Smooth progressive loading
+ * - Graceful degradation при slow connections
+ */

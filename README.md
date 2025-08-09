@@ -1,50 +1,38 @@
-# VeganMapAI 🌱
+# VeganMapAI
+Discover top vegan-friendly places with an AI-driven score and clean, Google Maps–style UI.
 
-An intelligent AI-powered platform for discovering vegan-friendly restaurants with comprehensive scoring and voice interaction capabilities.
+## Features
+- **Map overlay UI**: search pill, compact chips, floating action buttons (My Location, Profile, AI Assistant).
+- **Marker clustering**: Leaflet.markercluster with a minimal, accessible style.
+- **Filters**:
+  - Quick: *Only fully vegan*, basic search (name / cuisine / address)
+  - Drawer (*More filters*): Price, Cuisine, Allergens, Minimum rating
+- **Score breakdown**: "View Vegan Score" opens a right-side panel with component weights and details.
+- **Theme**: Light by default; Dark optional via Settings.
+- **Data loading**: API-first (`/api/places`), with local fallback (`/assets/data/places.json`).
 
-## 🚀 Features
-
-### Core Functionality
-- **Complete Restaurant Coverage**: Shows ALL restaurants with AI-generated vegan-friendliness scores (1-5 stars)
-- **Interactive Map**: Leaflet-based clustering system with professional restaurant grouping
-- **Smart Search**: Real-time restaurant search with autocomplete and filtering
-- **Voice Assistant**: Advanced speech-to-text with intelligent silence detection and Bulgarian language support
-- **Mobile-First**: PWA functionality with offline capabilities and mobile app installation
-
-### AI-Powered Systems
-- **6-Dimension Vegan Scoring**: Menu variety, ingredient clarity, staff knowledge, cross-contamination prevention, nutritional information, allergen management
-- **Multi-Agent Architecture**: Specialized agents for map data, search, scoring, reviews, profiles, and analytics
-- **Cost Optimization**: Geo-hash based caching system for Google Places API calls
-
-### User Experience
-- **Personalized Recommendations**: User preference learning and context-aware suggestions
-- **Favorites System**: Save and manage favorite restaurants with full CRUD operations
-- **Authentication**: Seamless Replit Auth integration with session management
-- **Responsive Design**: Clean interface with Tailwind CSS and Shadcn/ui components
-- **Welcome Onboarding**: First-time user overlay with feature highlights and guided introduction
-- **Mobile Optimizations**: 44px touch targets, safe area insets, swipe gestures, and bottom sheet modals
-- **US Market Ready**: Full English interface with toast notifications and comprehensive error handling
-
-## 🛠️ Technology Stack
-
-### Frontend
-- **React 18** with TypeScript and Vite
-- **Leaflet** with markercluster for interactive maps
-- **TanStack Query** for server state management
-- **Wouter** for client-side routing
-- **Tailwind CSS** + Shadcn/ui for styling
-
-### Backend
-- **Express.js** with TypeScript (ES modules)
-- **PostgreSQL** with Drizzle ORM
-- **OpenAI GPT-4o** for AI chat and Whisper for speech-to-text
-- **Google Maps API** for restaurant data
-- **Replit Auth** for authentication
-
-### Infrastructure
-- **Neon Database** for PostgreSQL hosting
-- **Replit Deployments** for hosting and TLS
-- **PWA** with service worker for offline functionality
+## Project Structure
+```
+public/
+  index.html                # main map page  
+  test-map                  # main map page
+  assets/
+    css/
+      map-ux.css           # overlay + bottom sheet + drawer
+      map-cluster.css      # cluster minimal theme
+    js/
+      map-ux.js            # overlay behavior
+      map-wire.js          # data, filters, Leaflet + clustering glue
+    data/
+      places.json          # fallback dataset
+    icons.svg              # icon sprite (Material Symbols Rounded)
+  pages/
+    mock-step1.html
+    settings.html
+    api.html
+    score-methodology.html
+server.js                   # Express static server
+```
 
 ## 🎯 Business Vision
 

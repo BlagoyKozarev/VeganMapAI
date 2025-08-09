@@ -1,0 +1,201 @@
+# VeganMapAI - Daily Development Workflow
+
+## 🌅 Morning Startup Routine
+
+### 1. Project Health Check (2 minutes):
+```bash
+npm run check     # TypeScript validation
+npm run dev       # Start development server
+```
+
+### 2. Current Status Review:
+- Check if site loads properly
+- Test voice chat (desktop)
+- Verify map clustering works
+- Check any error messages
+
+### 3. Daily Planning:
+- What needs to be fixed today?
+- Any user feedback to address?
+- Performance issues to tackle?
+
+## 🔧 Working with Replit Agent
+
+### Safe Tasks (Green Light 🟢):
+- Fix CSS styling issues
+- Update text content
+- Adjust colors/spacing
+- Add console.log for debugging
+- Minor UI improvements
+
+### Ask First Tasks (Yellow Light 🟡):
+- New features
+- Database queries
+- API modifications
+- Component logic changes
+- Performance optimizations
+
+### Stop & Consult Tasks (Red Light 🔴):
+- Database schema changes
+- Agent system modifications
+- Authentication changes
+- Build configuration
+- New dependencies
+
+## 💬 Communication Templates
+
+### When Replit Agent Gets Stuck:
+```
+Hi! Replit Agent encountered an issue with [specific problem]. 
+
+Error: [paste error message]
+Location: [file and line]
+What was attempted: [list solutions tried]
+
+Can you help debug this? Should I try [proposed solution] or is there a better approach?
+```
+
+### When Planning New Features:
+```
+I want to add [feature description] to VeganMapAI.
+
+This would involve:
+- [list technical changes needed]
+- [potential impacts on existing code]
+- [estimated complexity]
+
+Is this the right approach, or should we consider alternatives?
+```
+
+### When Performance Issues Arise:
+```
+I've noticed [performance issue description]:
+- [specific symptoms]
+- [when it occurs]
+- [impact on users]
+
+What's the best way to investigate and fix this?
+```
+
+## 🚨 Emergency Debugging Protocol
+
+### When Everything Breaks:
+1. **DON'T PANIC** - Take a screenshot first
+2. **STOP CODING** - Don't make it worse
+3. **DOCUMENT** - What happened before the break?
+4. **REVERT** - Go back to last working version if possible
+5. **ASK FOR HELP** - Provide full context
+
+### Quick Fixes to Try:
+```bash
+# Restart development server
+Ctrl+C
+npm run dev
+
+# Clear TypeScript cache
+rm -rf node_modules/.cache
+npm run dev
+
+# Reset database connection
+npm run db:push
+
+# Check environment variables
+echo $DATABASE_URL
+echo $OPENAI_API_KEY
+```
+
+## 📊 Weekly Review Process
+
+### Every Friday:
+1. **Performance Check**:
+   - Site speed test
+   - API response times
+   - Error rate review
+
+2. **Code Quality Review**:
+   - TypeScript errors
+   - Console warnings
+   - Unused code cleanup
+
+3. **Planning Next Week**:
+   - Priority bug fixes
+   - Feature development
+   - User feedback integration
+
+## 🎯 US Launch Preparation Checklist
+
+### Technical Readiness:
+- [ ] Multi-city data structure
+- [ ] Performance optimization
+- [ ] Mobile responsiveness
+- [ ] Error handling
+- [ ] Monitoring setup
+
+### Business Readiness:
+- [ ] Delaware LLC registration
+- [ ] API quota increases
+- [ ] Cost monitoring
+- [ ] User onboarding flow
+- [ ] Support documentation
+
+## 📱 Testing Protocol
+
+### Before Any Deploy:
+```bash
+# 1. TypeScript check
+npm run check
+
+# 2. Build verification
+npm run build
+
+# 3. Manual testing checklist:
+```
+- [ ] Map loads with restaurants
+- [ ] Search works
+- [ ] Voice chat functional (desktop)
+- [ ] Mobile responsive
+- [ ] No console errors
+- [ ] Restaurant details display
+- [ ] Clustering works properly
+
+### Mobile Testing:
+- [ ] iOS Safari
+- [ ] Android Chrome
+- [ ] Touch interactions
+- [ ] PWA installation
+- [ ] Offline functionality
+
+## 🎮 Development Tips
+
+### Working Efficiently:
+1. **Make small changes** - Test frequently
+2. **One feature at a time** - Don't mix tasks
+3. **Document weird fixes** - You'll forget later
+4. **Screenshot errors** - Helps with debugging
+5. **Backup before big changes** - Save yourself stress
+
+### When Stuck:
+1. Take a 5-minute break
+2. Read the error message carefully
+3. Google the exact error
+4. Check if recent changes caused it
+5. Ask for help with specific context
+
+### Preventing Problems:
+- Test after every change
+- Keep changes small and focused
+- Use TypeScript properly (no 'any')
+- Follow existing code patterns
+- Don't ignore warnings
+
+---
+
+## 🌟 Remember:
+
+**You're building something amazing!** VeganMapAI has the potential to help millions of people discover great vegan food. Every small improvement matters.
+
+**Progress > Perfection** - Better to ship something good than to perfect something that never launches.
+
+**Ask for help early** - It's faster to get help than to struggle alone for hours.
+
+**Document victories** - Celebrate when things work! Note what successful approaches you used.

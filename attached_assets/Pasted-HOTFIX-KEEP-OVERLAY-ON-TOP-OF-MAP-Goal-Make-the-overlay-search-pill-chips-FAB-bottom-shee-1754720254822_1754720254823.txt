@@ -1,0 +1,51 @@
+HOTFIX – KEEP OVERLAY ON TOP OF MAP
+
+Goal: Make the overlay (search pill + chips + FAB + bottom sheet) persist and stay above the map during zoom/drag.
+
+1) Ensure the map has an OUTER wrapper element that we control:
+   Wrap the map container inside:
+     <div id="map-root" class="vm-map-root"> ... existing map div ... </div>
+   Important: #map-root must be OUTSIDE Leaflet/Map panes like ".leaflet-pane" or ".ol-layer".
+   It should wrap the main map container (the element you pass to L.map(...)).
+
+2) CSS: raise z-indexes.
+   Open public/assets/css/map-ux.css and replace the z-index values like this:
+     #vm-overlay { z-index: 10040; }
+     #vm-fab     { z-index: 10041; }
+     #vm-sheet   { z-index: 10042; }   /* bottom sheet */
+     #vm-score   { z-index: 10043; }   /* right panel */
+   Also ensure .vm-map-root { position: relative; } exists.
+
+3) JS: anchor the overlay to the OUTER wrapper and keep it there.
+   In public/assets/js/map-ux.js, update UX.init() to:
+
+     UX.init = function(){
+       // Prefer an explicit outer wrapper:
+       const outer = document.getElementById('map-root')
+                  || document.querySelector('.vm-map-root')
+                  || document.querySelector('.leaflet-container')?.parentElement
+                  || document.body;
+       if (!outer) return;
+       if (getComputedStyle(outer).position === 'static') { outer.style.position = 'relative'; }
+
+       // Insert overlay into OUTER wrapper only:
+       if (!document.getElementById('vm-overlay')) outer.appendChild(buildOverlay());
+
+       // Bottom sheet + score panel at BODY level (fixed):
+       if (!document.getElementById('vm-sheet')) document.body.appendChild(buildSheet());
+       if (!document.getElementById('vm-score')) document.body.appendChild(buildScorePanel());
+
+       wireEvents();
+
+       // Guard: if the map library re-parents nodes, re-attach overlay back to OUTER.
+       const mo = new MutationObserver(()=>{
+         const ov = document.getElementById('vm-overlay');
+         if (ov && ov.parentElement !== outer) { outer.appendChild(ov); }
+       });
+       mo.observe(outer, { childList:true, subtree:true });
+     };
+
+4) Cache-bust and test:
+   Open /test-map?v=21
+   - Overlay should always stay visible during zoom/pan.
+   - If still hidden, check that #map-root wraps the map container (not a pane inside it).

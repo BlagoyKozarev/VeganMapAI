@@ -35,6 +35,15 @@ VeganMapAI is a full-stack web application designed to help users discover vegan
     - **Public Map Access**: Provides an unauthenticated endpoint (`/api/restaurants/public/map-data`) for public map viewing with limited data, allowing users to explore the map before logging in.
 
 ## Recent Changes
+- **Project Structure Reorganization (January 9, 2025)**: Created production-ready project structure for Git and deployment
+  - Created `/public` directory with all static assets (HTML, CSS, JS)
+  - Built comprehensive landing page at `/public/index.html` with hero section and feature showcase
+  - Created documentation pages: API access, Score Methodology, Settings
+  - Test map available at `/public/test-map.html` with full functionality
+  - Built simple Express server (`server.js`) for static file serving
+  - Updated README.md with complete project documentation
+  - 477 restaurants total (removed Miami test restaurant, all Sofia-based)
+  - Ready for Git initialization and deployment to any static hosting service
 - **Landing Page Button Fix (January 8, 2025)**: Fixed "View Map" button on landing page to properly navigate to public map
   - Changed button from JavaScript navigation to standard HTML link
   - Button now correctly navigates to `/test-map` route showing all 478 restaurants

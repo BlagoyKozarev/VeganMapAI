@@ -1,0 +1,127 @@
+REPLIT AGENT — MORE FILTERS DRAWER
+
+Цел:
+Да се отвори страничен панел (drawer) от дясно при клик на “More filters” чип, с разширени опции: Price, Cuisine, Allergens, Rating, и бутон Apply Filters.
+
+---
+
+# Task 1: Промени в public/assets/css/map-ux.css
+
+Добави в края:
+
+/* Drawer (More filters) */
+#vm-drawer {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh; width: 320px; max-width: 90vw;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: -8px 0 20px rgba(0,0,0,0.12);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 10050;
+  display: flex; flex-direction: column;
+}
+#vm-drawer.open { transform: translateX(0); }
+#vm-drawer header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+#vm-drawer .panel { flex: 1; overflow: auto; padding: 12px 14px; }
+#vm-drawer label { display: block; font-weight: 600; margin-top: 14px; }
+#vm-drawer select, #vm-drawer input {
+  width: 100%; padding: 8px;
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--elev);
+  color: var(--text);
+}
+#vm-drawer .actions { padding: 12px 14px; border-top: 1px solid var(--line); }
+#vm-drawer .vm-btn { width: 100%; justify-content: center; }
+
+---
+
+# Task 2: Промени в public/assets/js/map-ux.js
+
+1) В края на buildOverlay() (преди return host) добави:
+
+// Drawer (hidden by default)
+if (!document.getElementById('vm-drawer')) {
+  const drawer = document.createElement('aside');
+  drawer.id = 'vm-drawer';
+  drawer.innerHTML = `
+    <header>
+      <strong>More filters</strong>
+      <button class="vm-btn" id="vm-drawer-close">Close</button>
+    </header>
+    <div class="panel">
+      <label>Price</label>
+      <select id="mf-price">
+        <option value="">Any</option>
+        <option value="$">$</option>
+        <option value="$$">$$</option>
+        <option value="$$$">$$$</option>
+      </select>
+
+      <label>Cuisine</label>
+      <select id="mf-cuisine">
+        <option value="">Any</option>
+        <option value="american">American</option>
+        <option value="asian">Asian</option>
+        <option value="italian">Italian</option>
+        <option value="mexican">Mexican</option>
+      </select>
+
+      <label>Allergens</label>
+      <select id="mf-allergens">
+        <option value="">Any</option>
+        <option value="gluten-free">Gluten-free</option>
+        <option value="nut-free">Nut-free</option>
+        <option value="soy-free">Soy-free</option>
+      </select>
+
+      <label>Min. Rating</label>
+      <select id="mf-rating">
+        <option value="">Any</option>
+        <option value="9">9+</option>
+        <option value="8">8+</option>
+        <option value="7">7+</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="vm-btn vm-btn-primary" id="mf-apply">Apply Filters</button>
+    </div>
+  `;
+  document.body.appendChild(drawer);
+}
+
+2) В wireEvents() добави:
+
+// Open drawer
+document.getElementById('vm-chips')?.addEventListener('click', (e)=>{
+  const chip = e.target.closest('.vm-chip');
+  if (chip && chip.dataset.chip === 'more') {
+    document.getElementById('vm-drawer')?.classList.add('open');
+  }
+});
+// Close drawer
+document.getElementById('vm-drawer-close')?.addEventListener('click', ()=>{
+  document.getElementById('vm-drawer')?.classList.remove('open');
+});
+// Apply filters (demo)
+document.getElementById('mf-apply')?.addEventListener('click', ()=>{
+  alert('Filters applied (wire to map filtering logic)');
+  document.getElementById('vm-drawer')?.classList.remove('open');
+});
+
+---
+
+# Task 3: Кеш-бъст тест
+
+1. Отвори /test-map?v=95
+2. Очаквано:
+   - Клик на “More filters” чип отваря drawer от дясно.
+   - Close бутона го затваря.
+   - Apply Filters затваря и (за момента) показва alert — по-късно ще го вържем към реалната филтрация.

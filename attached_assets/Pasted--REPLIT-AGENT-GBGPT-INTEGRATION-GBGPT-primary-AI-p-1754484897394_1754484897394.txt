@@ -1,0 +1,378 @@
+# 🤖 ИНСТРУКЦИИ ЗА REPLIT AGENT - GBGPT INTEGRATION
+
+## ЦЕЛ: Интеграция на GBGPT като primary AI provider за VeganMapAI с OpenAI fallback
+
+### ⚠️ КРИТИЧНО:
+- GBGPT е бавен (5-15 секунди response time)
+- НЕ променяй съществуващите agents без explicit approval
+- Винаги запази OpenAI като working fallback
+- Тествай всяка стъпка преди да продължиш
+
+---
+
+## СТЪПКА 1: Environment Variables Setup
+
+Добави в Replit Secrets следните variables (ако не са добавени вече):
+```
+GBGPT_API_URL=http://192.168.0.245:5000/v1/completions
+GBGPT_API_KEY=R@icommerce23
+```
+
+**Proveri:** Secrets са добавени правилно в Replit dashboard
+
+---
+
+## СТЪПКА 2: Създай `server/providers/gbgptProvider.ts`
+
+Създай файла със следното съдържание:
+
+```typescript
+interface GBGPTRequest {
+  model: string;
+  prompt: string;
+  max_tokens: number;
+  temperature: number;
+  top_p?: number;
+}
+
+interface GBGPTResponse {
+  choices: Array<{
+    text: string;
+    index: number;
+    finish_reason: string;
+  }>;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+}
+
+export class GBGPTProvider {
+  private apiUrl: string;
+  private apiKey: string;
+  private timeout: number;
+
+  constructor() {
+    this.apiUrl = process.env.GBGPT_API_URL || 'http://192.168.0.245:5000/v1/completions';
+    this.apiKey = process.env.GBGPT_API_KEY || 'R@icommerce23';
+    this.timeout = 20000; // 20 секунди - GBGPT е бавен!
+  }
+
+  /**
+   * Score restaurant using GBGPT - BG language optimized
+   */
+  async scoreRestaurant(restaurantData: any): Promise<any> {
+    console.log(`🔄 GBGPT scoring restaurant: ${restaurantData.name} (може да отнеме 10-15 сек)`);
+    
+    const prompt = this.createScoringPrompt(restaurantData);
+    
+    try {
+      const response = await this.makeRequest({
+        model: "gpt-3.5-turbo",
+        prompt,
+        max_tokens: 600,
+        temperature: 0.2,
+        top_p: 0.9
+      });
+
+      return this.parseScoringResponse(response);
+      
+    } catch (error) {
+      console.error('❌ GBGPT scoring failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Core API request method with robust error handling
+   */
+  private async makeRequest(payload: GBGPTRequest): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    try {
+      console.log('📡 Making GBGPT API request... (може да отнеме време)');
+      
+      const response = await fetch(this.apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+          'User-Agent': 'VeganMapAI/1.0'
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`GBGPT API Error ${response.status}: ${errorText}`);
+      }
+
+      const data: GBGPTResponse = await response.json();
+      
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error('GBGPT returned no choices');
+      }
+
+      return data.choices[0].text.trim();
+      
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        throw new Error(`GBGPT timeout after ${this.timeout/1000}s - server is slow`);
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Create scoring prompt in Bulgarian for better GBGPT understanding
+   */
+  private createScoringPrompt(restaurant: any): string {
+    return `Анализирай този ресторант за vegan-friendliness и върни САМО JSON:
+
+Ресторант: ${restaurant.name}
+Адрес: ${restaurant.address || 'Неизвестен'}
+Тип кухня: ${restaurant.cuisineTypes?.join(', ') || 'Неизвестен'}
+Отзиви: ${restaurant.reviews?.slice(0, 3)?.map(r => r.text)?.join(' | ') || 'Няма отзиви'}
+
+Върни точно този JSON формат (без допълнителен текст):
+{
+  "menuVariety": [число 1-10],
+  "ingredientClarity": [число 1-10], 
+  "staffKnowledge": [число 1-10],
+  "crossContamination": [число 1-10],
+  "nutritionalInfo": [число 1-10],
+  "allergenManagement": [число 1-10],
+  "reasoning": "кратко обяснение на български",
+  "confidence": [число 0.1-1.0]
+}`;
+  }
+
+  /**
+   * Parse GBGPT response and convert to VeganMapAI format
+   */
+  private parseScoringResponse(response: string): any {
+    try {
+      // Try to parse JSON from response
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in GBGPT response');
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]);
+      
+      // Convert to VeganMapAI format
+      const totalScore = (
+        parsed.menuVariety +
+        parsed.ingredientClarity +
+        parsed.staffKnowledge +
+        parsed.crossContamination +
+        parsed.nutritionalInfo +
+        parsed.allergenManagement
+      ) / 6;
+
+      return {
+        overallScore: Math.round((totalScore / 10) * 5 * 10) / 10, // Convert to 1-5 scale
+        dimensions: {
+          menuVariety: parsed.menuVariety,
+          ingredientClarity: parsed.ingredientClarity,
+          staffKnowledge: parsed.staffKnowledge,
+          crossContamination: parsed.crossContamination,
+          nutritionalInfo: parsed.nutritionalInfo,
+          allergenManagement: parsed.allergenManagement
+        },
+        reasoning: parsed.reasoning,
+        confidence: parsed.confidence || 0.5,
+        provider: 'GBGPT',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('❌ Failed to parse GBGPT response:', error);
+      throw new Error('Invalid GBGPT response format');
+    }
+  }
+
+  /**
+   * Health check for GBGPT connectivity
+   */
+  async healthCheck(): Promise<boolean> {
+    try {
+      const testResponse = await this.makeRequest({
+        model: "gpt-3.5-turbo",
+        prompt: "Respond with: OK",
+        max_tokens: 10,
+        temperature: 0
+      });
+
+      return testResponse.toLowerCase().includes('ok');
+      
+    } catch (error) {
+      console.error('❌ GBGPT health check failed:', error);
+      return false;
+    }
+  }
+}
+```
+
+---
+
+## СТЪПКА 3: Създай `server/routes/testGBGPT.ts`
+
+Създай тест route за debugging:
+
+```typescript
+import express from 'express';
+import { GBGPTProvider } from '../providers/gbgptProvider.js';
+
+const router = express.Router();
+
+/**
+ * Test endpoint за GBGPT integration
+ */
+router.post('/test-gbgpt', async (req, res) => {
+  try {
+    const { restaurantName } = req.body;
+    
+    const testRestaurant = {
+      name: restaurantName || 'Test Restaurant',
+      address: 'Sofia, Bulgaria',
+      cuisineTypes: ['restaurant', 'food'],
+      reviews: [
+        { text: 'Имат добри vegan опции' },
+        { text: 'Персоналът знае какво е vegan' }
+      ]
+    };
+
+    console.log('🧪 Testing GBGPT with sample restaurant...');
+    
+    const gbgpt = new GBGPTProvider();
+    const startTime = Date.now();
+    const result = await gbgpt.scoreRestaurant(testRestaurant);
+    const duration = Date.now() - startTime;
+
+    res.json({
+      success: true,
+      result,
+      duration: `${duration}ms`,
+      message: `GBGPT test successful in ${duration/1000}s`
+    });
+    
+  } catch (error) {
+    console.error('❌ GBGPT test failed:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: 'GBGPT test failed - check logs'
+    });
+  }
+});
+
+/**
+ * Health check endpoint
+ */
+router.get('/gbgpt-health', async (req, res) => {
+  try {
+    const gbgpt = new GBGPTProvider();
+    const isHealthy = await gbgpt.healthCheck();
+    
+    res.json({
+      healthy: isHealthy,
+      timestamp: new Date().toISOString(),
+      endpoint: process.env.GBGPT_API_URL
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      healthy: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+export default router;
+```
+
+---
+
+## СТЪПКА 4: Import Test Route в Main Server
+
+Добави в `server/index.ts` (или където са другите routes):
+
+```typescript
+import testGBGPTRouter from './routes/testGBGPT.js';
+
+// Add to your app routes
+app.use('/api', testGBGPTRouter);
+```
+
+---
+
+## СТЪПКА 5: Testing Protocol
+
+След създаването на файловете:
+
+1. **Start server:** `npm run dev`
+2. **Test health:** GET `/api/gbgpt-health`
+3. **Test scoring:** POST `/api/test-gbgpt` с body: `{"restaurantName": "Тест ресторант"}`
+
+**ОЧАКВАЙ:**
+- Първият request може да отнеме 15-30 секунди
+- Console logs ще показват progress
+- Timeout errors са възможни в началото
+
+---
+
+## ⚠️ TROUBLESHOOTING GUIDANCE
+
+**Ако има network errors:**
+1. Провери connectivity до 192.168.0.245
+2. Увеличи timeout ако е нужно
+3. Добави повече console.log за debugging
+
+**Ако има parsing errors:**
+1. Log цялостния response от GBGPT
+2. Check за different JSON format
+3. Add fallback parsing logic
+
+---
+
+## 📋 ACCEPTANCE CRITERIA
+
+За да считаме Phase 1 успешен:
+- ✅ Файловете са създадени без TypeScript errors
+- ✅ Server стартира без crashes
+- ✅ Health check endpoint отговаря
+- ✅ Test endpoint прави successful request към GBGPT
+- ✅ Response parsing работи правилно
+
+---
+
+## 🚫 ЗАБРАНИ
+
+- НЕ променяй съществуващи agents (scoreAgent.ts, etc.)
+- НЕ disable-вай OpenAI integration
+- НЕ commit-вай sensitive credentials
+- НЕ премахвай error handling
+
+---
+
+## 📞 WHEN TO STOP & ASK
+
+Спри и попитай user ако:
+- Network connectivity failures продължават >10 минути
+- GBGPT връща unexpected response format
+- TypeScript compilation errors
+- Server crashes при startup
+
+---
+
+**START IMPLEMENTATION NOW** - създай файловете стъпка по стъпка и тествай всяка част! 🚀

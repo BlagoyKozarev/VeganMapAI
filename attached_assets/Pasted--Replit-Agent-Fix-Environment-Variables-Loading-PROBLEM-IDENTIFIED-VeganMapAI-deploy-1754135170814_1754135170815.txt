@@ -1,0 +1,179 @@
+# 🔧 Replit Agent - Fix Environment Variables Loading
+
+## 🚨 PROBLEM IDENTIFIED
+VeganMapAI deployment on Hostinger VPS fails with error:
+```
+Error: DATABASE_URL must be set. Did you forget to provision a database?
+```
+
+The application is not loading environment variables from `.env` file in production/development mode.
+
+## 📋 TASK FOR REPLIT AGENT
+
+### **PRIMARY ISSUE:**
+The server code in `server/db.ts` or `server/index.ts` is not properly loading environment variables from `.env` file when deployed.
+
+### **REQUIRED FIXES:**
+
+#### 1. **Check dotenv Configuration**
+Verify that dotenv is properly configured in the main server file:
+
+```typescript
+// At the very top of server/index.ts (BEFORE other imports)
+import { config } from 'dotenv';
+config(); // This must be called FIRST
+
+// OR using dotenv/config
+import 'dotenv/config';
+```
+
+#### 2. **Check package.json Dependencies**
+Ensure dotenv is installed:
+```json
+{
+  "dependencies": {
+    "dotenv": "^16.0.0"
+  }
+}
+```
+
+#### 3. **Check Environment Variable Usage**
+In `server/db.ts`, ensure DATABASE_URL is read correctly:
+```typescript
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
+}
+```
+
+#### 4. **Check Build Process**
+Ensure `.env` file is included in production build or environment variables are passed correctly.
+
+### **DEBUGGING STEPS:**
+
+1. **Add Debug Logging:**
+```typescript
+// In server/index.ts or db.ts
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('DATABASE')));
+```
+
+2. **Check File Paths:**
+Ensure `.env` file is in the correct location (project root) and is being read.
+
+3. **Test Environment Loading:**
+```typescript
+// Add this test in server/index.ts
+import path from 'path';
+import fs from 'fs';
+
+const envPath = path.join(process.cwd(), '.env');
+console.log('Looking for .env at:', envPath);
+console.log('.env exists:', fs.existsSync(envPath));
+```
+
+### **EXPECTED FIXES:**
+
+#### **Fix 1: Proper dotenv initialization**
+```typescript
+// server/index.ts - FIRST LINES
+import { config } from 'dotenv';
+config({ path: '.env' });
+
+// Rest of imports...
+import express from 'express';
+// etc...
+```
+
+#### **Fix 2: Environment validation**
+```typescript
+// server/db.ts or server/index.ts
+function validateEnvironment() {
+  const required = ['DATABASE_URL', 'OPENAI_API_KEY', 'GOOGLE_MAPS_API_KEY'];
+  const missing = required.filter(key => !process.env[key]);
+  
+  if (missing.length > 0) {
+    console.error('Missing environment variables:', missing);
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+}
+
+validateEnvironment();
+```
+
+#### **Fix 3: Alternative env loading**
+```typescript
+// If dotenv doesn't work, try manual loading
+import fs from 'fs';
+import path from 'path';
+
+function loadEnvFile() {
+  try {
+    const envPath = path.join(process.cwd(), '.env');
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    
+    envContent.split('\n').forEach(line => {
+      const [key, value] = line.split('=');
+      if (key && value) {
+        process.env[key.trim()] = value.trim();
+      }
+    });
+  } catch (error) {
+    console.warn('Could not load .env file:', error.message);
+  }
+}
+
+loadEnvFile();
+```
+
+### **TESTING REQUIREMENTS:**
+
+After making fixes, ensure:
+1. ✅ `npm run dev` starts without DATABASE_URL error
+2. ✅ `npm run build` completes successfully  
+3. ✅ `npm run start` works in production mode
+4. ✅ Environment variables are logged correctly
+
+### **DEPLOYMENT REQUIREMENTS:**
+
+The fix should work for:
+- ✅ Replit development environment
+- ✅ Local development (`npm run dev`)
+- ✅ Production build (`npm run build && npm start`)
+- ✅ Hostinger VPS deployment
+
+### **⚠️ CRITICAL NOTES:**
+
+1. **Load Order:** dotenv MUST be loaded before any other imports that use environment variables
+2. **File Location:** .env file must be in project root, not in server/ subdirectory  
+3. **Build Process:** Ensure .env is accessible during build process
+4. **TypeScript:** Ensure TypeScript compilation doesn't interfere with dotenv loading
+
+## 🎯 SUCCESS CRITERIA
+
+**The fix is successful when:**
+- ✅ No "DATABASE_URL must be set" error
+- ✅ Server starts successfully with `npm run dev`
+- ✅ All environment variables are loaded correctly
+- ✅ Application connects to database successfully
+- ✅ Ready for Hostinger VPS deployment
+
+## 📨 COMMIT MESSAGE
+```
+fix: resolve environment variables loading issue
+
+- Add proper dotenv configuration in server/index.ts
+- Ensure DATABASE_URL and API keys are loaded correctly
+- Fix production deployment environment setup
+- Add environment validation and debug logging
+
+Resolves deployment issue on Hostinger VPS where DATABASE_URL
+was not being read from .env file.
+```
+
+---
+
+**PRIORITY: HIGH - This blocks production deployment**
+**ESTIMATED TIME: 15-30 minutes**
+**COMPLEXITY: Medium - Environment configuration issue**
