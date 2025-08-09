@@ -1,229 +1,210 @@
-(function() {
-  'use strict';
-  
-  window.VM_UX = {
-    init: function() {
-      this.injectFiltersBar();
-      this.injectPopover();
-      this.injectScorePanel();
-      this.bindEvents();
-    },
-    
-    injectFiltersBar: function() {
-      const mapRoot = document.getElementById('map-root') || document.getElementById('map');
-      if (!mapRoot) return;
-      
-      const filtersBar = document.createElement('div');
-      filtersBar.className = 'vm-bar';
-      filtersBar.innerHTML = `
-        <div class="vm-card">
-          <div class="vm-row">
-            <div class="vm-chip">
-              💵 Price: 
-              <select id="vm-price">
-                <option value="">All</option>
-                <option value="1">$</option>
-                <option value="2">$$</option>
-                <option value="3">$$$</option>
-                <option value="4">$$$$</option>
-              </select>
-            </div>
-            <div class="vm-chip">
-              🍕 Cuisine:
-              <select id="vm-cuisine">
-                <option value="">All</option>
-                <option value="italian">Italian</option>
-                <option value="asian">Asian</option>
-                <option value="american">American</option>
-                <option value="mexican">Mexican</option>
-                <option value="mediterranean">Mediterranean</option>
-              </select>
-            </div>
-            <div class="vm-chip">
-              ⚠️ Allergens:
-              <select id="vm-allergen">
-                <option value="">None</option>
-                <option value="gluten-free">Gluten-free</option>
-                <option value="nut-free">Nut-free</option>
-                <option value="soy-free">Soy-free</option>
-              </select>
-            </div>
-            <div class="vm-chip">
-              <input type="checkbox" id="vm-vegan-only" style="width:16px;height:16px">
-              <label for="vm-vegan-only" style="cursor:pointer">Only fully vegan</label>
-            </div>
-            <div class="vm-spacer"></div>
-            <button class="vm-btn" onclick="window.VM_UX.showDemoPopover()">Demo popover</button>
-          </div>
+(function(){
+  const UX = {};
+  const $ = (q,root=document)=>root.querySelector(q);
+  const $$ = (q,root=document)=>Array.from(root.querySelectorAll(q));
+
+  // Demo data (will be replaced with real place data)
+  const demoPlace = {
+    id: 'demo-1',
+    name: 'Green Fork Diner',
+    address: '123 Main St',
+    lat: 0, lng: 0,
+    score: 8.4,
+    components: [
+      {k:'Purity (Fully Vegan)', w:0.25, v:0.9},
+      {k:'Menu Breadth', w:0.20, v:0.8},
+      {k:'Ingredient Transparency', w:0.20, v:0.85},
+      {k:'User Sentiment', w:0.20, v:0.82},
+      {k:'Sustainability', w:0.10, v:0.7},
+      {k:'Consistency', w:0.05, v:0.8},
+    ]
+  };
+
+  function ensureContainers(){
+    // Insert Filters bar above map
+    const root = $('#map-root') || $('.map-root') || document.body;
+    if (!$('#vm-bar')) {
+      const bar = document.createElement('div');
+      bar.id = 'vm-bar';
+      bar.className = 'vm-bar';
+      bar.innerHTML = `
+        <div class="vm-card vm-row">
+          <label class="vm-chip">Price
+            <select id="vm-price">
+              <option value="">Any</option>
+              <option>$</option><option>$$</option><option>$$$</option>
+            </select>
+          </label>
+          <label class="vm-chip">Cuisine
+            <select id="vm-cuisine">
+              <option value="">Any</option>
+              <option value="american">American</option>
+              <option value="asian">Asian</option>
+              <option value="italian">Italian</option>
+              <option value="mexican">Mexican</option>
+            </select>
+          </label>
+          <label class="vm-chip">Allergens
+            <select id="vm-allergens">
+              <option value="">Any</option>
+              <option value="gluten-free">Gluten‑free</option>
+              <option value="nut-free">Nut‑free</option>
+              <option value="soy-free">Soy‑free</option>
+            </select>
+          </label>
+          <label class="vm-chip">
+            <input type="checkbox" id="vm-fully"> Only fully vegan
+          </label>
+          <span class="vm-spacer"></span>
+          <button class="vm-btn" id="vm-reset">Reset</button>
+          <button class="vm-btn" id="vm-use">Use my location</button>
+          <button class="vm-btn vm-btn-primary" id="vm-open-gmaps" disabled>Open in Google Maps</button>
+          <button class="vm-btn" id="vm-demo">Demo popover</button>
         </div>
       `;
-      
-      mapRoot.parentNode.insertBefore(filtersBar, mapRoot);
-    },
-    
-    injectPopover: function() {
-      const popover = document.createElement('div');
-      popover.id = 'vm-pop';
-      popover.innerHTML = `
-        <h4>Demo Restaurant</h4>
-        <div class="muted">123 Main Street, Sofia</div>
+      root.parentNode.insertBefore(bar, root);
+    }
+
+    // Popover
+    if (!$('#vm-pop')) {
+      const pop = document.createElement('div');
+      pop.id = 'vm-pop';
+      pop.innerHTML = `
+        <h4 id="vm-pop-title">Place</h4>
+        <div class="muted" id="vm-pop-sub">Address</div>
         <div class="actions">
-          <button class="vm-btn" onclick="window.VM_UX.showDetails()">📋 View details</button>
-          <button class="vm-btn" onclick="window.VM_UX.navigate()">🗺 Navigate</button>
-          <button class="vm-btn" onclick="window.VM_UX.save()">💚 Save</button>
-          <button class="vm-btn" onclick="window.VM_UX.report()">🚨 Report</button>
-          <button class="vm-btn vm-btn-primary" onclick="window.VM_UX.showScore()">🌱 View Vegan Score</button>
+          <button class="vm-btn" data-act="details">View details</button>
+          <button class="vm-btn" data-act="nav">Navigate</button>
+          <button class="vm-btn" data-act="save">Save</button>
+          <button class="vm-btn" data-act="report">Report</button>
+          <button class="vm-btn vm-btn-primary" data-act="score">View Vegan Score</button>
         </div>
       `;
-      document.body.appendChild(popover);
-    },
-    
-    injectScorePanel: function() {
-      const scorePanel = document.createElement('div');
-      scorePanel.id = 'vm-score';
-      scorePanel.innerHTML = `
+      document.body.appendChild(pop);
+    }
+
+    // Right Score Panel
+    if (!$('#vm-score')) {
+      const panel = document.createElement('aside');
+      panel.id = 'vm-score';
+      panel.innerHTML = `
         <header>
-          <h3>Vegan Score Breakdown</h3>
-          <button onclick="window.VM_UX.closeScore()" style="background:none;border:none;font-size:24px;cursor:pointer">&times;</button>
+          <strong>Vegan Score</strong>
+          <button class="vm-btn" id="vm-score-close">Close</button>
         </header>
         <div class="panel">
-          <h4>Demo Restaurant</h4>
-          <p style="color:#4b5563;font-size:14px">Overall Score: <strong style="color:#22c55e">8.5/10</strong></p>
-          
-          <div style="margin:20px 0">
-            <div class="vm-kv">
-              <span>🌱 Menu Variety</span>
-              <span>9/10</span>
-            </div>
-            <div class="vm-meter"><span style="width:90%"></span></div>
-          </div>
-          
-          <div style="margin:20px 0">
-            <div class="vm-kv">
-              <span>🏷️ Clear Labeling</span>
-              <span>8/10</span>
-            </div>
-            <div class="vm-meter"><span style="width:80%"></span></div>
-          </div>
-          
-          <div style="margin:20px 0">
-            <div class="vm-kv">
-              <span>👨‍🍳 Staff Knowledge</span>
-              <span>7/10</span>
-            </div>
-            <div class="vm-meter"><span style="width:70%"></span></div>
-          </div>
-          
-          <div style="margin:20px 0">
-            <div class="vm-kv">
-              <span>🛡️ Cross-Contamination</span>
-              <span>9/10</span>
-            </div>
-            <div class="vm-meter"><span style="width:90%"></span></div>
-          </div>
-          
-          <div style="margin:20px 0">
-            <div class="vm-kv">
-              <span>📱 Online Info</span>
-              <span>8/10</span>
-            </div>
-            <div class="vm-meter"><span style="width:80%"></span></div>
-          </div>
-          
-          <div style="margin:20px 0">
-            <div class="vm-kv">
-              <span>🎨 Creativity</span>
-              <span>9/10</span>
-            </div>
-            <div class="vm-meter"><span style="width:90%"></span></div>
-          </div>
-          
-          <div style="margin-top:30px;padding-top:20px;border-top:1px solid rgba(15,23,32,0.08)">
-            <a href="/pages/score-methodology.html" style="color:#22c55e;text-decoration:none;font-weight:600">
-              Learn about our scoring methodology →
-            </a>
+          <div class="vm-kv"><div>Overall</div><div id="vm-score-overall">—</div></div>
+          <div id="vm-score-list"></div>
+          <div style="margin-top:10px;">
+            <a class="vm-btn" href="/pages/score-methodology.html">How this score is calculated</a>
           </div>
         </div>
       `;
-      document.body.appendChild(scorePanel);
-    },
-    
-    bindEvents: function() {
-      // Close popover on click outside
-      document.addEventListener('click', function(e) {
-        const popover = document.getElementById('vm-pop');
-        if (!popover.contains(e.target) && !e.target.classList.contains('vm-btn')) {
-          popover.style.display = 'none';
-        }
-      });
-      
-      // Filter change handlers
-      ['vm-price', 'vm-cuisine', 'vm-allergen', 'vm-vegan-only'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.addEventListener('change', function() {
-            console.log('Filter changed:', id, el.value || el.checked);
-          });
-        }
-      });
-    },
-    
-    showDemoPopover: function() {
-      const popover = document.getElementById('vm-pop');
-      popover.style.display = 'block';
-      popover.style.left = '50%';
-      popover.style.top = '50%';
-      popover.style.transform = 'translate(-50%, -50%)';
-    },
-    
-    showDetails: function() {
-      console.log('View details clicked');
-      alert('View details - would show restaurant details modal');
-    },
-    
-    navigate: function() {
-      console.log('Navigate clicked');
-      window.open('https://maps.google.com/maps?q=42.6977,23.3219', '_blank');
-    },
-    
-    save: function() {
-      console.log('Save clicked');
-      alert('Restaurant saved to favorites!');
-    },
-    
-    report: function() {
-      console.log('Report clicked');
-      alert('Report form would open here');
-    },
-    
-    showScore: function() {
-      document.getElementById('vm-score').classList.add('open');
-      document.getElementById('vm-pop').style.display = 'none';
-    },
-    
-    closeScore: function() {
-      document.getElementById('vm-score').classList.remove('open');
-    },
-    
-    // Public API for binding to real markers
-    bindPins: function(markerNodes) {
-      markerNodes.forEach(node => {
-        node.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const popover = document.getElementById('vm-pop');
-          const rect = node.getBoundingClientRect();
-          popover.style.display = 'block';
-          popover.style.left = rect.left + 'px';
-          popover.style.top = (rect.bottom + 10) + 'px';
-        });
-      });
-    },
-    
-    openPopover: function(placeData) {
-      const popover = document.getElementById('vm-pop');
-      popover.querySelector('h4').textContent = placeData.name || 'Restaurant';
-      popover.querySelector('.muted').textContent = placeData.address || 'No address';
-      popover.style.display = 'block';
+      document.body.appendChild(panel);
+      $('#vm-score-close').addEventListener('click', ()=> panel.classList.remove('open'));
     }
+  }
+
+  function openPopover(place, x, y) {
+    const pop = $('#vm-pop');
+    $('#vm-pop-title').textContent = place.name || 'Place';
+    $('#vm-pop-sub').textContent = place.address || '';
+    pop.style.left = Math.max(12, (x||window.innerWidth/2)-150) + 'px';
+    pop.style.top = Math.max(12, (y||120)) + 'px';
+    pop.style.display = 'block';
+
+    // enable "Open in Google Maps"
+    const gbtn = $('#vm-open-gmaps');
+    if (gbtn) gbtn.disabled = false;
+
+    // actions
+    pop.onclick = (e)=>{
+      const act = e.target?.dataset?.act;
+      if (!act) return;
+      if (act==='details') window.location.href = `/place/${place.id||''}`;
+      if (act==='nav') window.open(`https://maps.google.com/?q=${encodeURIComponent(place.name||'')}`, '_blank');
+      if (act==='save') alert('Sign in required to save');
+      if (act==='report') alert('Report form (todo)');
+      if (act==='score') openScorePanel(place);
+    };
+  }
+
+  function openScorePanel(place){
+    const p = $('#vm-score');
+    $('#vm-score-overall').textContent = (place.score!=null? place.score.toFixed(1): '—');
+    const list = $('#vm-score-list');
+    list.innerHTML = '';
+    (place.components||[]).forEach(c=>{
+      const row = document.createElement('div');
+      row.className = 'vm-kv';
+      const pct = Math.round(c.v*100);
+      row.innerHTML = `
+        <div>${c.k} <span style="color:var(--muted);font-size:12px;">(w:${(c.w*100)|0}%)</span></div>
+        <div style="min-width:160px">
+          <div class="vm-meter"><span style="width:${pct}%"></span></div>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+    p.classList.add('open');
+  }
+
+  function bindFilters(){
+    $('#vm-reset')?.addEventListener('click', ()=>{
+      $('#vm-price').value = '';
+      $('#vm-cuisine').value = '';
+      $('#vm-allergens').value = '';
+      $('#vm-fully').checked = false;
+      // TODO: trigger actual map refresh
+    });
+    $('#vm-use')?.addEventListener('click', ()=>{
+      // TODO: wire to real geolocation centering
+      alert('Would request geolocation and center the map.');
+    });
+    $('#vm-open-gmaps')?.addEventListener('click', ()=>{
+      // If a selected place exists, deep link there; fallback to center
+      window.open('https://maps.google.com/', '_blank');
+    });
+    $('#vm-demo')?.addEventListener('click', (e)=>{
+      const rect = e.target.getBoundingClientRect();
+      openPopover(demoPlace, rect.left, rect.bottom+8);
+    });
+  }
+
+  // Public API
+  UX.init = function(){
+    ensureContainers();
+    bindFilters();
+
+    // Close popover on outside click
+    document.addEventListener('click', (e)=>{
+      const pop = $('#vm-pop');
+      if (!pop) return;
+      if (pop.style.display==='block' && !pop.contains(e.target) && !e.target.closest('#vm-demo')) {
+        pop.style.display = 'none';
+      }
+    });
   };
+
+  // Bind marker DOM nodes later if available
+  UX.bindPins = function(nodes){
+    (nodes||[]).forEach(node=>{
+      node.addEventListener('click', (ev)=>{
+        const place = {
+          id: node.dataset.placeId,
+          name: node.dataset.placeName,
+          address: node.dataset.placeAddr,
+          score: parseFloat(node.dataset.placeScore||''),
+          components: demoPlace.components // replace with real
+        };
+        const r = node.getBoundingClientRect();
+        openPopover(place, r.left+r.width/2, r.top);
+      });
+    });
+  };
+
+  // Open popover directly from a place object
+  UX.openPopover = function(place, x, y){ openPopover(place, x, y); };
+
+  window.VM_UX = UX;
 })();
