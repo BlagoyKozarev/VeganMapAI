@@ -165,18 +165,22 @@
             // Just update stats here for visual feedback
             
             const checkData = setInterval(() => {
-                if (window.VM_MAP.places && window.VM_MAP.places.length > 0) {
+                const places = window.VM_WIRE?.store?.all || window.VM_MAP.places || [];
+                if (places.length > 0) {
                     clearInterval(checkData);
                     
                     // Update stats
                     document.getElementById('stats').innerHTML = `
-                        <strong>${window.VM_MAP.places.length}</strong> restaurants | 
-                        <strong>${window.VM_MAP.places.filter(r => r.score).length}</strong> with vegan scores |
+                        <strong>${places.length}</strong> restaurants | 
+                        <strong>${places.filter(r => r.score).length}</strong> with vegan scores |
                         Data source: API/JSON
                     `;
                     
                     // Hide loading
                     document.getElementById('loading').style.display = 'none';
+                    
+                    // Also update window.VM_MAP.places for compatibility
+                    window.VM_MAP.places = places;
                 }
             }, 100);
             
@@ -193,9 +197,9 @@
     </script>
 
     <!-- Map UX Layer -->
-    <link rel="stylesheet" href="/assets/css/map-ux.css?v=50">
-    <script src="/assets/js/map-ux.js?v=50"></script>
-    <script src="/assets/js/map-wire.js?v=50"></script>
+    <link rel="stylesheet" href="/assets/css/map-ux.css?v=60">
+    <script src="/assets/js/map-ux.js?v=60"></script>
+    <script src="/assets/js/map-wire.js?v=60"></script>
     <script>
         // Initialize overlay UI
         if (window.VM_UX) {
@@ -205,6 +209,8 @@
         // Initialize wire bridge - it will fetch data automatically
         if (window.VM_WIRE) {
             window.VM_WIRE.init();
+            // Update window.VM_MAP.places for compatibility
+            window.VM_MAP.places = window.VM_WIRE.store.all;
         }
         
         // Start loading data
