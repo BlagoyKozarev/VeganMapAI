@@ -9,24 +9,21 @@
   --shadow:0 6px 24px rgba(0,0,0,.12);
 }
 
-/* Make room for overlay controls without stealing height */
+/* Optional: hide tall banners on /test-map */
 .vm-compact header, .vm-compact .top-banner { display:none !important; }
 
-/* Map root wrapper */
-.vm-map-root { position: relative; }
-
-/* Overlay host */
+/* Overlay host (over the map) */
 #vm-overlay{position:absolute; left:0; right:0; top:10px; z-index:10040; pointer-events:none}
-#vm-overlay .row{display:flex; gap:8px; align-items:center; padding:0 10px;}
+#vm-overlay .row{display:flex; gap:8px; align-items:center; padding:0 10px}
 
-/* Search pill (like Google's) */
+/* Search pill */
 .vm-search{pointer-events:auto; display:flex; align-items:center; gap:10px;
   background:var(--surface); border:1px solid var(--line); border-radius:999px;
   padding:10px 14px; box-shadow:var(--shadow); max-width:620px; flex:1; min-width:220px}
 .vm-search input{flex:1; border:0; outline:none; background:transparent; color:var(--text); font-weight:600}
 .vm-icon{width:18px; height:18px; border-radius:4px; background:#cbd5e1}
 
-/* Chip strip (horizontal scroll) */
+/* Chip strip */
 .vm-chips{pointer-events:auto; display:flex; gap:8px; overflow-x:auto; padding:8px 10px 0; scrollbar-width:none}
 .vm-chips::-webkit-scrollbar{display:none}
 .vm-chip{flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; padding:8px 12px;
@@ -34,13 +31,14 @@
   box-shadow:var(--shadow); font-weight:700}
 .vm-chip[data-on="1"]{background:#eaf9f0; border-color:#d2f0dc}
 
-/* FAB (Use my location) */
-#vm-fab{position:absolute; right:12px; top:92px; pointer-events:auto; z-index:10041;
-  width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--line);
-  box-shadow:var(--shadow); display:grid; place-items:center; font-weight:800; color:var(--text)}
-#vm-fab:active{transform:scale(0.98)}
+/* FABS stack (right side) */
+#vm-fabs{position:absolute; right:12px; top:92px; z-index:10041; pointer-events:auto; display:flex; flex-direction:column; gap:10px}
+.vm-fab{width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--line);
+  box-shadow:var(--shadow); display:grid; place-items:center; color:var(--text); font-weight:800; cursor:pointer}
+.vm-fab:active{transform:scale(0.98)}
+.vm-fab svg{width:22px; height:22px}
 
-/* Bottom sheet for selected place */
+/* Bottom sheet */
 #vm-sheet{position:fixed; left:0; right:0; bottom:0; z-index:10042; transform:translateY(100%);
   transition:transform .22s ease; pointer-events:none}
 #vm-sheet.open{transform:translateY(0); pointer-events:auto}
@@ -52,12 +50,12 @@
 .vm-sub{color:var(--muted); font-size:13px; margin-top:2px}
 .vm-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
 .vm-btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:999px;
-  padding:10px 14px; background:transparent; color:var(--text); font-weight:700}
+  padding:10px 14px; background:transparent; color:var(--text); font-weight:700; cursor:pointer}
 .vm-btn:hover{background:var(--elev)}
 .vm-btn-primary{background:var(--accent); color:#06240f; border:0}
 .vm-btn-primary:hover{background:var(--accent-600)}
 
-/* Right score panel (kept; opened from sheet) */
+/* Right score panel */
 #vm-score{position:fixed; top:0; right:0; height:100vh; width:360px; max-width:90vw;
   background:var(--surface); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(0,0,0,.08);
   transform:translateX(100%); transition:transform .25s ease; z-index:10043; display:flex; flex-direction:column}

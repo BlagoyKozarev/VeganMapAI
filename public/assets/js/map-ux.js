@@ -3,7 +3,7 @@
   const $ = (q,root=document)=>root.querySelector(q);
 
   const demoPlace = {
-    id:'demo-1', name:'Green Fork Diner', address:'123 Main St',
+    id:'demo-1', name:'Demo Restaurant', address:'123 Main Street, Sofia',
     lat:0, lng:0, score:8.4,
     components:[
       {k:'Purity (Fully Vegan)', w:0.25, v:0.9},
@@ -14,6 +14,27 @@
       {k:'Consistency', w:0.05, v:0.8},
     ]
   };
+
+  /* ---------- UI builders ---------- */
+  function iconTarget(){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+      <circle cx="12" cy="12" r="9" stroke-opacity=".25"></circle>
+    </svg>`;
+  }
+  function iconUser(){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="8" r="4"></circle>
+      <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+    </svg>`;
+  }
+  function iconSparkles(){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"></path>
+      <path d="M18 14l.8 1.8L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-1.2L18 14z"></path>
+    </svg>`;
+  }
 
   function buildOverlay(){
     const host = document.createElement('div');
@@ -28,14 +49,20 @@
       </div>
       <div class="vm-chips" id="vm-chips">
         <button class="vm-chip" data-chip="restaurants">Restaurants</button>
-        <button class="vm-chip" data-chip="cafes">Cafés</button>
+        <!-- Cafés REMOVED -->
         <button class="vm-chip" data-chip="only-vegan" data-on="0">Only fully vegan</button>
         <button class="vm-chip" data-chip="price">$–$$$</button>
         <button class="vm-chip" data-chip="cuisine">Cuisine</button>
         <button class="vm-chip" data-chip="allergens">Allergens</button>
         <button class="vm-chip" data-chip="more">More filters</button>
       </div>
-      <button id="vm-fab" title="Use my location">◎</button>
+
+      <!-- FABS stack -->
+      <div id="vm-fabs">
+        <button class="vm-fab" id="vm-fab-loc" title="Use my location">${iconTarget()}</button>
+        <button class="vm-fab" id="vm-fab-prof" title="Profile">${iconUser()}</button>
+        <button class="vm-fab" id="vm-fab-ai" title="AI Assistant">${iconSparkles()}</button>
+      </div>
     `;
     return host;
   }
@@ -57,7 +84,7 @@
           <button class="vm-btn" data-act="details">View details</button>
           <button class="vm-btn" data-act="save">Save</button>
           <button class="vm-btn" data-act="report">Report</button>
-          <button class="vm-btn" data-act="nav">Open in Google Maps</button>
+          <!-- "Open in Google Maps" REMOVED by request -->
           <button class="vm-btn vm-btn-primary" data-act="score">View Vegan Score</button>
         </div>
       </div>
@@ -84,6 +111,7 @@
     return panel;
   }
 
+  /* ---------- Behavior ---------- */
   let currentPlace = null;
 
   function openSheet(place){
@@ -116,86 +144,71 @@
     $('#vm-q-go')?.addEventListener('click', ()=>{
       const q = $('#vm-q').value.trim();
       if (!q) return;
-      // TODO: hook to map search
-      alert('Search: '+q);
+      alert('Search: '+q); // TODO: hook to real map search
     });
 
-    // Chips — toggle/trigger
+    // Chips
     $('#vm-chips')?.addEventListener('click', (e)=>{
       const chip = e.target.closest('.vm-chip'); if (!chip) return;
       const key = chip.dataset.chip;
       if (key === 'only-vegan'){
         chip.dataset.on = chip.dataset.on === '1' ? '0' : '1';
         // TODO: apply filter
-      } else if (key === 'more' || key === 'price' || key === 'cuisine' || key === 'allergens'){
-        // TODO: open drawer for advanced filters
-        alert('Open filters: '+key);
       } else {
-        // basic category filters
-        // TODO: apply filter
+        alert('Open filters: '+key); // TODO
       }
     });
 
-    // FAB — use my location
-    $('#vm-fab')?.addEventListener('click', ()=>{
-      // TODO: geolocate + recenter map
-      alert('Would request geolocation and center the map.');
+    // FABS
+    $('#vm-fab-loc')?.addEventListener('click', ()=>{
+      alert('Would request geolocation and center the map.'); // TODO
+    });
+    $('#vm-fab-prof')?.addEventListener('click', ()=>{
+      window.location.href = '/auth?next=/test-map';
+    });
+    $('#vm-fab-ai')?.addEventListener('click', ()=>{
+      alert('AI Assistant (coming soon)'); // later: open assistant panel
     });
 
-    // Sheet actions
+    // Sheet
     $('#vm-sheet-close')?.addEventListener('click', closeSheet);
     $('#vm-sheet')?.addEventListener('click', (e)=>{
       const act = e.target?.dataset?.act; if (!act) return;
       if (act==='details') window.location.href = `/place/${currentPlace?.id||''}`;
       if (act==='save') alert('Sign in required to save');
       if (act==='report') alert('Report form (todo)');
-      if (act==='nav'){
-        const q = encodeURIComponent(currentPlace?.name || '');
-        window.open(`https://maps.google.com/?q=${q}`, '_blank');
-      }
       if (act==='score') openScorePanel(currentPlace||demoPlace);
     });
 
-    // Score panel close
+    // Score panel
     document.addEventListener('click', (e)=>{
       if (e.target?.id === 'vm-score') closeScorePanel();
     });
     $('#vm-score-close')?.addEventListener('click', closeScorePanel);
   }
 
-  // PUBLIC API
+  /* ---------- Public API ---------- */
   UX.init = function(){
-    // Prefer an explicit outer wrapper:
     const outer = document.getElementById('map-root')
-               || document.querySelector('.vm-map-root')
-               || document.querySelector('.leaflet-container')?.parentElement
-               || document.body;
-    
-    if (!outer) return;
-    if (getComputedStyle(outer).position === 'static') { 
-      outer.style.position = 'relative'; 
-    }
+              || document.querySelector('.vm-map-root')
+              || document.querySelector('.leaflet-container')?.parentElement
+              || document.body;
 
-    // Insert overlay into OUTER wrapper only:
+    if (!outer) return;
+    if (getComputedStyle(outer).position === 'static') { outer.style.position = 'relative'; }
+
     if (!document.getElementById('vm-overlay')) outer.appendChild(buildOverlay());
-    
-    // Bottom sheet + score panel at BODY level (fixed):
     if (!document.getElementById('vm-sheet')) document.body.appendChild(buildSheet());
     if (!document.getElementById('vm-score')) document.body.appendChild(buildScorePanel());
 
     wireEvents();
 
-    // Guard: if the map library re-parents nodes, re-attach overlay back to OUTER
+    // Keep overlay anchored to OUTER in case the map library re-parents nodes
     const mo = new MutationObserver(()=>{
       const ov = document.getElementById('vm-overlay');
-      if (ov && ov.parentElement !== outer) { 
-        outer.appendChild(ov); 
-      }
+      if (ov && ov.parentElement !== outer) { outer.appendChild(ov); }
     });
     mo.observe(outer, { childList:true, subtree:true });
-
-    // For quick manual test without markers:
-    // setTimeout(()=> UX.openPlace(demoPlace), 800);
   };
 
   // Bind marker DOM nodes (optional)
