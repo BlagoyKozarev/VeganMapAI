@@ -1,0 +1,643 @@
+// GBGPT Test Suite for VeganMapAI
+// Complete testing of GBGPT capabilities before integration
+
+interface GBGPTTestConfig {
+  baseUrl: string;
+  username: string;
+  password: string;
+  timeout: number;
+}
+
+interface TestResult {
+  testName: string;
+  success: boolean;
+  responseTime: number;
+  response?: any;
+  error?: string;
+  score?: number; // For quality comparisons
+}
+
+export class GBGPTTestSuite {
+  private config: GBGPTTestConfig;
+  private testResults: TestResult[] = [];
+
+  constructor() {
+    this.config = {
+      baseUrl: 'https://3b450695e391.ngrok-free.app',
+      username: 'Raicommerce',
+      password: 'R@icommerce23',
+      timeout: 30000 // 30 seconds - GBGPT може да е бавен
+    };
+  }
+
+  /**
+   * Run complete GBGPT test suite
+   */
+  async runFullTestSuite(): Promise<TestResult[]> {
+    console.log('🧪 Starting GBGPT Test Suite...');
+    console.log('⚠️  Note: GBGPT may be slow (5-15 seconds per request)');
+    
+    this.testResults = [];
+
+    // Test 1: Basic connectivity
+    await this.testConnectivity();
+    
+    // Test 2: Authentication
+    await this.testAuthentication();
+    
+    // Test 3: Simple request
+    await this.testSimpleRequest();
+    
+    // Test 4: Bulgarian language support
+    await this.testBulgarianLanguage();
+    
+    // Test 5: Restaurant scoring capability
+    await this.testRestaurantScoring();
+    
+    // Test 6: JSON response parsing
+    await this.testJSONResponse();
+    
+    // Test 7: Performance under load
+    await this.testPerformance();
+    
+    // Print summary
+    this.printTestSummary();
+    
+    return this.testResults;
+  }
+
+  /**
+   * Test 1: Basic connectivity to GBGPT endpoint
+   */
+  private async testConnectivity(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log('🔌 Testing basic connectivity...');
+      
+      const response = await fetch(this.config.baseUrl, {
+        method: 'GET',
+        signal: AbortSignal.timeout(this.config.timeout)
+      });
+
+      const responseTime = Date.now() - startTime;
+      
+      this.testResults.push({
+        testName: 'Basic Connectivity',
+        success: response.ok,
+        responseTime,
+        response: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
+        }
+      });
+
+      console.log(`✅ Connectivity test: ${response.status} (${responseTime}ms)`);
+      
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      
+      this.testResults.push({
+        testName: 'Basic Connectivity',
+        success: false,
+        responseTime,
+        error: error.message
+      });
+
+      console.error(`❌ Connectivity failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Test 2: Authentication with provided credentials
+   */
+  private async testAuthentication(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log('🔐 Testing authentication...');
+      
+      // Basic Auth header
+      const credentials = btoa(`${this.config.username}:${this.config.password}`);
+      
+      const response = await fetch(`${this.config.baseUrl}/v1/models`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json'
+        },
+        signal: AbortSignal.timeout(this.config.timeout)
+      });
+
+      const responseTime = Date.now() - startTime;
+      const responseData = await response.text();
+      
+      this.testResults.push({
+        testName: 'Authentication',
+        success: response.ok,
+        responseTime,
+        response: {
+          status: response.status,
+          data: responseData
+        }
+      });
+
+      if (response.ok) {
+        console.log(`✅ Authentication successful (${responseTime}ms)`);
+      } else {
+        console.log(`⚠️  Auth response ${response.status}: ${responseData}`);
+      }
+      
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      
+      this.testResults.push({
+        testName: 'Authentication',
+        success: false,
+        responseTime,
+        error: error.message
+      });
+
+      console.error(`❌ Authentication failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Test 3: Simple text completion request
+   */
+  private async testSimpleRequest(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log('📝 Testing simple completion request...');
+      
+      const credentials = btoa(`${this.config.username}:${this.config.password}`);
+      
+      const payload = {
+        model: "gpt-3.5-turbo", // Adjust based on GBGPT's available models
+        prompt: "Hello, this is a test. Please respond with 'GBGPT is working'",
+        max_tokens: 50,
+        temperature: 0.1
+      };
+
+      const response = await fetch(`${this.config.baseUrl}/v1/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(this.config.timeout)
+      });
+
+      const responseTime = Date.now() - startTime;
+      const responseData = await response.json();
+      
+      this.testResults.push({
+        testName: 'Simple Request',
+        success: response.ok,
+        responseTime,
+        response: responseData
+      });
+
+      if (response.ok) {
+        console.log(`✅ Simple request successful (${responseTime}ms)`);
+        console.log(`Response: ${JSON.stringify(responseData, null, 2)}`);
+      } else {
+        console.log(`❌ Simple request failed: ${JSON.stringify(responseData, null, 2)}`);
+      }
+      
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      
+      this.testResults.push({
+        testName: 'Simple Request',
+        success: false,
+        responseTime,
+        error: error.message
+      });
+
+      console.error(`❌ Simple request failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Test 4: Bulgarian language support
+   */
+  private async testBulgarianLanguage(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log('🇧🇬 Testing Bulgarian language support...');
+      
+      const credentials = btoa(`${this.config.username}:${this.config.password}`);
+      
+      const payload = {
+        model: "gpt-3.5-turbo",
+        prompt: "Здравей! Кажи ми къде има добри вегански ресторанти в София на български език.",
+        max_tokens: 200,
+        temperature: 0.3
+      };
+
+      const response = await fetch(`${this.config.baseUrl}/v1/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(this.config.timeout)
+      });
+
+      const responseTime = Date.now() - startTime;
+      const responseData = await response.json();
+      
+      // Check if response contains Cyrillic characters
+      const responseText = responseData.choices?.[0]?.text || '';
+      const hasCyrillic = /[а-я]/i.test(responseText);
+      
+      this.testResults.push({
+        testName: 'Bulgarian Language',
+        success: response.ok && hasCyrillic,
+        responseTime,
+        response: responseData,
+        score: hasCyrillic ? 10 : 5 // Score based on language support
+      });
+
+      if (response.ok) {
+        console.log(`✅ Bulgarian test completed (${responseTime}ms)`);
+        console.log(`Response contains Cyrillic: ${hasCyrillic}`);
+        console.log(`Bulgarian response: ${responseText}`);
+      } else {
+        console.log(`❌ Bulgarian test failed: ${JSON.stringify(responseData, null, 2)}`);
+      }
+      
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      
+      this.testResults.push({
+        testName: 'Bulgarian Language',
+        success: false,
+        responseTime,
+        error: error.message
+      });
+
+      console.error(`❌ Bulgarian test failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Test 5: Restaurant scoring capability
+   */
+  private async testRestaurantScoring(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log('🏪 Testing restaurant scoring capability...');
+      
+      const credentials = btoa(`${this.config.username}:${this.config.password}`);
+      
+      const testRestaurant = {
+        name: "Ресторант София",
+        cuisineTypes: ["restaurant", "food", "establishment"],
+        address: "София, България",
+        reviews: [
+          { text: "Имат добри вегански опции в менюто" },
+          { text: "Персоналът знае какво е vegan" }
+        ]
+      };
+
+      const prompt = `Анализирай този ресторант за vegan-friendliness и върни САМО JSON:
+
+Ресторант: ${JSON.stringify(testRestaurant)}
+
+Върни точно този JSON формат:
+{
+  "menuVariety": [число 1-10],
+  "ingredientClarity": [число 1-10], 
+  "staffKnowledge": [число 1-10],
+  "crossContamination": [число 1-10],
+  "nutritionalInfo": [число 1-10],
+  "allergenManagement": [число 1-10],
+  "overallScore": [число 1-10],
+  "reasoning": "кратко обяснение на български"
+}
+
+JSON:`;
+
+      const payload = {
+        model: "gpt-3.5-turbo",
+        prompt,
+        max_tokens: 500,
+        temperature: 0.2
+      };
+
+      const response = await fetch(`${this.config.baseUrl}/v1/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(this.config.timeout)
+      });
+
+      const responseTime = Date.now() - startTime;
+      const responseData = await response.json();
+      
+      // Try to parse JSON from response
+      let parsedJSON = null;
+      let validJSON = false;
+      
+      if (response.ok) {
+        try {
+          const responseText = responseData.choices?.[0]?.text || '';
+          const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            parsedJSON = JSON.parse(jsonMatch[0]);
+            validJSON = true;
+          }
+        } catch (parseError) {
+          console.warn('JSON parsing failed:', parseError.message);
+        }
+      }
+      
+      this.testResults.push({
+        testName: 'Restaurant Scoring',
+        success: response.ok && validJSON,
+        responseTime,
+        response: {
+          raw: responseData,
+          parsedJSON,
+          validJSON
+        },
+        score: validJSON ? 10 : (response.ok ? 5 : 0)
+      });
+
+      if (response.ok) {
+        console.log(`✅ Restaurant scoring test completed (${responseTime}ms)`);
+        console.log(`Valid JSON response: ${validJSON}`);
+        if (parsedJSON) {
+          console.log(`Parsed scoring: ${JSON.stringify(parsedJSON, null, 2)}`);
+        }
+      } else {
+        console.log(`❌ Restaurant scoring failed: ${JSON.stringify(responseData, null, 2)}`);
+      }
+      
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      
+      this.testResults.push({
+        testName: 'Restaurant Scoring',
+        success: false,
+        responseTime,
+        error: error.message
+      });
+
+      console.error(`❌ Restaurant scoring failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Test 6: JSON response consistency
+   */
+  private async testJSONResponse(): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      console.log('📊 Testing JSON response consistency...');
+      
+      const credentials = btoa(`${this.config.username}:${this.config.password}`);
+      
+      const payload = {
+        model: "gpt-3.5-turbo",
+        prompt: 'Return a valid JSON object with these fields: {"status": "ok", "message": "test successful", "timestamp": "current time"}. Return ONLY the JSON, no other text.',
+        max_tokens: 100,
+        temperature: 0.1
+      };
+
+      const response = await fetch(`${this.config.baseUrl}/v1/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(this.config.timeout)
+      });
+
+      const responseTime = Date.now() - startTime;
+      const responseData = await response.json();
+      
+      let isValidJSON = false;
+      let parsedJSON = null;
+      
+      if (response.ok) {
+        try {
+          const responseText = responseData.choices?.[0]?.text || '';
+          parsedJSON = JSON.parse(responseText.trim());
+          isValidJSON = true;
+        } catch (parseError) {
+          console.warn('JSON consistency test - parsing failed');
+        }
+      }
+      
+      this.testResults.push({
+        testName: 'JSON Consistency',
+        success: response.ok && isValidJSON,
+        responseTime,
+        response: {
+          raw: responseData,
+          parsedJSON,
+          isValidJSON
+        },
+        score: isValidJSON ? 10 : 0
+      });
+
+      console.log(`✅ JSON consistency test completed (${responseTime}ms) - Valid: ${isValidJSON}`);
+      
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      
+      this.testResults.push({
+        testName: 'JSON Consistency',
+        success: false,
+        responseTime,
+        error: error.message
+      });
+
+      console.error(`❌ JSON consistency test failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Test 7: Performance under load (3 concurrent requests)
+   */
+  private async testPerformance(): Promise<void> {
+    console.log('⚡ Testing performance under load...');
+    
+    const requests = [
+      this.makeQuickRequest("Test request 1"),
+      this.makeQuickRequest("Test request 2"), 
+      this.makeQuickRequest("Test request 3")
+    ];
+
+    try {
+      const startTime = Date.now();
+      const results = await Promise.allSettled(requests);
+      const totalTime = Date.now() - startTime;
+      
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const avgTime = totalTime / results.length;
+      
+      this.testResults.push({
+        testName: 'Performance Load Test',
+        success: successful >= 2, // At least 2/3 should succeed
+        responseTime: avgTime,
+        response: {
+          totalRequests: 3,
+          successfulRequests: successful,
+          totalTime,
+          avgTimePerRequest: avgTime
+        },
+        score: successful >= 2 ? 8 : 4
+      });
+
+      console.log(`✅ Performance test completed: ${successful}/3 successful, avg ${avgTime}ms`);
+      
+    } catch (error) {
+      this.testResults.push({
+        testName: 'Performance Load Test',
+        success: false,
+        responseTime: 0,
+        error: error.message
+      });
+
+      console.error(`❌ Performance test failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Helper method for quick requests
+   */
+  private async makeQuickRequest(prompt: string): Promise<any> {
+    const credentials = btoa(`${this.config.username}:${this.config.password}`);
+    
+    const response = await fetch(`${this.config.baseUrl}/v1/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        prompt,
+        max_tokens: 50,
+        temperature: 0.1
+      }),
+      signal: AbortSignal.timeout(this.config.timeout)
+    });
+
+    return await response.json();
+  }
+
+  /**
+   * Print comprehensive test summary
+   */
+  private printTestSummary(): void {
+    console.log('\n🧪 =============== GBGPT TEST SUMMARY ===============');
+    
+    const totalTests = this.testResults.length;
+    const successfulTests = this.testResults.filter(t => t.success).length;
+    const avgResponseTime = this.testResults.reduce((sum, t) => sum + t.responseTime, 0) / totalTests;
+    
+    console.log(`📊 Overall Results: ${successfulTests}/${totalTests} tests passed`);
+    console.log(`⏱️  Average Response Time: ${Math.round(avgResponseTime)}ms`);
+    console.log(`📈 Success Rate: ${Math.round((successfulTests/totalTests) * 100)}%`);
+    
+    console.log('\n📋 Individual Test Results:');
+    this.testResults.forEach(test => {
+      const status = test.success ? '✅' : '❌';
+      const time = `${test.responseTime}ms`;
+      const score = test.score ? `(Score: ${test.score}/10)` : '';
+      console.log(`${status} ${test.testName}: ${time} ${score}`);
+      if (test.error) {
+        console.log(`   Error: ${test.error}`);
+      }
+    });
+
+    console.log('\n💡 Recommendations:');
+    
+    if (successfulTests === totalTests) {
+      console.log('🎉 GBGPT is fully functional and ready for integration!');
+    } else if (successfulTests >= totalTests * 0.7) {
+      console.log('⚠️  GBGPT is mostly functional. Review failed tests and proceed with caution.');
+    } else {
+      console.log('🚨 GBGPT has significant issues. Integration not recommended until resolved.');
+    }
+
+    if (avgResponseTime > 10000) {
+      console.log('🐌 Response times are slow (>10s). Consider timeout adjustments.');
+    } else if (avgResponseTime > 5000) {
+      console.log('⏳ Response times are moderate (5-10s). Acceptable for background tasks.');
+    } else {
+      console.log('🚀 Response times are good (<5s). Suitable for user-facing features.');
+    }
+
+    console.log('===============================================\n');
+  }
+
+  /**
+   * Export results for further analysis
+   */
+  exportResults(): any {
+    return {
+      timestamp: new Date().toISOString(),
+      config: this.config,
+      results: this.testResults,
+      summary: {
+        totalTests: this.testResults.length,
+        passedTests: this.testResults.filter(t => t.success).length,
+        avgResponseTime: this.testResults.reduce((sum, t) => sum + t.responseTime, 0) / this.testResults.length,
+        overallScore: this.testResults.reduce((sum, t) => sum + (t.score || 0), 0) / this.testResults.filter(t => t.score).length
+      }
+    };
+  }
+}
+
+// Usage example for Replit Agent:
+export async function runGBGPTTests() {
+  console.log('🚀 Starting GBGPT Test Suite for VeganMapAI...');
+  console.log('⏱️  This will take 2-5 minutes depending on GBGPT response times.\n');
+  
+  const testSuite = new GBGPTTestSuite();
+  
+  try {
+    const results = await testSuite.runFullTestSuite();
+    const exportData = testSuite.exportResults();
+    
+    // Save results to file for later analysis
+    console.log('💾 Test results ready for analysis.');
+    console.log('📄 Export data:', JSON.stringify(exportData, null, 2));
+    
+    return exportData;
+    
+  } catch (error) {
+    console.error('🚨 Test suite failed catastrophically:', error);
+    throw error;
+  }
+}
+
+// Auto-run if this file is executed directly
+if (require.main === module) {
+  runGBGPTTests()
+    .then(results => {
+      console.log('🎯 GBGPT testing complete!');
+      process.exit(0);
+    })
+    .catch(error => {
+      console.error('💥 Testing failed:', error);
+      process.exit(1);
+    });
+}

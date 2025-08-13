@@ -1,0 +1,63 @@
+# .replit_ai_instructions
+# This file provides context to Replit AI Agent about this project
+
+## PROJECT: VeganMapAI - Production Business Application
+## OWNER: Solo developer expanding to US top 20 cities market
+## CRITICALITY: HIGH - Customer-facing production app
+
+### MANDATORY CONSULTATION PROTOCOL:
+Before making ANY changes to these critical areas, the AI must ask the user for approval:
+
+1. Database schema (shared/schema.ts)
+2. API endpoints (server/routes/*)  
+3. Multi-agent system (server/agents/*)
+4. Authentication logic
+5. Map clustering logic  
+6. Environment variables
+7. Package.json dependencies
+8. Build configuration files
+
+### APPROVED AUTONOMOUS ACTIONS:
+- CSS/styling fixes
+- UI component styling
+- Text content updates  
+- Minor debugging (console.logs)
+- Documentation updates
+
+### WHEN ENCOUNTERING ERRORS:
+1. Take screenshot of error
+2. Document attempted solutions
+3. Ask user: "I encountered [error] while [action]. I tried [solutions]. Should I proceed with [proposed fix] or would you like to review?"
+
+### USER'S WORKFLOW PREFERENCE:
+- User works with external Claude AI for major decisions
+- Replit Agent should suggest asking Claude for complex problems
+- Always provide context when asking for help
+- Focus on incremental, tested changes
+
+### PROJECT STRUCTURE AWARENESS:
+- Frontend: React 18 + TypeScript + Vite
+- Backend: Express.js + TypeScript  
+- Database: PostgreSQL + Drizzle ORM
+- AI: OpenAI GPT-4o + Whisper
+- Maps: Leaflet + markercluster
+- Hosting: Replit + Neon Database
+
+### COST CONSCIOUSNESS:
+- Google Places API calls are expensive - respect caching
+- OpenAI API usage should be monitored
+- Performance optimizations are critical
+
+### COMMUNICATION STYLE:
+- Be direct and specific about problems
+- Provide actionable solutions
+- Acknowledge when something is beyond safe scope
+- Suggest consulting Claude AI for complex architectural decisions
+
+### TESTING REQUIREMENTS:
+- Always test changes immediately
+- Check TypeScript compilation
+- Verify server starts successfully
+- Test core functionality after changes
+
+Remember: This is a solo developer's business venture. Stability and reliability are more important than speed. When in doubt, ask first.

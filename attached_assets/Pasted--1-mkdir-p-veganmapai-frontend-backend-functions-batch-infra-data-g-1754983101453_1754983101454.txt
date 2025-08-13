@@ -1,0 +1,108 @@
+# 1) Създаване на структурата
+mkdir -p veganmapai/{frontend,backend/{functions,batch},infra,data/{geojson,pmtiles}}
+cd veganmapai
+git init
+echo "# VeganMapAI (Hybrid Lite)" > README.md
+
+# 2) .gitignore
+cat > .gitignore << 'EOF'
+node_modules/
+.dist/
+.build/
+.env
+.env.*
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vscode/
+.idea/
+EOF
+
+# 3) .env.example
+cat > .env.example << 'EOF'
+NODE_ENV=production
+API_BASE=https://api.veganmapai.ai
+GCP_PROJECT_ID=your-project
+GCP_REGION=us-central1
+FIREBASE_PROJECT=your-project
+FIREBASE_DB=firestore
+STRIPE_PUBLIC_KEY=pk_live_xxx
+STRIPE_SECRET_KEY=sk_live_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+EOF
+
+# 4) Минимален backend + healthcheck
+mkdir -p backend && cd backend
+npm init -y
+npm i express cors axios
+cat > index.js << 'EOF'
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+app.use(express.json());
+app.use(cors({ origin: true }));
+
+app.get('/healthz', (_req, res) => res.json({ ok: true }));
+
+const port = process.env.PORT || 8080;
+app.listen(port, () => console.log(`API up on :${port}`));
+EOF
+node -e "let p=require('./package.json');p.type='module';require('fs').writeFileSync('package.json', JSON.stringify(p,null,2));"
+cd ..
+
+# 5) Cloud Run манифест
+mkdir -p infra
+cat > infra/cloudrun.yaml << 'EOF'
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: veganmap-api
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/min-instances: "0"
+        run.googleapis.com/cpu-throttling: "true"
+    spec:
+      containers:
+        - image: gcr.io/your-project/veganmap-api:latest
+          env:
+            - name: API_BASE
+              value: "https://api.veganmapai.ai"
+            - name: FIREBASE_PROJECT
+              value: "your-project"
+            - name: GA4_MEASUREMENT_ID
+              value: "G-XXXXXXXXXX"
+      timeoutSeconds: 30
+      ingress: all
+EOF
+
+# 6) Firestore правила
+cat > infra/firestore.rules << 'EOF'
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /feedback/{doc} {
+      allow create: if request.auth != null;
+      allow read: if true;
+      allow update, delete: if false;
+    }
+    match /sessions/{doc} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}
+EOF
+
+# 7) Първи commit
+git add .
+git commit -m "chore: init Hybrid Lite skeleton + env templates"

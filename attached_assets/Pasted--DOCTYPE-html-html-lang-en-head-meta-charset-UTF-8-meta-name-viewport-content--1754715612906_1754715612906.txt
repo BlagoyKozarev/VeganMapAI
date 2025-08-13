@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VeganMapAI – Mock Step 1 (CTA + Navigation)</title>
+  <style>
+    /* Hybrid style: minimal agent feel + gentle color accents */
+    :root{
+      /* backgrounds */
+      --bg-top:#0b0f14;      /* deep blue-black */
+      --bg-bot:#0e141c;      /* slightly warmer */
+      --surface:#121821;     /* cards/header */
+      --elev:#0f1520;        /* elevated panes */
+
+      /* text */
+      --text:#e8f0f7;        /* primary text */
+      --muted:#9fb0c3;       /* secondary */
+      --line:rgba(255,255,255,0.08);
+
+      /* accents (subtle) */
+      --accent:#22c55e;      /* green primary (vegan) */
+      --accent-600:#16a34a;  /* hover */
+      --accent-soft:rgba(34,197,94,0.14);
+
+      --focus:#5ac8fa;       /* cool cyan focus (very sparing) */
+      --active:#1a2330;      /* active bg for nav */
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+      background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));
+      color:var(--text); line-height:1.5;
+    }
+    a{color:inherit;text-decoration:none}
+
+    /* Header */
+    .header{position:sticky;top:0;z-index:1000;background:rgba(18,24,33,0.9);backdrop-filter:saturate(140%) blur(8px);border-bottom:1px solid var(--line)}
+    .container{max-width:1200px;margin:0 auto;padding:0 16px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+
+    nav{display:flex;align-items:center;gap:18px}
+    .nav-link{padding:8px 10px;border-radius:10px;color:var(--muted);font-weight:600}
+    .nav-link.active{color:#fff;background:var(--active);}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;font-weight:700;border:1px solid var(--line);padding:10px 14px;background:transparent;color:var(--text)}
+    .btn:hover{background:#0f1319}
+    .btn:focus{outline:2px solid var(--focus);outline-offset:2px}
+
+    .btn-primary{background:var(--accent);color:#06240f;border:0}
+    .btn-primary:hover{background:var(--accent-600)}
+
+    .btn-ghost{border:1px solid var(--line);background:transparent}
+    .pill{border-radius:999px;padding:10px 16px}
+
+    /* Mobile */
+    .menu-btn{display:none;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:transparent;color:var(--text)}
+    @media (max-width:900px){
+      nav{display:none}
+      .menu-btn{display:inline-flex}
+      .mobile-menu{display:none;position:fixed;inset:64px 12px auto 12px;background:var(--elev);border:1px solid var(--line);border-radius:14px;padding:12px}
+      .mobile-menu.open{display:block}
+      .mobile-menu a{display:block;padding:12px;border-radius:10px;color:var(--muted)}
+      .mobile-menu a.active{color:#fff;background:var(--active)}
+    }
+
+    /* Hero */
+    .hero{padding:56px 0 28px;border-bottom:1px solid var(--line)}
+    .hero-grid{display:grid;grid-template-columns:1fr;gap:16px}
+    .hero h1{font-size:clamp(26px,4.5vw,46px);margin:0 0 10px}
+    .hero p{color:var(--muted);margin:0 0 16px}
+    .hero-ctas{display:flex;gap:10px;flex-wrap:wrap}
+    .soft-badge{display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:#d6f5e1;border:1px solid var(--line);padding:6px 10px;border-radius:10px;font-size:12px;font-weight:700}
+
+    /* Sections */
+    section{padding:44px 0}
+    .section-title{font-size:22px;margin:0 0 12px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+
+    /* Map placeholder (no overlays) */
+    .map-placeholder{height:360px;border-radius:16px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--muted);background:#0f1520}
+
+    /* Footer */
+    footer{padding:32px 0;color:var(--muted);border-top:1px solid var(--line)}
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header" role="navigation" aria-label="Main navigation">
+    <div class="container">
+      <div class="row">
+        <div class="brand" aria-label="VeganMapAI">
+          <span class="dot" aria-hidden="true"></span>
+          <span>VeganMapAI</span>
+        </div>
+
+        <nav id="desktopNav">
+          <a href="#map" class="nav-link" data-spy>Map</a>
+          <a href="#features" class="nav-link" data-spy>Features</a>
+          <a href="#api" class="nav-link" data-spy>API</a>
+          <a href="#contact" class="nav-link" data-spy>Contact</a>
+        </nav>
+
+        <div style="display:flex; gap:8px; align-items:center;">
+          <!-- Minimal ghost (agent-like) + gentle green on hover -->
+          <a href="/test-map?loc=auto" class="btn btn-ghost pill" id="btn-search" title="Open the map near you">Search</a>
+          <!-- Primary CTA with green accent (not too bright) -->
+          <a href="/test-map?loc=auto" class="btn btn-primary pill" id="btn-signin" title="Sign in">Sign in</a>
+
+          <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobileMenu">Menu</button>
+        </div>
+      </div>
+    </div>
+    <div id="mobileMenu" class="mobile-menu" role="menu" aria-label="Mobile Menu">
+      <a href="#map" data-spy>Map</a>
+      <a href="#features" data-spy>Features</a>
+      <a href="#api" data-spy>API</a>
+      <a href="#contact" data-spy>Contact</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="soft-badge">Agent mode</span>
+        <h1>Find the best vegan spots around you</h1>
+        <p>Transparent scoring, clean UI, and fast filters. One tap to open nearby places.</p>
+        <div class="hero-ctas">
+          <a href="/test-map?loc=auto" class="btn btn-ghost pill">Search</a>
+          <a href="/test-map?loc=auto" class="btn btn-primary pill">Sign in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP SECTION (no extra overlays) -->
+  <section id="map" aria-label="Map">
+    <div class="container">
+      <h2 class="section-title">Map</h2>
+      <div class="card">
+        <div class="map-placeholder">Map loads here (/test-map?loc=auto)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" aria-label="Features">
+    <div class="container">
+      <h2 class="section-title">Features</h2>
+      <div class="card">
+        <ul>
+          <li>Vegan Score with transparent breakdown</li>
+          <li>Interactive markers and clean popovers</li>
+          <li>Fast filters and favorites</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- API -->
+  <section id="api" aria-label="API">
+    <div class="container">
+      <h2 class="section-title">API</h2>
+      <div class="card">
+        <p>Vegan Score API for restaurants and travel apps.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" aria-label="Contact">
+    <div class="container">
+      <h2 class="section-title">Contact</h2>
+      <div class="card">
+        <p>Write us at <a href="mailto:hello@veganmapai.ai">hello@veganmapai.ai</a></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">© 2025 VeganMapAI</div>
+  </footer>
+
+  <script>
+    // Defensive: strip accidental overlays if any
+    document.querySelectorAll('.overlay, .performance, .debug, [data-debug], [data-performance]')?.forEach(el=>el.remove());
+
+    // Smooth scroll (same-page)
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click',e=>{
+        const id=a.getAttribute('href'), el=document.querySelector(id);
+        if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth', block:'start'}); }
+      });
+    });
+
+    // Scrollspy
+    const sections=[...document.querySelectorAll('section[id]')];
+    const navLinks=[...document.querySelectorAll('[data-spy]')];
+    const setActive=id=>navLinks.forEach(l=>l.classList.toggle('active', l.getAttribute('href')==='#'+id));
+    const io=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{ if(entry.isIntersecting) setActive(entry.target.id); });
+    },{rootMargin:'-40% 0px -55% 0px',threshold:0.01});
+    sections.forEach(s=>io.observe(s));
+    
+    // Mobile menu
+    const menuBtn=document.getElementById('menuBtn');
+    const mobileMenu=document.getElementById('mobileMenu');
+    menuBtn?.addEventListener('click',()=>{
+      const open=mobileMenu.classList.toggle('open');
+      menuBtn.setAttribute('aria-expanded',open?'true':'false');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+REPLIT AGENT — ENABLE MARKER CLUSTERING (LEAFLET.MARKERCLUSTER)
+
+Цел:
+Добавяне на кластеризация на маркерите в /test-map, за да се групират при нисък zoom и да се разделят при приближаване, като филтрите и търсенето продължат да работят.
+
+---
+
+# Task 1: Добавяне на Leaflet.markercluster библиотеката
+
+1. В /test-map HTML файла (който зарежда Leaflet картата):
+   - В <head> (преди затварящия </head>):
+     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
+     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
+
+   - След Leaflet.js, но преди map-wire.js:
+     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+---
+
+# Task 2: Промени в public/assets/js/map-wire.js
+
+## 2.1 – Декларация за клъстер група
+В горната част на файла (след store променливата) добави:
+let cluster = null;
+
+## 2.2 – Функция addMarker()
+Замени цялата съществуваща функция addMarker с:
+function addMarker(place){
+  if (!leaflet()) return null;
+  const m = getMap();
+  if (!m) return null;
+  try {
+    const marker = window.L.marker([place.lat, place.lng], { title: place.name });
+    marker.__place = place;
+    marker.on('click', ()=> openPlace(place));
+
+    if (!cluster) {
+      cluster = window.L.markerClusterGroup({
+        showCoverageOnHover: false,
+        removeOutsideVisibleBounds: true,
+        spiderfyOnMaxZoom: true,
+        maxClusterRadius: 50
+      });
+      m.addLayer(cluster);
+    }
+    cluster.addLayer(marker);
+
+    window.VM_MAP.markers = window.VM_MAP.markers || [];
+    window.VM_MAP.markers.push(marker);
+    return marker;
+  } catch (e) {
+    err('Failed to add marker', e, place);
+    return null;
+  }
+}
+
+## 2.3 – Функция clearMarkers()
+Замени я с:
+function clearMarkers(){
+  if (!leaflet()) return;
+  if (cluster) {
+    try { cluster.clearLayers(); } catch(_) {}
+  }
+  if (window.VM_MAP?.markers && Array.isArray(window.VM_MAP.markers)) {
+    window.VM_MAP.markers.length = 0;
+  }
+}
+
+## 2.4 – Функция fitToPlaces()
+Замени я с:
+function fitToPlaces(places){
+  if (!leaflet()) return;
+  const m = getMap();
+  try {
+    if (cluster && cluster.getLayers().length) {
+      const cb = cluster.getBounds();
+      if (cb && cb.isValid()) { m.fitBounds(cb.pad(0.12)); return; }
+    }
+    const pts = (places || []).filter(p=> isFinite(p.lat) && isFinite(p.lng));
+    if (!pts.length) { log('fitToPlaces: nothing to fit'); return; }
+    const bounds = window.L.latLngBounds(pts.map(p => [p.lat, p.lng]));
+    m.fitBounds(bounds.pad(0.12));
+  } catch(e) {
+    warn('fitBounds failed', e);
+  }
+}
+
+---
+
+# Task 3: Тестване
+
+1. Запази промените и зареди /test-map?v=70.
+2. Очаквано поведение:
+   - При далечен zoom маркерите се групират в кръгове с брой.
+   - При zoom in клъстерите се разпадат на индивидуални маркери.
+   - Филтри (Only fully vegan, Search) и търсене показват само съответните маркери и те се клъстерират.
+   - fitBounds се прилага спрямо видимите маркери в клъстера.

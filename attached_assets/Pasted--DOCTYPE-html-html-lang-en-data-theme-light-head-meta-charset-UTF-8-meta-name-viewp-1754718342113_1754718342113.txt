@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VeganMapAI – API (Early Access)</title>
+  <script>(function(){try{var t=localStorage.getItem('theme')||'light';document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');}catch(e){}})();</script>
+  <style>
+    :root[data-theme="light"]{--bg-top:#f7fafc;--bg-bot:#eef2f7;--surface:#fff;--elev:#f5f7fb;--text:#0f1720;--muted:#4b5563;--line:rgba(15,23,32,.08);--accent:#22c55e;--accent-600:#16a34a}
+    :root[data-theme="dark"]{--bg-top:#0b0f14;--bg-bot:#0e141c;--surface:#121821;--elev:#0f1520;--text:#e8f0f7;--muted:#9fb0c3;--line:rgba(255,255,255,.08);--accent:#22c55e;--accent-600:#16a34a}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;background:linear-gradient(180deg,var(--bg-top),var(--bg-bot));color:var(--text)}
+    .wrap{max-width:860px;margin:0 auto;padding:24px 16px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+    h1{margin:0 0 12px} h2{margin:10px 0}
+    label{display:block;margin:8px 0 4px;font-weight:700}
+    input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--elev);color:var(--text)}
+    .btn{display:inline-flex;gap:8px;align-items:center;border-radius:999px;padding:10px 16px;border:1px solid var(--line);background:transparent;color:var(--text);font-weight:700}
+    .btn-primary{background:var(--accent);color:#06240f;border:0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Vegan Score API (Early Access)</h1>
+    <div class="card">
+      <p>Get programmatic access to place data, Vegan Scores, and updates as we expand to the Top 20 US cities.</p>
+      <ul>
+        <li><strong>Endpoints (planned):</strong> <code>/places</code>, <code>/scores/{placeId}</code>, <code>/webhooks/updates</code></li>
+        <li><strong>Use cases:</strong> restaurant apps, travel guides, corporate meal benefits, health/fitness apps</li>
+        <li><strong>Availability:</strong> staged rollout; partners prioritized by impact</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Request early access</h2>
+      <form onsubmit="event.preventDefault();alert('Thanks! We will contact you.');">
+        <label>Name</label><input required placeholder="Your name">
+        <label>Email</label><input required type="email" placeholder="you@company.com">
+        <label>Company</label><input placeholder="Company / Project">
+        <label>Use case</label><textarea rows="4" placeholder="Describe how you plan to use the API"></textarea>
+        <div style="margin-top:12px;display:flex;gap:10px;">
+          <button class="btn btn-primary" type="submit">Send</button>
+          <a class="btn" href="/pages/mock-step1.html">Back</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

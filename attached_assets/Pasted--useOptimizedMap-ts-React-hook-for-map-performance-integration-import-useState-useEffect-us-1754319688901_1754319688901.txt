@@ -1,0 +1,211 @@
+// useOptimizedMap.ts - React hook for map performance integration
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { MapPerformanceManager } from './MapPerformanceManager';
+
+interface Restaurant {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  veganScore: string;
+  cuisineTypes?: string[];
+  rating?: number;
+  priceLevel?: number;
+  address?: string;
+}
+
+interface UseOptimizedMapProps {
+  restaurants: Restaurant[];
+  initialCenter?: [number, number];
+  initialZoom?: number;
+  searchQuery?: string;
+  filters?: {
+    minScore?: number;
+    maxPrice?: number;
+    cuisineTypes?: string[];
+  };
+}
+
+interface MapState {
+  isLoading: boolean;
+  visibleRestaurants: Restaurant[];
+  performanceStats: any;
+  error: string | null;
+  mapBounds: any;
+}
+
+export const useOptimizedMap = ({
+  restaurants,
+  initialCenter = [42.6977, 23.3219],
+  initialZoom = 12,
+  searchQuery = '',
+  filters = {}
+}: UseOptimizedMapProps) => {
+  const [mapState, setMapState] = useState<MapState>({
+    isLoading: true,
+    visibleRestaurants: [],
+    performanceStats: {},
+    error: null,
+    mapBounds: null
+  });
+
+  // Create performance manager instance
+  const performanceManager = useMemo(() => new MapPerformanceManager(), []);
+
+  // Initialize restaurant dataset
+  useEffect(() => {
+    const initializeData = async () => {
+      if (!restaurants.length) return;
+
+      setMapState(prev => ({ ...prev, isLoading: true, error: null }));
+
+      try {
+        await performanceManager.initializeDataset(restaurants);
+        
+        setMapState(prev => ({
+          ...prev,
+          isLoading: false,
+          performanceStats: performanceManager.getStatistics()
+        }));
+      } catch (error) {
+        console.error('Failed to initialize map data:', error);
+        setMapState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'Failed to load restaurant data'
+        }));
+      }
+    };
+
+    initializeData();
+  }, [restaurants, performanceManager]);
+
+  // Handle viewport changes
+  const handleViewportChange = useCallback((bounds: any) => {
+    if (!performanceManager) return;
+
+    try {
+      const visibleRestaurants = performanceManager.updateViewport(bounds);
+      
+      setMapState(prev => ({
+        ...prev,
+        visibleRestaurants,
+        mapBounds: bounds,
+        performanceStats: performanceManager.getStatistics()
+      }));
+    } catch (error) {
+      console.error('Failed to update viewport:', error);
+    }
+  }, [performanceManager]);
+
+  // Handle search with filtering
+  const searchResults = useMemo(() => {
+    if (!performanceManager || mapState.isLoading) return [];
+
+    let results = performanceManager.searchInViewport(searchQuery);
+
+    // Apply filters
+    if (filters.minScore !== undefined) {
+      results = results.filter(restaurant => {
+        const score = parseFloat(restaurant.veganScore) || 0;
+        return score >= filters.minScore!;
+      });
+    }
+
+    if (filters.maxPrice !== undefined) {
+      results = results.filter(restaurant => {
+        const price = restaurant.priceLevel || 0;
+        return price <= filters.maxPrice!;
+      });
+    }
+
+    if (filters.cuisineTypes?.length) {
+      results = results.filter(restaurant => 
+        restaurant.cuisineTypes?.some(cuisine => 
+          filters.cuisineTypes!.includes(cuisine)
+        )
+      );
+    }
+
+    return results;
+  }, [performanceManager, mapState.isLoading, searchQuery, filters]);
+
+  // Update visible restaurants when search changes
+  useEffect(() => {
+    setMapState(prev => ({
+      ...prev,
+      visibleRestaurants: searchResults
+    }));
+  }, [searchResults]);
+
+  // Performance monitoring
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (performanceManager) {
+        setMapState(prev => ({
+          ...prev,
+          performanceStats: performanceManager.getStatistics()
+        }));
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [performanceManager]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      performanceManager.cleanup();
+    };
+  }, [performanceManager]);
+
+  // Map control functions
+  const mapControls = {
+    // Force refresh visible restaurants
+    refreshViewport: useCallback(() => {
+      if (mapState.mapBounds) {
+        handleViewportChange(mapState.mapBounds);
+      }
+    }, [mapState.mapBounds, handleViewportChange]),
+
+    // Get restaurants by quality tier
+    getRestaurantsByTier: useCallback((tier: 'premium' | 'good' | 'basic') => {
+      return performanceManager?.getRestaurantsByTier(tier) || [];
+    }, [performanceManager]),
+
+    // Update specific restaurants
+    updateRestaurants: useCallback((updatedRestaurants: Restaurant[]) => {
+      performanceManager?.updateRestaurants(updatedRestaurants);
+      mapControls.refreshViewport();
+    }, [performanceManager]),
+
+    // Get clustering strategy for current zoom
+    getClusteringStrategy: useCallback((zoom: number) => {
+      return performanceManager?.getClusteringStrategy(zoom) || 'cluster';
+    }, [performanceManager]),
+
+    // Get performance metrics
+    getPerformanceMetrics: useCallback(() => {
+      return performanceManager?.getPerformanceMetrics() || {};
+    }, [performanceManager])
+  };
+
+  return {
+    // State
+    isLoading: mapState.isLoading,
+    visibleRestaurants: mapState.visibleRestaurants,
+    performanceStats: mapState.performanceStats,
+    error: mapState.error,
+    
+    // Map props
+    mapProps: {
+      restaurants: mapState.visibleRestaurants,
+      center: initialCenter,
+      zoom: initialZoom,
+      onMapMove: handleViewportChange
+    },
+    
+    // Controls
+    ...mapControls
+  };
+};

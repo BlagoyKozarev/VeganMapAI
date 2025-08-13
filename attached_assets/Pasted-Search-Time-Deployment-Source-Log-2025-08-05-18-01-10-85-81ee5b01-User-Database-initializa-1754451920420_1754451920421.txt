@@ -1,0 +1,121 @@
+Search
+Time
+Deployment
+Source
+Log
+2025-08-05 18:01:10.85
+81ee5b01
+User
+❌ Database initialization failed: TypeError: value.toISOString is not a function
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at PgTimestamp.mapToDriverValue (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/columns/timestamp.js:34:18)
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:131:73
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at Array.map ()
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at SQL.buildQueryFromSourceParams (file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:73:32)
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:92:21
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at Array.map ()
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at SQL.buildQueryFromSourceParams (file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:73:32)
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:95:21
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at Array.map ()
+2025-08-05 18:01:10.85
+81ee5b01
+User
+at SQL.buildQueryFromSourceParams (file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:73:32)
+2025-08-05 18:08:58.35
+f08057a2
+User
+❌ Database initialization failed: TypeError: value.toISOString is not a function
+2025-08-05 18:08:58.35
+f08057a2
+User
+at PgTimestamp.mapToDriverValue (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/columns/timestamp.js:34:18)
+2025-08-05 18:08:58.35
+f08057a2
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:131:73
+2025-08-05 18:08:58.35
+f08057a2
+User
+at Array.map ()
+2025-08-05 18:08:58.35
+f08057a2
+User
+at SQL.buildQueryFromSourceParams (file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:73:32)
+2025-08-05 18:08:58.35
+f08057a2
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:92:21
+2025-08-05 18:08:58.35
+f08057a2
+User
+at Array.map ()
+2025-08-05 18:08:58.35
+f08057a2
+User
+at SQL.buildQueryFromSourceParams (file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:73:32)
+2025-08-05 18:08:58.35
+f08057a2
+User
+at file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:95:21
+2025-08-05 18:08:58.35
+f08057a2
+User
+at Array.map ()
+2025-08-05 18:08:58.35
+f08057a2
+User
+at SQL.buildQueryFromSourceParams (file:///home/runner/workspace/node_modules/drizzle-orm/sql/sql.js:73:32)
+2025-08-05 18:17:22.82
+f762cee1
+User
+Tue, 05 Aug 2025 15:17:22 GMT express deprecated req.host: Use req.hostname instead at file:/home/runner/workspace/node_modules/openid-client/build/passport.js:224:49
+2025-08-05 20:43:30.82
+3b0d5f45
+User
+Tue, 05 Aug 2025 17:43:30 GMT express deprecated req.host: Use req.hostname instead at file:/home/runner/workspace/node_modules/openid-client/build/passport.js:224:49
+2025-08-06 05:14:49.38
+ddf3d275
+User
+table: undefined,
+2025-08-06 05:14:49.38
+ddf3d275
+User
+column: undefined,
+2025-08-06 05:14:49.38
+ddf3d275
+User
+dataType: undefined,
+2025-08-06 05:14:49.38
+ddf3d275
+User
+constraint: undefined,
+2025-08-06 05:14:49.38
+ddf3d275
+User
+file: 'postgres.c',

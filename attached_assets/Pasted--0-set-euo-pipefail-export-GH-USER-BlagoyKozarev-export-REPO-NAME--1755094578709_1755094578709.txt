@@ -1,0 +1,133 @@
+# ====== 0) Настройки ======
+set -euo pipefail
+
+export GH_USER="BlagoyKozarev"
+export REPO_NAME="VeganMapAI"
+export MAIN_BRANCH="main"
+export CLEAN_BRANCH="clean/$(date +%Y%m%d)"
+export NEW_TOKEN="__NEW_GH_PAT__"   # <-- СМЕНИ МЕ
+
+# Проверка, че сме в git repo
+git rev-parse --is-inside-work-tree >/dev/null
+
+# ====== 1) Нормализирай remote (без токени в URL) ======
+git remote set-url origin "https://github.com/${GH_USER}/${REPO_NAME}.git"
+
+# По желание: временно използване на токена при push, без да го записваме в remote URL:
+git config --local credential.helper store
+echo "https://${NEW_TOKEN}:x-oauth-basic@github.com" > ~/.git-credentials
+chmod 600 ~/.git-credentials
+
+# ====== 2) Инсталирай git-filter-repo (ако липсва) ======
+if ! command -v git-filter-repo >/dev/null 2>&1; then
+  python3 -m pip install --user git-filter-repo
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
+# ====== 3) Игнорирай чувствителни файлове за в бъдеще ======
+cat >> .gitignore <<'EOF'
+# Secrets / keys / env
+*.key
+*.p12
+*.pem
+*.cer
+*.crt
+*.der
+*.jks
+*.keystore
+*.p8
+*.pfx
+*.json
+.env
+.env.*
+attached_assets/
+*.bak
+*.backup
+*.old
+# Replit artifacts (ако съдържат секрети)
+replit_secrets/* 
+EOF
+
+# Премахни вече тракнати секрети от index-а (не от диска)
+git rm -r --cached --ignore-unmatch attached_assets || true
+git rm --cached --ignore-unmatch *.json *.key *.p12 *.pem *.p8 *.pfx || true
+git rm --cached --ignore-unmatch .env .env.* || true
+
+git add -A
+git commit -m "chore(security): add .gitignore and untrack secrets" || true
+
+# ====== 4) Идентифицирай blob-овете, блокирани от Push Protection (по твоя лог) ======
+cat > blobs.txt <<'EOF'
+857b989b772b39270ff2463a1a0071cb579ec908
+16fff1a56e32780a1f0c3a0412f6d3cdfff43ee4
+1ccb3f191ee0c32cd093c389a07aaf3556b07d23
+0ba997fcf86d32e2c9a969d1c8a290de3e466bc9
+EOF
+
+# (По желание: виж по кои пътища са били тези blob-ове)
+git rev-list --objects --all | grep -F -f blobs.txt || true
+
+# ====== 5) Историческо чистене на секрети (безопасно, таргетирано) ======
+# 5.1 Премахни конкретните blob-ове, засечени от GitHub
+git filter-repo --force --strip-blobs-with-ids blobs.txt
+
+# 5.2 Премахни директории/файлови модели от цялата история (ако са съдържали ключове)
+git filter-repo --force \
+  --path attached_assets --invert-paths \
+  --path-glob '*.json' --invert-paths \
+  --path-glob '.env' --invert-paths \
+  --path-glob '.env.*' --invert-paths
+
+# 5.3 Замени очевидни токен/ключ патърни в историята (допълнителна мрежа за сигурност)
+cat > replacements.txt <<'EOF'
+regex:ghp_[A-Za-z0-9]+==>***REMOVED***
+regex:(?s)-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY----->***REMOVED***
+regex:(?i)"private_key"\s*:\s*".*?"==>"private_key":"***REMOVED***"
+regex:(?i)"client_secret"\s*:\s*".*?"==>"client_secret":"***REMOVED***"
+regex:(?i)"access_token"\s*:\s*".*?"==>"access_token":"***REMOVED***"
+EOF
+
+git filter-repo --force --replace-text replacements.txt
+
+# ====== 6) Локална проверка, че няма явни секрети ======
+# Бързи евристики:
+! git log -S "ghp_" --all || true
+! git grep -I -n "BEGIN PRIVATE KEY" -- $(git ls-files) || true
+! git grep -I -n "client_secret" -- $(git ls-files) || true
+! git grep -I -n "access_token" -- $(git ls-files) || true
+
+# ====== 7) Защита за бъдещи push-ове (pre-push hook със сканиране) ======
+mkdir -p .git/hooks
+cat > .git/hooks/pre-push <<'EOF'
+#!/usr/bin/env bash
+set -e
+# Леки проверки за очевидни секрети
+if git diff --cached | grep -E 'ghp_[A-Za-z0-9]+' -q; then
+  echo "❌ Detected token pattern ghp_... in staged changes. Aborting push."
+  exit 1
+fi
+if git diff --cached | grep -E 'BEGIN PRIVATE KEY' -q; then
+  echo "❌ Detected PRIVATE KEY in staged changes. Aborting push."
+  exit 1
+fi
+exit 0
+EOF
+chmod +x .git/hooks/pre-push
+
+# ====== 8) Push към чист клон (препоръчително), после PR към main ======
+# (Това избягва моментно блокиране от правила върху main и дава шанс за преглед)
+git branch -f "${CLEAN_BRANCH}"
+git push -u origin "HEAD:${CLEAN_BRANCH}" --force
+
+echo "✅ Изпратих чиста история към: ${CLEAN_BRANCH}"
+echo "👉 Отвори PR ${CLEAN_BRANCH} → ${MAIN_BRANCH} в GitHub UI и merge-ни."
+
+# ====== 9) (Алтернатива) Директен push към main (ако предпочиташ) ======
+# ВНИМАНИЕ: Може пак да задейства защитите, ако е останало нещо скрито.
+# Разкоментирай следния ред само ако искаш директно:
+# git push origin "HEAD:${MAIN_BRANCH}" --force-with-lease
+
+# ====== 10) Финално: почисти временни файлове ======
+rm -f blobs.txt replacements.txt
+
+echo "🎉 Готово. Историята е пречистена, секретите игнорирани и чист клон е качен."

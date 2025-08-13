@@ -1,0 +1,212 @@
+# REPLIT AGENT INSTRUCTIONS - VeganMapAI Project
+
+## 🎯 PROJECT OVERVIEW
+VeganMapAI is a critical production application expanding to top 20 US cities. Every change must be careful and tested.
+
+## ⚠️ MANDATORY CONSULTATION PROTOCOL
+
+### ALWAYS ASK USER BEFORE:
+1. **Database schema changes** - Any modification to `shared/schema.ts`
+2. **API endpoint changes** - Adding/modifying routes in `server/`
+3. **Multi-agent system changes** - Modifications to `server/agents/`
+4. **Authentication logic** - Changes to auth flow
+5. **Map clustering logic** - Leaflet/clustering modifications
+6. **Environment variables** - Adding new required vars
+7. **Package.json changes** - New dependencies
+8. **Build configuration** - Vite/TypeScript config changes
+
+### SAFE TO PROCEED INDEPENDENTLY:
+- CSS/styling fixes
+- UI component tweaks
+- Text content updates
+- Minor bug fixes in existing logic
+- Console.log additions for debugging
+
+## 🔍 DEBUGGING PROTOCOL
+
+### Before Making Changes:
+1. **Identify the exact error** - Read full error message
+2. **Check recent changes** - What was modified last?
+3. **Test in isolation** - Can you reproduce the issue?
+4. **Document the problem** - Screenshot + error text
+
+### When Stuck (More than 10 minutes):
+```
+❌ STOP CODING
+📸 Take screenshot of error
+📝 Document what you tried
+💬 Ask user: "I'm encountering [specific issue]. Here's what I've tried: [list attempts]. Should I continue with [proposed solution] or would you like to review this first?"
+```
+
+## 🛠️ DEVELOPMENT WORKFLOW
+
+### 1. Before Starting Any Task:
+```bash
+# Always check current state
+npm run check  # TypeScript validation
+npm run dev    # Ensure server starts
+```
+
+### 2. Making Changes:
+- **Small incremental changes** - One feature at a time
+- **Test frequently** - Check browser after each change
+- **Commit often** - Save progress regularly
+
+### 3. Common Commands:
+```bash
+# Database operations
+npm run db:push          # Apply schema changes
+npm run db:studio        # Open database browser
+
+# Development
+npm run dev             # Start dev server
+npm run build          # Production build
+npm run start          # Production server
+
+# TypeScript checking
+npm run check          # Type validation
+```
+
+## 🚨 ERROR HANDLING GUIDE
+
+### Database Errors:
+```
+Connection refused → Check DATABASE_URL in secrets
+Migration errors → Ask user before running db:push
+Schema conflicts → STOP - consult user immediately
+```
+
+### API Errors:
+```
+OpenAI API → Check OPENAI_API_KEY and usage limits
+Google Maps → Verify GOOGLE_MAPS_API_KEY and quotas
+401/403 errors → Authentication issue - ask user
+```
+
+### Build Errors:
+```
+TypeScript errors → Fix types, don't ignore with 'any'
+Import errors → Check file paths and exports
+Vite errors → Check vite.config.ts
+```
+
+## 📁 PROJECT STRUCTURE GUIDE
+
+```
+VeganMapAI/
+├── client/src/          # React frontend
+│   ├── components/      # UI components
+│   ├── pages/          # Page components
+│   └── lib/            # Utilities
+├── server/             # Express backend
+│   ├── agents/         # AI agents (CRITICAL - ask before changes)
+│   ├── routes/         # API endpoints
+│   └── db.ts           # Database connection
+├── shared/             # Shared types and schemas
+│   └── schema.ts       # Database schema (ASK BEFORE CHANGES)
+└── package.json        # Dependencies
+```
+
+## 🎯 FEATURE DEVELOPMENT PRIORITIES
+
+### HIGH PRIORITY (Ask user first):
+1. Multi-agent system improvements
+2. Scoring algorithm changes
+3. Database performance optimization
+4. Authentication enhancements
+5. Map clustering modifications
+
+### MEDIUM PRIORITY (Can implement):
+1. UI/UX improvements
+2. Error message enhancements
+3. Loading states
+4. Responsive design fixes
+5. Accessibility improvements
+
+### LOW PRIORITY (Safe to do):
+1. Styling tweaks
+2. Text updates
+3. Icon changes
+4. Color adjustments
+5. Animation improvements
+
+## 🔧 SPECIFIC PROJECT KNOWLEDGE
+
+### Voice Chat System:
+- Uses OpenAI Whisper for speech-to-text
+- 3-second silence detection is critical
+- Bulgarian language support required
+- Mobile fallback to text input
+
+### Map System:
+- Leaflet with markercluster
+- Blue circles for clusters, green markers for restaurants
+- Geo-hash caching system is essential for cost control
+- Viewport-based loading for performance
+
+### Scoring System:
+- 6-dimension vegan scoring (Menu Variety, Ingredient Clarity, etc.)
+- Weights can be adjusted in admin interface
+- Never change scoring logic without user approval
+
+### Cost Optimization:
+- Google Places API calls are expensive
+- Caching is critical for sustainability
+- Monitor API usage carefully
+
+## 💡 COMMUNICATION TEMPLATES
+
+### When Asking for Help:
+```
+🚨 REPLIT AGENT REQUEST FOR GUIDANCE
+
+Issue: [Specific problem description]
+Location: [File/function where issue occurs]
+Error Message: [Full error text]
+What I tried: [List of attempted solutions]
+Proposed solution: [What I think should be done]
+
+Should I proceed with the proposed solution or would you like to review this first?
+```
+
+### When Reporting Success:
+```
+✅ TASK COMPLETED
+
+What was done: [Brief description]
+Files modified: [List of changed files]
+Testing status: [How it was tested]
+Any concerns: [Potential issues to watch]
+```
+
+## 🎮 TESTING CHECKLIST
+
+### Before Deployment:
+- [ ] TypeScript compiles without errors
+- [ ] Server starts successfully  
+- [ ] Map loads with restaurants
+- [ ] Voice chat works (desktop)
+- [ ] Search functionality works
+- [ ] Mobile responsive design
+- [ ] No console errors
+
+### Performance Checks:
+- [ ] Page load time < 3 seconds
+- [ ] API responses < 1 second
+- [ ] No memory leaks
+- [ ] Smooth animations
+- [ ] Clustering works properly
+
+## 🚀 DEPLOYMENT NOTES
+
+- Production environment: Replit Deployment
+- Database: Neon PostgreSQL
+- Secrets management: Replit secrets
+- Domain: Custom domain setup required
+
+---
+
+## ⭐ REMEMBER: 
+**This is a business-critical application expanding to US markets. When in doubt, ASK THE USER first. Better to be safe than break production!**
+
+**Priority: Stability > Speed > Features**

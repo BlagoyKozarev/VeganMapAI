@@ -1,0 +1,758 @@
+# 🎨 UI CONSISTENCY & POSITIONING - REPLIT AGENT INSTRUCTIONS
+
+## OBJECTIVE
+
+Optimize window positioning, sizes, and visual consistency across all UI components for a professional, cohesive experience.
+
+## CURRENT PROBLEMS
+
+- Inconsistent modal/popup sizes
+- Poor positioning of dialogs and overlays
+- Different styling patterns across components
+- Modals may appear off-screen or poorly positioned
+- Inconsistent spacing, fonts, and visual hierarchy
+
+## IMPLEMENTATION PLAN
+
+### STEP 1: Create Consistent Design System (30 min)
+
+**1.1 Create Design Tokens File**
+
+**Create new file: `client/src/styles/designTokens.ts`**
+
+```typescript
+export const designTokens = {
+  // Spacing system
+  spacing: {
+    xs: '4px',
+    sm: '8px', 
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    '2xl': '48px',
+    '3xl': '64px'
+  },
+
+  // Modal and popup sizes
+  modalSizes: {
+    small: {
+      width: '320px',
+      maxWidth: '90vw',
+      minHeight: '200px'
+    },
+    medium: {
+      width: '480px', 
+      maxWidth: '90vw',
+      minHeight: '300px'
+    },
+    large: {
+      width: '640px',
+      maxWidth: '95vw', 
+      minHeight: '400px'
+    },
+    fullScreen: {
+      width: '100vw',
+      height: '100vh',
+      maxWidth: 'none'
+    }
+  },
+
+  // Popup positioning
+  popupSizes: {
+    tooltip: {
+      maxWidth: '280px',
+      padding: '12px'
+    },
+    scoreExplanation: {
+      width: '320px',
+      maxWidth: '90vw',
+      padding: '16px'
+    },
+    restaurantCard: {
+      width: '360px',
+      maxWidth: '95vw', 
+      minHeight: '200px',
+      padding: '20px'
+    }
+  },
+
+  // Typography scale
+  typography: {
+    h1: { fontSize: '28px', fontWeight: '700', lineHeight: '1.2' },
+    h2: { fontSize: '24px', fontWeight: '600', lineHeight: '1.3' },
+    h3: { fontSize: '20px', fontWeight: '600', lineHeight: '1.4' },
+    h4: { fontSize: '18px', fontWeight: '600', lineHeight: '1.4' },
+    body: { fontSize: '16px', fontWeight: '400', lineHeight: '1.5' },
+    bodySmall: { fontSize: '14px', fontWeight: '400', lineHeight: '1.4' },
+    caption: { fontSize: '12px', fontWeight: '400', lineHeight: '1.3' }
+  },
+
+  // Color system
+  colors: {
+    primary: '#22C55E',      // Green
+    primaryHover: '#16A34A',
+    secondary: '#3B82F6',    // Blue  
+    secondaryHover: '#2563EB',
+    text: {
+      primary: '#111827',
+      secondary: '#6B7280', 
+      muted: '#9CA3AF'
+    },
+    background: {
+      primary: '#FFFFFF',
+      secondary: '#F9FAFB',
+      overlay: 'rgba(0, 0, 0, 0.5)'
+    },
+    border: '#E5E7EB',
+    success: '#10B981',
+    warning: '#F59E0B', 
+    error: '#EF4444'
+  },
+
+  // Shadows
+  shadows: {
+    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+  },
+
+  // Border radius
+  borderRadius: {
+    sm: '4px',
+    md: '8px', 
+    lg: '12px',
+    xl: '16px',
+    full: '9999px'
+  },
+
+  // Z-index layers
+  zIndex: {
+    base: 0,
+    dropdown: 10,
+    overlay: 20,
+    modal: 30,
+    popover: 40,
+    tooltip: 50,
+    toast: 60
+  }
+};
+```
+
+**1.2 Create Consistent Modal Component**
+
+**Create/Update file: `client/src/components/ui/Modal.tsx`**
+
+```typescript
+import React, { useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
+import { designTokens } from '../../styles/designTokens';
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  size?: 'small' | 'medium' | 'large' | 'fullScreen';
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function Modal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  size = 'medium', 
+  children, 
+  className = '' 
+}: ModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const modalSize = designTokens.modalSizes[size];
+
+  // Handle ESC key and outside clicks
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="modal-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: designTokens.colors.background.overlay,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: designTokens.zIndex.modal,
+        padding: designTokens.spacing.md
+      }}
+    >
+      <div
+        ref={modalRef}
+        className={`modal-content ${className}`}
+        style={{
+          backgroundColor: designTokens.colors.background.primary,
+          borderRadius: designTokens.borderRadius.lg,
+          boxShadow: designTokens.shadows.xl,
+          width: modalSize.width,
+          maxWidth: modalSize.maxWidth,
+          minHeight: modalSize.minHeight,
+          maxHeight: '90vh',
+          overflow: 'auto',
+          position: 'relative'
+        }}
+      >
+        {/* Header */}
+        <div 
+          className="modal-header"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: `${designTokens.spacing.lg} ${designTokens.spacing.lg} ${designTokens.spacing.md}`,
+            borderBottom: `1px solid ${designTokens.colors.border}`
+          }}
+        >
+          {title && (
+            <h2 style={{
+              ...designTokens.typography.h3,
+              color: designTokens.colors.text.primary,
+              margin: 0
+            }}>
+              {title}
+            </h2>
+          )}
+          <button
+            onClick={onClose}
+            className="modal-close-button"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: designTokens.spacing.sm,
+              borderRadius: designTokens.borderRadius.md,
+              color: designTokens.colors.text.secondary,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div 
+          className="modal-body"
+          style={{
+            padding: designTokens.spacing.lg
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### STEP 2: Create Consistent Popup/Popover Component (30 min)
+
+**Create file: `client/src/components/ui/Popover.tsx`**
+
+```typescript
+import React, { useEffect, useRef, useState } from 'react';
+import { designTokens } from '../../styles/designTokens';
+
+interface PopoverProps {
+  isOpen: boolean;
+  onClose: () => void;
+  trigger: React.ReactElement;
+  content: React.ReactNode;
+  placement?: 'top' | 'bottom' | 'left' | 'right' | 'auto';
+  size?: 'tooltip' | 'scoreExplanation' | 'restaurantCard';
+  className?: string;
+}
+
+export function Popover({
+  isOpen,
+  onClose,
+  trigger,
+  content,
+  placement = 'auto',
+  size = 'tooltip',
+  className = ''
+}: PopoverProps) {
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [actualPlacement, setActualPlacement] = useState(placement);
+
+  const popoverSize = designTokens.popupSizes[size];
+
+  // Calculate optimal position
+  useEffect(() => {
+    if (!isOpen || !triggerRef.current || !popoverRef.current) return;
+
+    const triggerRect = triggerRef.current.getBoundingClientRect();
+    const popoverRect = popoverRef.current.getBoundingClientRect();
+    const viewport = {
+      width: window.innerWidth,
+      height: window.innerHeight
+    };
+
+    let top = 0;
+    let left = 0;
+    let finalPlacement = placement;
+
+    // Auto placement logic
+    if (placement === 'auto') {
+      const spaceBelow = viewport.height - triggerRect.bottom;
+      const spaceAbove = triggerRect.top;
+      const spaceRight = viewport.width - triggerRect.right;
+      const spaceLeft = triggerRect.left;
+
+      if (spaceBelow >= popoverRect.height) {
+        finalPlacement = 'bottom';
+      } else if (spaceAbove >= popoverRect.height) {
+        finalPlacement = 'top';
+      } else if (spaceRight >= popoverRect.width) {
+        finalPlacement = 'right';
+      } else {
+        finalPlacement = 'left';
+      }
+    }
+
+    // Position calculation based on placement
+    switch (finalPlacement) {
+      case 'bottom':
+        top = triggerRect.bottom + 8;
+        left = triggerRect.left + (triggerRect.width - popoverRect.width) / 2;
+        break;
+      case 'top':
+        top = triggerRect.top - popoverRect.height - 8;
+        left = triggerRect.left + (triggerRect.width - popoverRect.width) / 2;
+        break;
+      case 'right':
+        top = triggerRect.top + (triggerRect.height - popoverRect.height) / 2;
+        left = triggerRect.right + 8;
+        break;
+      case 'left':
+        top = triggerRect.top + (triggerRect.height - popoverRect.height) / 2;
+        left = triggerRect.left - popoverRect.width - 8;
+        break;
+    }
+
+    // Keep within viewport bounds
+    left = Math.max(8, Math.min(left, viewport.width - popoverRect.width - 8));
+    top = Math.max(8, Math.min(top, viewport.height - popoverRect.height - 8));
+
+    setPosition({ top, left });
+    setActualPlacement(finalPlacement);
+  }, [isOpen, placement]);
+
+  // Handle outside clicks
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        popoverRef.current &&
+        !popoverRef.current.contains(e.target as Node) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(e.target as Node)
+      ) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onClose]);
+
+  return (
+    <>
+      {/* Trigger */}
+      <div ref={triggerRef} className="popover-trigger">
+        {trigger}
+      </div>
+
+      {/* Popover */}
+      {isOpen && (
+        <div
+          ref={popoverRef}
+          className={`popover-content ${className}`}
+          style={{
+            position: 'fixed',
+            top: position.top,
+            left: position.left,
+            width: popoverSize.width || 'auto',
+            maxWidth: popoverSize.maxWidth || '90vw',
+            backgroundColor: designTokens.colors.background.primary,
+            border: `1px solid ${designTokens.colors.border}`,
+            borderRadius: designTokens.borderRadius.lg,
+            boxShadow: designTokens.shadows.lg,
+            padding: popoverSize.padding,
+            zIndex: designTokens.zIndex.popover,
+            fontSize: designTokens.typography.bodySmall.fontSize,
+            lineHeight: designTokens.typography.bodySmall.lineHeight
+          }}
+        >
+          {content}
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+### STEP 3: Standardize Restaurant Components (45 min)
+
+**3.1 Update Restaurant Card Component**
+
+**Find and update restaurant card component:**
+
+```typescript
+import { designTokens } from '../styles/designTokens';
+
+export function RestaurantCard({ restaurant, onSelect, className = '' }) {
+  return (
+    <div
+      className={`restaurant-card ${className}`}
+      style={{
+        backgroundColor: designTokens.colors.background.primary,
+        border: `1px solid ${designTokens.colors.border}`,
+        borderRadius: designTokens.borderRadius.lg,
+        padding: designTokens.spacing.lg,
+        marginBottom: designTokens.spacing.md,
+        boxShadow: designTokens.shadows.md,
+        cursor: 'pointer',
+        transition: 'all 0.2s ease-in-out',
+        minHeight: '140px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between'
+      }}
+      onClick={() => onSelect(restaurant)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = designTokens.shadows.lg;
+        e.currentTarget.style.borderColor = designTokens.colors.primary;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = designTokens.shadows.md;
+        e.currentTarget.style.borderColor = designTokens.colors.border;
+      }}
+    >
+      {/* Header */}
+      <div style={{ marginBottom: designTokens.spacing.md }}>
+        <h3 style={{
+          ...designTokens.typography.h4,
+          color: designTokens.colors.text.primary,
+          margin: 0,
+          marginBottom: designTokens.spacing.sm
+        }}>
+          {restaurant.name}
+        </h3>
+        <p style={{
+          ...designTokens.typography.bodySmall,
+          color: designTokens.colors.text.secondary,
+          margin: 0
+        }}>
+          {restaurant.address}
+        </p>
+      </div>
+
+      {/* Score and Details */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: designTokens.spacing.sm
+        }}>
+          <span style={{
+            ...designTokens.typography.h4,
+            color: designTokens.colors.primary,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}>
+            ⭐ {restaurant.veganScore}
+          </span>
+        </div>
+        
+        <div style={{
+          ...designTokens.typography.caption,
+          color: designTokens.colors.text.muted,
+          textAlign: 'right'
+        }}>
+          {restaurant.cuisineTypes?.[0] || 'Restaurant'}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**3.2 Update Map Popup Styling**
+
+```typescript
+// Standardize map popup styling
+const createPopupContent = (restaurant) => {
+  return `
+    <div class="map-popup" style="
+      min-width: 280px;
+      max-width: 320px;
+      padding: ${designTokens.spacing.md};
+      font-family: inherit;
+    ">
+      <h3 style="
+        font-size: ${designTokens.typography.h4.fontSize};
+        font-weight: ${designTokens.typography.h4.fontWeight};
+        color: ${designTokens.colors.text.primary};
+        margin: 0 0 ${designTokens.spacing.sm} 0;
+        line-height: ${designTokens.typography.h4.lineHeight};
+      ">${restaurant.name}</h3>
+      
+      <p style="
+        font-size: ${designTokens.typography.bodySmall.fontSize};
+        color: ${designTokens.colors.text.secondary};
+        margin: 0 0 ${designTokens.spacing.md} 0;
+        line-height: ${designTokens.typography.bodySmall.lineHeight};
+      ">${restaurant.address}</p>
+      
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: ${designTokens.spacing.sm};
+        border-top: 1px solid ${designTokens.colors.border};
+      ">
+        <span style="
+          font-size: ${designTokens.typography.body.fontSize};
+          font-weight: 600;
+          color: ${designTokens.colors.primary};
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        ">⭐ ${restaurant.veganScore}</span>
+        
+        <span style="
+          font-size: ${designTokens.typography.caption.fontSize};
+          color: ${designTokens.colors.text.muted};
+        ">${restaurant.cuisineTypes?.[0] || 'Restaurant'}</span>
+      </div>
+    </div>
+  `;
+};
+```
+
+### STEP 4: Create Responsive Layout System (30 min)
+
+**4.1 Add Global CSS Reset and Layout**
+
+**Create/update file: `client/src/styles/global.css`**
+
+```css
+/* Design System CSS Variables */
+:root {
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+
+  --color-primary: #22C55E;
+  --color-primary-hover: #16A34A;
+  --color-secondary: #3B82F6;
+  --color-secondary-hover: #2563EB;
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F9FAFB;
+  --color-border: #E5E7EB;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+}
+
+/* Consistent button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  min-height: 44px; /* Touch-friendly */
+  text-decoration: none;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-secondary-hover);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* Consistent form inputs */
+.input {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 44px; /* Touch-friendly */
+  transition: border-color 0.2s ease-in-out;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* Responsive breakpoints */
+@media (max-width: 640px) {
+  .modal-content {
+    margin: var(--spacing-md);
+    width: calc(100vw - 32px) !important;
+    max-width: none !important;
+  }
+  
+  .popover-content {
+    max-width: calc(100vw - 32px) !important;
+  }
+  
+  .restaurant-card {
+    margin-bottom: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    margin: var(--spacing-sm);
+    width: calc(100vw - 16px) !important;
+  }
+  
+  .btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: 40px;
+  }
+}
+```
+
+## STEP 5: Testing UI Consistency (20 min)
+
+**5.1 UI Testing Checklist**
+
+```bash
+# 1. Test all modals and popups:
+#    - Restaurant details modal
+#    - Score explanation popover
+#    - Settings/filters modal
+#    - Search results popup
+
+# 2. Check positioning on different screen sizes:
+#    - Desktop (1920x1080)
+#    - Tablet (768x1024) 
+#    - Mobile (375x667)
+#    - Mobile landscape (667x375)
+
+# 3. Verify consistent styling:
+#    - Same fonts across components
+#    - Consistent spacing and padding
+#    - Same border radius and shadows
+#    - Consistent color usage
+
+# 4. Test interactive states:
+#    - Hover effects on cards and buttons
+#    - Focus states on inputs
+#    - Loading states consistency
+
+# 5. Check accessibility:
+#    - Touch targets >= 44px
+#    - Proper contrast ratios
+#    - Keyboard navigation works
+```
+
+## SUCCESS CRITERIA
+
+✅ **Consistent Sizing**: All modals use standard sizes (small/medium/large)
+✅ **Smart Positioning**: Popups never appear off-screen or poorly positioned  
+✅ **Visual Harmony**: Same fonts, spacing, colors throughout the app
+✅ **Touch-Friendly**: All interactive elements >= 44px touch targets
+✅ **Responsive**: Perfect on desktop, tablet, and mobile
+✅ **Professional Appearance**: Cohesive design system
+
+## ESTIMATED TIME: 2.5 hours
+
+This will give VeganMapAI a polished, professional appearance with consistent UX across all components!

@@ -1,0 +1,99 @@
+REPLIT AGENT — WIRE MORE FILTERS TO MAP
+
+Цел:
+„Apply Filters“ от drawer-а да филтрира маркерите по price / cuisine / allergens / min rating, заедно с вече работещите: Only fully vegan и Search.
+
+ФАЙЛ ЗА ПРОМЯНА: public/assets/js/map-wire.js
+
+# A) Разшири store.filters (в горната част)
+НАМЕРИ:
+  filters: { onlyVegan:false, q:'' },
+ЗАМЕНИ С:
+  filters: { onlyVegan:false, q:'', price:'', cuisine:'', allergen:'', minRating:'' },
+
+# B) Добави помощни функции (постави ги над applyFilters)
+ВМЪКНИ:
+  function hasCuisine(p, wanted){
+    if (!wanted) return true;
+    return (p.cuisines||[]).map(x=>String(x).toLowerCase()).includes(String(wanted).toLowerCase());
+  }
+  function passPrice(p, wanted){
+    if (!wanted) return true;               // '' => Any
+    return String(p.price||'') === String(wanted);
+  }
+  function passAllergen(p, wanted){
+    if (!wanted) return true;               // демо: няма реални полета -> винаги true
+    // TODO: когато има реални данни: проверка по p.allergens и т.н.
+    return true;
+  }
+  function passRating(p, min){
+    if (!min) return true;
+    const s = typeof p.score==='number' ? p.score : null;
+    return s==null ? false : (s >= Number(min));
+  }
+
+# C) В applyFilters() включи новите критерии
+НАМЕРИ функцията applyFilters() и ЗАМЕНИ тялото на filter с:
+  store.filtered = store.all.filter(p=>{
+    if (store.filters.onlyVegan && !p.vegan_full) return false;
+
+    // Search по name / address / cuisines
+    const needle = (store.filters.q||'').trim().toLowerCase();
+    if (needle){
+      const hay = [p.name, p.address, ...(p.cuisines||[])].join(' ').toLowerCase();
+      if (!hay.includes(needle)) return false;
+    }
+
+    // NEW: Price / Cuisine / Allergen / Rating
+    if (!passPrice(p, store.filters.price)) return false;
+    if (!hasCuisine(p, store.filters.cuisine)) return false;
+    if (!passAllergen(p, store.filters.allergen)) return false;
+    if (!passRating(p, store.filters.minRating)) return false;
+
+    return true;
+  });
+
+# D) Закачи Apply Filters от drawer-а
+В НАЧАЛОТО НА WIRE.init() (след wireOnlyVeganChip(); wireSearch(); и преди fetchData()), добави:
+  // Drawer → прочитаме стойности и прилагаме
+  const mfApply = document.getElementById('mf-apply');
+  if (mfApply){
+    mfApply.addEventListener('click', ()=>{
+      const price   = (document.getElementById('mf-price')||{}).value || '';
+      const cuisine = (document.getElementById('mf-cuisine')||{}).value || '';
+      const allerg  = (document.getElementById('mf-allergens')||{}).value || '';
+      const rating  = (document.getElementById('mf-rating')||{}).value || '';
+
+      store.filters.price     = price;
+      store.filters.cuisine   = cuisine;
+      store.filters.allergen  = allerg;
+      store.filters.minRating = rating;
+
+      applyFilters();
+      document.getElementById('vm-drawer')?.classList.remove('open');
+    });
+  }
+
+# E) (Опционално) Нулиране на разширените филтри при бутона Reset (ако имате такъв)
+Ако имате бутон Reset в overlay (id="vm-reset"), можете да добавите:
+  const resetBtn = document.getElementById('vm-reset');
+  if (resetBtn){
+    resetBtn.addEventListener('click', ()=>{
+      store.filters = { onlyVegan:false, q:'', price:'', cuisine:'', allergen:'', minRating:'' };
+      applyFilters();
+      // визуално изчистване в drawer (ако е отворен):
+      ['mf-price','mf-cuisine','mf-allergens','mf-rating'].forEach(id=>{
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      // и в чипа Only fully vegan:
+      const ov = document.querySelector('.vm-chip[data-chip="only-vegan"]');
+      if (ov) ov.dataset.on = '0';
+      // търсене:
+      const inp = document.getElementById('vm-q'); if (inp) inp.value = '';
+    });
+  }
+
+# F) Кеш-бъст тест
+- Отвори /test-map?v=96
+- „More filters“ → задайте Price, Cuisine, Allergens, Min. Rating → Apply Filters
+- Очаквано: маркерите се филтрират комбинирано с „Only fully vegan“ и Search; fitBounds остава активен.
