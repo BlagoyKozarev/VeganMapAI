@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <!-- Simple, neutral, rounded-ish icons; replace paths later with your preferred set -->
+  <symbol id="search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="7" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </symbol>
+
+  <symbol id="target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+    <circle cx="12" cy="12" r="9" stroke-opacity=".25"/>
+  </symbol>
+
+  <symbol id="user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="8" r="4"/>
+    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+  </symbol>
+
+  <symbol id="sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"/>
+    <path d="M18 14l.8 1.8L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-1.2L18 14z"/>
+  </symbol>
+</svg>

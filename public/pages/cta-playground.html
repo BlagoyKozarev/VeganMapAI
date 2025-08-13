@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VeganMapAI – CTA Playground</title>
+  <script>
+    (function(){try{var t=localStorage.getItem('theme')||'light';
+      document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');
+    }catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+  </script>
+  <style>
+    :root[data-theme="light"]{
+      --bg-top:#f7fafc; --bg-bot:#eef2f7; --surface:#fff; --elev:#f5f7fb;
+      --text:#0f1720; --muted:#4b5563; --line:rgba(15,23,32,0.08);
+      --accent:#22c55e; --accent-600:#16a34a; --focus:#2563eb; --active:#eaf3ff;
+    }
+    :root[data-theme="dark"]{
+      --bg-top:#0b0f14; --bg-bot:#0e141c; --surface:#121821; --elev:#0f1520;
+      --text:#e8f0f7; --muted:#9fb0c3; --line:rgba(255,255,255,0.08);
+      --accent:#22c55e; --accent-600:#16a34a; --focus:#5ac8fa; --active:#1a2330;
+    }
+    *{box-sizing:border-box} html,body{margin:0}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+         background:linear-gradient(180deg,var(--bg-top),var(--bg-bot)); color:var(--text);}
+    .wrap{max-width:1000px;margin:0 auto;padding:20px 16px}
+    h1{margin:12px 0 6px} .muted{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 340px;gap:16px}
+    .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 16px;
+         border:1px solid var(--line);background:transparent;color:var(--text);font-weight:700}
+    .btn:hover{background:var(--elev)} .btn:focus{outline:2px solid var(--focus);outline-offset:2px}
+    .btn-primary{background:var(--accent);color:#06240f;border:0}
+    .btn-primary:hover{background:var(--accent-600)}
+    .btn-ghost{background:transparent}
+    .tiny{font-size:12px}
+    textarea{width:100%;height:260px;background:var(--elev);color:var(--text);border:1px solid var(--line);
+             border-radius:10px;padding:10px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+    label{font-weight:700} select{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--text)}
+    .section-title{margin:10px 0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>CTA Playground</h1>
+    <div class="muted">Prototype labels, placement, and click behavior. Logs on the right.</div>
+    <div class="grid" style="margin-top:12px;">
+      <!-- Left: CTA variants -->
+      <div class="card">
+        <h3 class="section-title">Header CTAs (visual only)</h3>
+        <div class="row">
+          <button class="btn btn-ghost" data-id="search-header" data-action="/test-map?loc=auto">Search</button>
+          <button class="btn btn-primary" data-id="signin-header" data-action="/test-map?loc=auto">Sign in</button>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+        <h3 class="section-title">Hero CTAs</h3>
+        <div class="row">
+          <button class="btn btn-ghost" data-id="search-hero" data-action="/test-map?loc=auto">Search</button>
+          <button class="btn btn-primary" data-id="signin-hero" data-action="/test-map?loc=auto">Sign in</button>
+        </div>
+        <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+        <h3 class="section-title">Map-level CTAs</h3>
+        <div class="row">
+          <button class="btn btn-ghost" data-id="use-location" data-action="geo">Use my location</button>
+          <button class="btn btn-ghost" data-id="filters" data-action="open-filters">Filters</button>
+          <button class="btn btn-ghost" data-id="add-place" data-action="open-add">Add place</button>
+          <button class="btn btn-primary" data-id="open-gmaps" data-action="gmaps">Open in Google Maps</button>
+        </div>
+
+        <div style="margin-top:14px" class="card">
+          <label for="variant">Button style preset:</label>
+          <select id="variant">
+            <option value="default" selected>Default</option>
+            <option value="compact">Compact</option>
+            <option value="outline">Outline stronger</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Right: Logs -->
+      <div class="card">
+        <h3 class="section-title">Interaction log</h3>
+        <textarea readonly id="log"></textarea>
+        <div class="row" style="margin-top:10px;justify-content:flex-end">
+          <button class="btn tiny" id="clear">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="tiny muted">Note: This page does not change production routes. It logs clicks and shows visual styles; wiring real actions happens when we integrate on the map page.</div>
+    </div>
+  </div>
+
+  <script>
+    const logEl = document.getElementById('log');
+    const append = (msg) => {
+      const ts = new Date().toLocaleTimeString();
+      logEl.value = `[${ts}] ${msg}\n` + logEl.value;
+    };
+    document.querySelectorAll('button[data-id]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        append(`Click: ${id} → ${action}`);
+        // demo behaviors (no real navigation)
+        if(action === 'geo') append('• would request geolocation and center map');
+        if(action === 'open-filters') append('• would open filter panel above the map');
+        if(action === 'open-add') append('• would open Add place modal/form');
+        if(action === 'gmaps') append('• would open Google Maps with selected place');
+      });
+    });
+    document.getElementById('clear').addEventListener('click', ()=> logEl.value = '');
+
+    // style presets
+    document.getElementById('variant').addEventListener('change', (e)=>{
+      const v = e.target.value;
+      document.querySelectorAll('.btn').forEach(b=>{
+        b.style.padding = (v==='compact') ? '8px 12px' : '10px 16px';
+        b.style.borderWidth = (v==='outline') ? '2px' : '1px';
+      });
+      append(`Style preset: ${v}`);
+    });
+  </script>
+</body>
+</html>

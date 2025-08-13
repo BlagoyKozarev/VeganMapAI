@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeganMapAI – Намери веган ресторанти около теб</title>
+  <meta name="description" content="Интерактивна веган карта с оценки, ресторанти и персонализирани препоръки.">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Открий най-добрите веган ресторанти</h1>
+    <nav>
+      <ul>
+        <li><a href="#">Начало</a></li>
+        <li><a href="#about">За нас</a></li>
+        <li><a href="#api">API достъп</a></li>
+        <li><a href="#contact">Контакт</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section id="intro">
+    <p>VeganMapAI ти помага да откриеш най-добрите веган заведения около теб, използвайки интелигентна система за оценка и филтрация. Намери ресторанти, виж оценки и препоръки.</p>
+    <button onclick="alert('Функцията предстои!')">Регистрирай се</button>
+  </section>
+
+  <div id="map" style="width:100%; height:600px;"></div>
+
+  <footer>
+    <p>&copy; 2025 VeganMapAI. Всички права запазени.</p>
+    <p>Контакт: hello@veganmapai.ai</p>
+  </footer>
+
+  <script>
+    let map;
+    const markers = [];
+
+    async function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 42.6977, lng: 23.3219 },
+        zoom: 13,
+      });
+
+      // Симулирани ресторанти
+      const locations = [
+        { lat: 42.6977, lng: 23.3219, name: "Vegan Place Sofia" },
+        { lat: 42.698, lng: 23.323, name: "Green Food Spot" },
+        { lat: 42.699, lng: 23.319, name: "Planty Bistro" },
+      ];
+
+      for (const loc of locations) {
+        const marker = new google.maps.Marker({
+          position: { lat: loc.lat, lng: loc.lng },
+          map,
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<strong>${loc.name}</strong><br><button onclick='alert("Още инфо скоро!")'>Детайли</button>`
+        });
+
+        marker.addListener("click", () => {
+          infoWindow.open(map, marker);
+        });
+
+        markers.push(marker);
+      }
+
+      // Кластеризация
+      new markerClusterer.MarkerClusterer({
+        map,
+        markers,
+      });
+    }
+
+    window.initMap = initMap;
+  </script>
+</body>
+</html>
+
+/* --- style.css (примерен CSS) --- */
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f9f9f9;
+  color: #333;
+}
+
+header {
+  background: #2c3e50;
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 1.5rem;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+}
+
+section#intro {
+  padding: 1rem;
+  text-align: center;
+  background: #e8f6ec;
+}
+
+section#intro button {
+  padding: 0.5rem 1rem;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+footer {
+  background: #2c3e50;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+}

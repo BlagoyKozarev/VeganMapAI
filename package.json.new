@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "deploy:gcp": "bash ./gcp-full-deploy.sh",
+    "qa:full": "bash ./qa-comprehensive.sh"
+  }
+}

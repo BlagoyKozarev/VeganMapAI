@@ -1,0 +1,167 @@
+// auth-fix-solution.ts - Make map data publicly accessible
+
+// SOLUTION 1: Create public endpoint for map data (RECOMMENDED)
+// Add this to server/routes/restaurants.ts
+
+import { Router } from 'express';
+import { db } from '../db.ts';
+import { restaurants } from '../../shared/schema.ts';
+import { sql } from 'drizzle-orm';
+
+const router = Router();
+
+// PUBLIC endpoint for map data (no authentication required)
+router.get('/public/map-data', async (req, res) => {
+  try {
+    const { lat, lng, radius = 50000 } = req.query;
+    
+    let query = db.select({
+      id: restaurants.id,
+      name: restaurants.name,
+      latitude: restaurants.latitude,
+      longitude: restaurants.longitude,
+      veganScore: restaurants.veganScore,
+      cuisineTypes: restaurants.cuisineTypes,
+      rating: restaurants.rating,
+      priceLevel: restaurants.priceLevel,
+      address: restaurants.address
+    }).from(restaurants);
+
+    // If location provided, filter by radius
+    if (lat && lng) {
+      const latitude = parseFloat(lat as string);
+      const longitude = parseFloat(lng as string);
+      const radiusKm = parseInt(radius as string) / 1000;
+      
+      query = query.where(
+        sql`
+          ST_DWithin(
+            ST_MakePoint(${longitude}, ${latitude})::geography,
+            ST_MakePoint(longitude::float, latitude::float)::geography,
+            ${radiusKm * 1000}
+          )
+        `
+      ) as any;
+    }
+
+    const restaurantData = await query.limit(2000); // Limit for performance
+    
+    res.json({
+      success: true,
+      restaurants: restaurantData,
+      count: restaurantData.length,
+      public: true // Indicate this is public data
+    });
+    
+  } catch (error) {
+    console.error('Public map data error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch restaurant data',
+      restaurants: []
+    });
+  }
+});
+
+// SOLUTION 2: Make existing endpoint conditionally public
+router.get('/all-available', async (req, res) => {
+  try {
+    // Check if user is authenticated
+    const isAuthenticated = req.session?.user || req.user;
+    
+    // For map viewing, allow public access with limited data
+    const isMapRequest = req.query.purpose === 'map' || req.header('X-Map-Request');
+    
+    if (!isAuthenticated && !isMapRequest) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required for full access',
+        hint: 'Use public map endpoint or login for full features'
+      });
+    }
+
+    // Get restaurant data
+    const { lat, lng, radius = 50000 } = req.query;
+    
+    let restaurantData;
+    
+    if (isAuthenticated) {
+      // Full data for authenticated users
+      restaurantData = await getFullRestaurantData(lat, lng, radius);
+    } else {
+      // Limited public data for map viewing
+      restaurantData = await getPublicMapData(lat, lng, radius);
+    }
+    
+    res.json({
+      success: true,
+      restaurants: restaurantData,
+      count: restaurantData.length,
+      authenticated: !!isAuthenticated
+    });
+    
+  } catch (error) {
+    console.error('Restaurant API error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch restaurants'
+    });
+  }
+});
+
+// Helper functions
+async function getFullRestaurantData(lat?: any, lng?: any, radius?: any) {
+  let query = db.select().from(restaurants);
+  
+  if (lat && lng) {
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    const radiusKm = parseInt(radius) / 1000;
+    
+    query = query.where(
+      sql`
+        ST_DWithin(
+          ST_MakePoint(${longitude}, ${latitude})::geography,
+          ST_MakePoint(longitude::float, latitude::float)::geography,
+          ${radiusKm * 1000}
+        )
+      `
+    ) as any;
+  }
+  
+  return await query.limit(2000);
+}
+
+async function getPublicMapData(lat?: any, lng?: any, radius?: any) {
+  // Limited data for public access
+  let query = db.select({
+    id: restaurants.id,
+    name: restaurants.name,
+    latitude: restaurants.latitude,
+    longitude: restaurants.longitude,
+    veganScore: restaurants.veganScore,
+    cuisineTypes: restaurants.cuisineTypes,
+    rating: restaurants.rating,
+    address: restaurants.address
+  }).from(restaurants);
+  
+  if (lat && lng) {
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    const radiusKm = parseInt(radius) / 1000;
+    
+    query = query.where(
+      sql`
+        ST_DWithin(
+          ST_MakePoint(${longitude}, ${latitude})::geography,
+          ST_MakePoint(longitude::float, latitude::float)::geography,
+          ${radiusKm * 1000}
+        )
+      `
+    ) as any;
+  }
+  
+  return await query.limit(1000); // Smaller limit for public access
+}
+
+export { router };

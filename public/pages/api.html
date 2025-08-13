@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Early Access - VeganMapAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        .badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+        }
+        p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+        .feature-list {
+            margin: 2rem 0;
+        }
+        .feature-list li {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            position: relative;
+            color: #555;
+        }
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .code-block {
+            background: #f4f4f4;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .signup-form {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="email"],
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .submit-btn {
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .submit-btn:hover {
+            background: #45a049;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #764ba2;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Home</a>
+        <h1>VeganMapAI API</h1>
+        <span class="badge">Early Access</span>
+        
+        <p>
+            Get programmatic access to our comprehensive vegan restaurant database and AI scoring system. 
+            Perfect for developers building vegan-focused applications, research projects, or integrations.
+        </p>
+
+        <h2 style="margin-top: 2rem; color: #333;">What's Included</h2>
+        <ul class="feature-list">
+            <li>Access to 477+ vegan-friendly restaurants in Sofia</li>
+            <li>Real-time AI vegan scoring (0-10 scale)</li>
+            <li>Detailed score component breakdowns</li>
+            <li>Location-based search and filtering</li>
+            <li>Cuisine types and price levels</li>
+            <li>RESTful JSON API with simple authentication</li>
+            <li>Rate limit: 1000 requests/day (beta)</li>
+        </ul>
+
+        <h2 style="margin-top: 2rem; color: #333;">Example Request</h2>
+        <div class="code-block">
+            <code>
+GET /api/restaurants?lat=42.6977&lng=23.3219&radius=5000<br>
+Authorization: Bearer YOUR_API_KEY<br><br>
+
+Response:<br>
+{<br>
+  "restaurants": [<br>
+    {<br>
+      "id": "abc123",<br>
+      "name": "Green Garden",<br>
+      "vegan_score": 8.5,<br>
+      "location": { "lat": 42.6977, "lng": 23.3219 },<br>
+      "cuisines": ["bulgarian", "mediterranean"],<br>
+      "price_level": "$$"<br>
+    }<br>
+  ]<br>
+}
+            </code>
+        </div>
+
+        <div class="signup-form">
+            <h2 style="color: #333; margin-bottom: 1rem;">Request Early Access</h2>
+            <form id="apiSignupForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="developer@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="company">Company/Project (Optional)</label>
+                    <input type="text" id="company" name="company" placeholder="Your company or project name">
+                </div>
+                <div class="form-group">
+                    <label for="use-case">How will you use the API?</label>
+                    <input type="text" id="use-case" name="use-case" required placeholder="Brief description of your use case">
+                </div>
+                <button type="submit" class="submit-btn">Request Access</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('apiSignupForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Thank you for your interest! We\'ll contact you soon with API access details.');
+            e.target.reset();
+        });
+    </script>
+</body>
+</html>

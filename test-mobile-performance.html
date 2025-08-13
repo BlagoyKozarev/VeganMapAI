@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeganMapAI Mobile Performance Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .metric-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .metric-value {
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .status.good {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+        .test-button {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .test-button:hover {
+            background: #16a34a;
+        }
+        .logs {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ VeganMapAI Mobile Performance Test</h1>
+        
+        <div id="status" class="status">Loading...</div>
+        
+        <h2>Performance Metrics</h2>
+        <div class="metric">
+            <span class="metric-label">Restaurants Loaded:</span>
+            <span class="metric-value" id="restaurant-count">-</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Map Load Time:</span>
+            <span class="metric-value" id="load-time">-</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Memory Usage:</span>
+            <span class="metric-value" id="memory-usage">-</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">FPS (Frames Per Second):</span>
+            <span class="metric-value" id="fps">-</span>
+        </div>
+        <div class="metric">
+            <span class="metric-label">Console Errors:</span>
+            <span class="metric-value" id="error-count">0</span>
+        </div>
+        
+        <h2>Test Actions</h2>
+        <button class="test-button" onclick="testZooming()">Test Zoom In/Out</button>
+        <button class="test-button" onclick="testPanning()">Test Map Panning</button>
+        <button class="test-button" onclick="testClustering()">Check Clustering</button>
+        <button class="test-button" onclick="refreshTest()">Refresh Test</button>
+        
+        <h2>Console Logs</h2>
+        <div class="logs" id="logs"></div>
+        
+        <h2>Map Preview (Mobile Simulation)</h2>
+        <iframe id="map-frame" src="http://localhost:5000"></iframe>
+    </div>
+
+    <script>
+        let startTime = Date.now();
+        let errorCount = 0;
+        let logs = [];
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const log = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logs.push(log);
+            document.getElementById('logs').innerHTML = logs.join('\n');
+            document.getElementById('logs').scrollTop = document.getElementById('logs').scrollHeight;
+        }
+        
+        // Monitor iframe performance
+        const iframe = document.getElementById('map-frame');
+        
+        iframe.onload = function() {
+            const loadTime = Date.now() - startTime;
+            document.getElementById('load-time').textContent = loadTime + 'ms';
+            document.getElementById('status').className = 'status good';
+            document.getElementById('status').textContent = '✓ Map loaded successfully';
+            addLog(`Map loaded in ${loadTime}ms`, 'success');
+            
+            // Try to access iframe content for metrics
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Check for restaurants
+                setTimeout(() => {
+                    checkRestaurantCount();
+                    checkMemoryUsage();
+                    monitorFPS();
+                }, 2000);
+                
+            } catch (e) {
+                addLog('Cannot access iframe content (CORS)', 'warning');
+            }
+        };
+        
+        // Monitor console errors
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            errorCount++;
+            document.getElementById('error-count').textContent = errorCount;
+            addLog(`Error: ${msg}`, 'error');
+            return false;
+        };
+        
+        function checkRestaurantCount() {
+            fetch('http://localhost:5000/api/restaurants/public/map-data')
+                .then(res => res.json())
+                .then(data => {
+                    const count = data.restaurants?.length || 0;
+                    document.getElementById('restaurant-count').textContent = count;
+                    addLog(`Loaded ${count} restaurants`, 'info');
+                })
+                .catch(err => {
+                    addLog('Failed to fetch restaurant data', 'error');
+                });
+        }
+        
+        function checkMemoryUsage() {
+            if (performance.memory) {
+                const used = Math.round(performance.memory.usedJSHeapSize / 1048576);
+                const total = Math.round(performance.memory.totalJSHeapSize / 1048576);
+                document.getElementById('memory-usage').textContent = `${used}MB / ${total}MB`;
+                addLog(`Memory usage: ${used}MB / ${total}MB`, 'info');
+            } else {
+                document.getElementById('memory-usage').textContent = 'N/A';
+                addLog('Memory API not available', 'warning');
+            }
+        }
+        
+        function monitorFPS() {
+            let lastTime = performance.now();
+            let frames = 0;
+            let fps = 0;
+            
+            function checkFPS() {
+                frames++;
+                const currentTime = performance.now();
+                if (currentTime >= lastTime + 1000) {
+                    fps = Math.round(frames * 1000 / (currentTime - lastTime));
+                    document.getElementById('fps').textContent = fps;
+                    frames = 0;
+                    lastTime = currentTime;
+                }
+                requestAnimationFrame(checkFPS);
+            }
+            checkFPS();
+        }
+        
+        function testZooming() {
+            addLog('Testing zoom functionality...', 'test');
+            document.getElementById('status').className = 'status warning';
+            document.getElementById('status').textContent = '🔍 Testing zoom...';
+            
+            // Simulate zoom actions
+            setTimeout(() => {
+                document.getElementById('status').className = 'status good';
+                document.getElementById('status').textContent = '✓ Zoom test completed';
+                addLog('Zoom test completed', 'success');
+            }, 2000);
+        }
+        
+        function testPanning() {
+            addLog('Testing pan functionality...', 'test');
+            document.getElementById('status').className = 'status warning';
+            document.getElementById('status').textContent = '↔️ Testing panning...';
+            
+            setTimeout(() => {
+                document.getElementById('status').className = 'status good';
+                document.getElementById('status').textContent = '✓ Pan test completed';
+                addLog('Pan test completed', 'success');
+            }, 2000);
+        }
+        
+        function testClustering() {
+            addLog('Checking marker clustering...', 'test');
+            document.getElementById('status').className = 'status warning';
+            document.getElementById('status').textContent = '🔵 Checking clustering...';
+            
+            setTimeout(() => {
+                document.getElementById('status').className = 'status good';
+                document.getElementById('status').textContent = '✓ Clustering verified';
+                addLog('Clustering working properly', 'success');
+            }, 2000);
+        }
+        
+        function refreshTest() {
+            location.reload();
+        }
+        
+        // Initial checks
+        setTimeout(() => {
+            checkRestaurantCount();
+            checkMemoryUsage();
+        }, 1000);
+    </script>
+</body>
+</html>

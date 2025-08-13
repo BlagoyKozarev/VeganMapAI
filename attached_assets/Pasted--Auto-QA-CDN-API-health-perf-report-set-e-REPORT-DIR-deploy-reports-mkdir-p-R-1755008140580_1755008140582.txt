@@ -1,0 +1,135 @@
+# === Auto QA: CDN + API health/perf report ===
+set +e
+REPORT_DIR="./deploy_reports"
+mkdir -p "$REPORT_DIR"
+TS="$(date +%Y-%m-%d_%H-%M-%S)"
+REPORT_FILE="$REPORT_DIR/report_$TS.md"
+
+# Конфигурация и прагове (можеш да ги промениш)
+THRESHOLD_CDN_MS=800          # очакван TTFB за CDN (ms)
+THRESHOLD_HEALTHZ_MS=500      # очакван /healthz (ms)
+THRESHOLD_RECOMMEND_MS=1500   # очакван /recommend (ms)
+THRESHOLD_RECOMMEND_MIN_BYTES=500   # минимален очакван размер (байтове)
+THRESHOLD_FEATURES_MIN=300    # минимален брой Feature обекти в GeoJSON
+
+# Откриване на базови URL-и
+SERVICE_URL="$(gcloud run services describe veganmapai-service --region europe-central2 --format='value(status.url)' 2>/dev/null)"
+API_LOCAL="http://localhost:5000"
+API_REMOTE="${SERVICE_URL:-}"
+RECOMMEND_URL_LOCAL="${API_LOCAL}/api/recommend"
+RECOMMEND_URL_REMOTE="${API_REMOTE%/}/api/recommend"
+HEALTHZ_LOCAL="${API_LOCAL}/healthz"
+HEALTHZ_REMOTE="${API_REMOTE%/}/healthz"
+
+# Очакван CDN файл (взет от предходните стъпки на скрипта)
+CDN_URL="${CDN_GEOJSON_URL:-$(grep -E '^NEXT_PUBLIC_CDN_GEOJSON=' .env.production .env.local 2>/dev/null | tail -1 | cut -d= -f2-)}"
+
+echo "# VeganMapAI Deploy QA – ${TS}" > "$REPORT_FILE"
+
+# 1) CDN HEAD + метрики
+if [[ -n "$CDN_URL" ]]; then
+  read -r CDN_HTTP CDN_SIZE CDN_TIME_MS <<<"$(
+    curl -sI "$CDN_URL" \
+      -w "%{http_code} %{size_download} %{time_starttransfer}\n" -o /dev/null 2>/dev/null |
+    awk '{printf "%s %s %.0f", $1, $2, $3*1000}'
+  )"
+  echo "## CDN" >> "$REPORT_FILE"
+  echo "- URL: $CDN_URL" >> "$REPORT_FILE"
+  echo "- HTTP: $CDN_HTTP" >> "$REPORT_FILE"
+  echo "- TTFB: ${CDN_TIME_MS} ms (threshold ${THRESHOLD_CDN_MS} ms)" >> "$REPORT_FILE"
+  echo "- Reported Size (HEAD): ${CDN_SIZE} B" >> "$REPORT_FILE"
+
+  # Бърза валидация на съдържанието (изтегля само първите ~64KB)
+  HEAD_CHUNK="$(curl -s --range 0-65535 "$CDN_URL")"
+  FEATURES_COUNT="$(printf "%s" "$HEAD_CHUNK" | grep -o '"type"[[:space:]]*:[[:space:]]*"Feature"' | wc -l | tr -d ' ')"
+  echo "- Detected Features (chunk scan): ${FEATURES_COUNT} (threshold ≥ ${THRESHOLD_FEATURES_MIN})" >> "$REPORT_FILE"
+else
+  echo "## CDN\n- URL: (missing)\n- Skipped." >> "$REPORT_FILE"
+fi
+
+# 2) /healthz (локално → remote fallback) с метрики
+health_check() {
+  local url="$1"
+  [[ -z "$url" ]] && return 1
+  curl -sS -o /dev/null -w "%{http_code} %{time_total}\n" "$url" 2>/dev/null \
+    | awk '{printf "%s %.0f", $1, $2*1000}'
+}
+
+HEALTH_HTTP=""; HEALTH_MS=""
+read -r HEALTH_HTTP HEALTH_MS <<<"$(health_check "$HEALTHZ_LOCAL")"
+if [[ "$HEALTH_HTTP" != "200" || -z "$HEALTH_MS" ]]; then
+  read -r HEALTH_HTTP HEALTH_MS <<<"$(health_check "$HEALTHZ_REMOTE")"
+  HEALTH_TARGET="$HEALTHZ_REMOTE"
+else
+  HEALTH_TARGET="$HEALTHZ_LOCAL"
+fi
+
+echo -e "\n## /healthz" >> "$REPORT_FILE"
+echo "- URL: ${HEALTH_TARGET:-(none)}" >> "$REPORT_FILE"
+echo "- HTTP: ${HEALTH_HTTP:-NA}" >> "$REPORT_FILE"
+echo "- Time: ${HEALTH_MS:-NA} ms (threshold ${THRESHOLD_HEALTHZ_MS} ms)" >> "$REPORT_FILE"
+
+# 3) /recommend (JSON с CDN file) – метрики и размер
+recommend_json() {
+  local url="$1"
+  [[ -z "$url" || -z "$CDN_URL" ]] && return 1
+  curl -sS -X POST "$url" \
+    -H "Content-Type: application/json" \
+    -d "{\"lat\":42.6977,\"lng\":23.3219,\"radius\":5000,\"minScore\":0,\"file\":\"${CDN_URL}\"}" \
+    -w "\n__HTTP__:%{http_code} __TIME__:%{time_total} __SIZE__:%{size_download}\n" 2>/dev/null
+}
+
+REC_HTTP=""; REC_MS=""; REC_SIZE=""
+RESP="$(recommend_json "$RECOMMEND_URL_LOCAL")"
+if ! echo "$RESP" | grep -q "__HTTP__:"; then
+  RESP="$(recommend_json "$RECOMMEND_URL_REMOTE")"
+  REC_TARGET="$RECOMMEND_URL_REMOTE"
+else
+  REC_TARGET="$RECOMMEND_URL_LOCAL"
+fi
+
+if echo "$RESP" | grep -q "__HTTP__:"; then
+  REC_HTTP="$(echo "$RESP" | sed -n 's/.*__HTTP__:\([0-9]*\).*/\1/p')"
+  REC_MS="$(echo "$RESP"   | sed -n 's/.*__TIME__:\([0-9.]*\).*/\1/p' | awk '{printf "%.0f", $1*1000}')"
+  REC_SIZE="$(echo "$RESP" | sed -n 's/.*__SIZE__:\([0-9]*\).*/\1/p')"
+fi
+
+echo -e "\n## /recommend" >> "$REPORT_FILE"
+echo "- URL: ${REC_TARGET:-(none)}" >> "$REPORT_FILE"
+echo "- HTTP: ${REC_HTTP:-NA}" >> "$REPORT_FILE"
+echo "- Time: ${REC_MS:-NA} ms (threshold ${THRESHOLD_RECOMMEND_MS} ms)" >> "$REPORT_FILE"
+echo "- Size: ${REC_SIZE:-NA} B (min ${THRESHOLD_RECOMMEND_MIN_BYTES} B)" >> "$REPORT_FILE"
+
+# 4) Резюме + exit code
+STATUS="OK"
+FAILS=()
+
+# CDN проверки
+if [[ -n "$CDN_URL" ]]; then
+  [[ "$CDN_HTTP" != "200" ]] && FAILS+=("CDN HTTP $CDN_HTTP")
+  [[ -n "$CDN_TIME_MS" && "$CDN_TIME_MS" -gt "$THRESHOLD_CDN_MS" ]] && FAILS+=("CDN TTFB ${CDN_TIME_MS}ms")
+  [[ -n "$FEATURES_COUNT" && "$FEATURES_COUNT" -lt "$THRESHOLD_FEATURES_MIN" ]] && FAILS+=("CDN features $FEATURES_COUNT")
+else
+  FAILS+=("CDN URL missing")
+fi
+
+# healthz
+[[ "$HEALTH_HTTP" != "200" ]] && FAILS+=("healthz HTTP $HEALTH_HTTP")
+[[ -n "$HEALTH_MS" && "$HEALTH_MS" -gt "$THRESHOLD_HEALTHZ_MS" ]] && FAILS+=("healthz ${HEALTH_MS}ms")
+
+# recommend
+[[ "$REC_HTTP" != "200" ]] && FAILS+=("recommend HTTP $REC_HTTP")
+[[ -n "$REC_MS" && "$REC_MS" -gt "$THRESHOLD_RECOMMEND_MS" ]] && FAILS+=("recommend ${REC_MS}ms")
+[[ -n "$REC_SIZE" && "$REC_SIZE" -lt "$THRESHOLD_RECOMMEND_MIN_BYTES" ]] && FAILS+=("recommend size ${REC_SIZE}B")
+
+if (( ${#FAILS[@]} )); then
+  STATUS="FAIL"
+fi
+
+echo -e "\n## Summary" >> "$REPORT_FILE"
+echo "- Status: ${STATUS}" >> "$REPORT_FILE"
+for f in "${FAILS[@]}"; do echo "  • $f" >> "$REPORT_FILE"; done
+
+set -e
+[[ "$STATUS" == "OK" ]] || { echo "❌ Deploy QA failed. See $REPORT_FILE"; exit 1; }
+echo "✅ Deploy QA passed. Report: $REPORT_FILE"

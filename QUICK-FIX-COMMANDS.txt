@@ -1,0 +1,11 @@
+КОПИРАЙТЕ ТОЧНО ТЕЗИ КОМАНДИ В НОВ ТЕРМИНАЛ:
+
+rm -f .git/index.lock
+export TOKEN="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"
+git remote set-url origin https://BlagoyKozarev:$TOKEN@github.com/BlagoyKozarev/VeganMapAI.git
+git add -A
+git commit -m "VeganMapAI Production Complete - 407 Sofia restaurants, MarkerCluster, all APIs"
+git push origin main
+
+СЛЕД ТОВА ПРОВЕРЕТЕ:
+git log --oneline -3

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vegan Score Methodology - VeganMapAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+        h2 {
+            color: #333;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: #555;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .score-component {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .component-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .weight-badge {
+            background: #4CAF50;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+        .formula {
+            background: #f4f4f4;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        .example-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        ul {
+            margin-left: 2rem;
+            margin-top: 0.5rem;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        .score-scale {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+        }
+        .scale-item {
+            text-align: center;
+            flex: 1;
+        }
+        .scale-value {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+        .scale-label {
+            font-size: 0.875rem;
+            color: #666;
+        }
+        .excellent { color: #2e7d32; }
+        .good { color: #558b2f; }
+        .moderate { color: #f57c00; }
+        .limited { color: #d32f2f; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" class="back-link">← Back to Home</a>
+    </div>
+    
+    <div class="container">
+        <h1>Vegan Score Methodology</h1>
+        
+        <p>
+            Our AI-powered vegan scoring system analyzes multiple factors to provide a comprehensive 
+            assessment of how vegan-friendly a restaurant is. The score ranges from 0 to 10, 
+            with 10 being a fully vegan establishment.
+        </p>
+
+        <div class="score-scale">
+            <div class="scale-item">
+                <span class="scale-value excellent">8-10</span>
+                <span class="scale-label">Excellent</span>
+            </div>
+            <div class="scale-item">
+                <span class="scale-value good">6-7.9</span>
+                <span class="scale-label">Good</span>
+            </div>
+            <div class="scale-item">
+                <span class="scale-value moderate">4-5.9</span>
+                <span class="scale-label">Moderate</span>
+            </div>
+            <div class="scale-item">
+                <span class="scale-value limited">0-3.9</span>
+                <span class="scale-label">Limited</span>
+            </div>
+        </div>
+
+        <h2>Score Components</h2>
+
+        <div class="score-component">
+            <div class="component-header">
+                <h3>1. Menu Purity</h3>
+                <span class="weight-badge">Weight: 30%</span>
+            </div>
+            <p>Evaluates the proportion and quality of vegan options on the menu.</p>
+            <ul>
+                <li>100% vegan menu: 10 points</li>
+                <li>Dedicated vegan section: 7-9 points</li>
+                <li>Multiple vegan options: 4-6 points</li>
+                <li>Few or no vegan options: 0-3 points</li>
+            </ul>
+        </div>
+
+        <div class="score-component">
+            <div class="component-header">
+                <h3>2. Clear Labeling</h3>
+                <span class="weight-badge">Weight: 20%</span>
+            </div>
+            <p>Assesses how clearly vegan options are marked and communicated.</p>
+            <ul>
+                <li>Clear vegan symbols/labels: 8-10 points</li>
+                <li>Vegan items listed separately: 5-7 points</li>
+                <li>Must ask staff: 2-4 points</li>
+                <li>No clear identification: 0-1 points</li>
+            </ul>
+        </div>
+
+        <div class="score-component">
+            <div class="component-header">
+                <h3>3. Staff Knowledge</h3>
+                <span class="weight-badge">Weight: 15%</span>
+            </div>
+            <p>Measures staff understanding of vegan dietary requirements.</p>
+            <ul>
+                <li>Expert knowledge: 8-10 points</li>
+                <li>Good understanding: 5-7 points</li>
+                <li>Basic knowledge: 2-4 points</li>
+                <li>Limited understanding: 0-1 points</li>
+            </ul>
+        </div>
+
+        <div class="score-component">
+            <div class="component-header">
+                <h3>4. Cross-Contamination Prevention</h3>
+                <span class="weight-badge">Weight: 15%</span>
+            </div>
+            <p>Evaluates measures to prevent cross-contamination with animal products.</p>
+            <ul>
+                <li>Separate preparation areas: 8-10 points</li>
+                <li>Dedicated equipment: 5-7 points</li>
+                <li>Basic precautions: 2-4 points</li>
+                <li>No special measures: 0-1 points</li>
+            </ul>
+        </div>
+
+        <div class="score-component">
+            <div class="component-header">
+                <h3>5. Variety & Innovation</h3>
+                <span class="weight-badge">Weight: 10%</span>
+            </div>
+            <p>Considers the creativity and variety of vegan offerings.</p>
+            <ul>
+                <li>Innovative vegan cuisine: 8-10 points</li>
+                <li>Good variety: 5-7 points</li>
+                <li>Basic options: 2-4 points</li>
+                <li>Very limited choices: 0-1 points</li>
+            </ul>
+        </div>
+
+        <div class="score-component">
+            <div class="component-header">
+                <h3>6. Price Accessibility</h3>
+                <span class="weight-badge">Weight: 10%</span>
+            </div>
+            <p>Assesses the affordability of vegan options compared to non-vegan items.</p>
+            <ul>
+                <li>Same or lower price: 8-10 points</li>
+                <li>Slightly higher (+10-20%): 5-7 points</li>
+                <li>Moderately higher (+20-40%): 2-4 points</li>
+                <li>Significantly higher (+40%): 0-1 points</li>
+            </ul>
+        </div>
+
+        <h2>Calculation Formula</h2>
+        <div class="formula">
+            Final Score = Σ(Component Score × Component Weight)
+            
+            Example:
+            Menu Purity: 8 × 0.30 = 2.4
+            Clear Labeling: 7 × 0.20 = 1.4
+            Staff Knowledge: 6 × 0.15 = 0.9
+            Cross-Contamination: 5 × 0.15 = 0.75
+            Variety: 7 × 0.10 = 0.7
+            Price: 8 × 0.10 = 0.8
+            
+            Total Score = 6.95
+        </div>
+
+        <div class="example-box">
+            <h3>Example: Fully Vegan Restaurant</h3>
+            <p>
+                A 100% vegan restaurant typically scores 9.0-10.0 because it excels in menu purity, 
+                has no cross-contamination concerns, and staff are fully knowledgeable about vegan requirements.
+            </p>
+        </div>
+
+        <h2>Data Sources</h2>
+        <p>Our AI analyzes multiple data sources to calculate scores:</p>
+        <ul>
+            <li>Restaurant menus and websites</li>
+            <li>Customer reviews and ratings</li>
+            <li>Social media mentions</li>
+            <li>Direct restaurant surveys</li>
+            <li>Community contributions</li>
+        </ul>
+
+        <h2>Score Updates</h2>
+        <p>
+            Scores are recalculated periodically as new data becomes available. Restaurants can 
+            request a manual review if they've made significant changes to their vegan offerings.
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,146 @@
+# 🚨 REPLIT AGENT INSTRUCTIONS: Fix Production Database Connection
+
+## URGENT: DATABASE CONNECTION ISSUE RESOLUTION
+
+**Context**: VeganMapAI production deployment shows 0 restaurants due to incorrect DATABASE_URL password `npg_Ks8nuIrDCqe4`. Development environment works perfectly with 408 restaurants. This is the ONLY blocker preventing NYC launch.
+
+## STEP-BY-STEP MANDATORY ACTIONS
+
+### STEP 1: Create New Replit PostgreSQL Database
+```
+1. In the current VeganMapAI Replit project, click "Database" tab in left sidebar
+2. Click "Create PostgreSQL Database" button
+3. Wait for Replit to provision the new database
+4. Copy the new DATABASE_URL connection string that appears
+5. The new URL format will be: postgresql://username:NEW_CORRECT_PASSWORD@host:5432/dbname
+```
+
+### STEP 2: Update Environment Variables
+```
+1. Go to "Secrets" (Environment Variables) in Replit
+2. Find the existing DATABASE_URL secret
+3. Replace the old value with the NEW DATABASE_URL from Step 1
+4. Ensure the new URL has the correct password (NOT npg_Ks8nuIrDCqe4)
+5. Save the changes
+```
+
+### STEP 3: Apply Database Schema
+```bash
+# Run this command in Replit terminal:
+npm run db:push
+
+# Expected output: Schema successfully applied to new database
+# If errors occur, STOP and report the exact error message
+```
+
+### STEP 4: Test Database Connection
+```bash
+# Run this command to test connection:
+npm run dev
+
+# Expected behavior: 
+# - Server starts without database connection errors
+# - Check console for "Database connected successfully" or similar
+# - If connection fails, STOP and report the exact error
+```
+
+### STEP 5: Import Restaurant Data
+```bash
+# Look for existing import script in package.json or root directory
+# Common patterns:
+npm run import-restaurants
+# OR
+node scripts/import-restaurants.js
+# OR
+node import-data.js
+
+# If no import script exists, report this and ask for guidance
+# Expected result: 408 restaurants imported to new database
+```
+
+### STEP 6: Verify Development Environment
+```bash
+# Test that development still works:
+npm run dev
+
+# Open the application in browser
+# Verify: Map shows restaurants (should be 408 total)
+# Verify: All features work (search, voice, filters, etc.)
+```
+
+### STEP 7: Deploy to Production
+```bash
+# Redeploy the application:
+# Click "Deploy" button in Replit interface
+# OR use CLI if available:
+# replit deploy
+
+# Monitor deployment logs for any errors
+```
+
+### STEP 8: Test Production Deployment
+```
+1. Open the production URL (deployed Replit app)
+2. Verify restaurants appear on the map
+3. Test core functionality: search, filters, restaurant details
+4. Report exact count of restaurants visible
+5. Note any errors or missing functionality
+```
+
+## CRITICAL SUCCESS CRITERIA
+
+- [ ] New DATABASE_URL connects successfully
+- [ ] Development environment shows 408 restaurants
+- [ ] Production deployment shows 408 restaurants  
+- [ ] No database connection errors in logs
+- [ ] All features functional in production
+
+## ERROR HANDLING PROTOCOL
+
+**IF ANY STEP FAILS:**
+1. Take screenshot of the error
+2. Copy exact error message text
+3. Note which step failed
+4. Report using this format:
+
+```
+🚨 STEP [X] FAILED
+
+Error: [Exact error message]
+Location: [Where the error occurred]
+Screenshot: [Attach if possible]
+Current state: [What is working/not working]
+
+AWAITING GUIDANCE - DO NOT PROCEED FURTHER
+```
+
+## EXPECTED TIMELINE
+- Steps 1-4: 10 minutes
+- Steps 5-6: 5 minutes  
+- Steps 7-8: 10 minutes
+- **Total: ~25 minutes to complete**
+
+## POST-COMPLETION REPORT FORMAT
+
+```
+✅ DATABASE FIX COMPLETED
+
+✓ New Replit database created
+✓ DATABASE_URL updated in secrets
+✓ Schema applied successfully
+✓ Restaurant data imported: [COUNT] restaurants
+✓ Development environment: [WORKING/ISSUES]
+✓ Production deployment: [WORKING/ISSUES]
+✓ Features tested: [LIST WHAT WORKS]
+
+VeganMapAI is now ready for NYC launch: [YES/NO]
+```
+
+## REMEMBER
+- This is a business-critical fix for immediate NYC launch
+- Development environment has 408 restaurants and works perfectly
+- The ONLY issue is production database connection
+- Success means VeganMapAI can launch immediately with full functionality
+- DO NOT make any code changes - only database configuration changes
+
+**PRIORITY: Execute these steps immediately and report progress after each step.**

@@ -1,0 +1,264 @@
+Ти си DevOps + Full‑Stack агент по проекта VeganMapAI. Изпълни следното, като описваш накратко всяка промяна и накрая пуснеш проверки:
+
+GOAL
+1) Активирай клъстеризация на маркерите в Leaflet (leaflet.markercluster) в компонент Map.tsx.
+2) Въведи in‑memory кеш с TTL=5 минути (FE и BE).
+3) Уеднакви API_BASE и CORS за production (www.veganmapai.ai и Replit preview).
+
+CONSTRAINTS
+- Използвай минимално инвазивни промени.
+- Ако липсват файлове/папки, създай ги.
+- Ако бекендът е Node/Express → приложи Express вариант.
+- Ако бекендът е FastAPI → приложи Python вариант.
+- Обясни накратко какво си направил и къде.
+
+STEP 0 — Repo scan
+- Открий frontend (Vite/React) папката (обикновено ./src) и Map.tsx.
+- Провери бекенда:
+  - Ако има server/index.ts или src/server.ts/ server.js → Express.
+  - Ако има main.py и fastapi → FastAPI.
+
+STEP 1 — Dependencies (frontend)
+- Инсталирай:
+  npm i leaflet.markercluster
+  npm i -D @types/leaflet.markercluster
+- Увери се, че leaflet е наличен; ако не: npm i leaflet
+
+STEP 2 — Map.tsx (клъстеризация)
+- Отвори src/components/Map.tsx (или текущия път на Map).
+- Замени съдържанието с този компонент (ако пътят/името са други — адаптирай):
+
+// Map.tsx
+import { useEffect, useRef } from "react";
+import L, { Map as LMap, LatLngExpression, Marker } from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import "leaflet.markercluster";
+
+type Place = { id: string; name: string; lat: number; lng: number; veganScore?: number; };
+type Props = { center: LatLngExpression; zoom?: number; places: Place[]; };
+
+export default function Map({ center, zoom = 13, places }: Props) {
+  const mapRef = useRef<LMap | null>(null);
+  const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
+
+  useEffect(() => {
+    if (mapRef.current) return;
+    const map = L.map("map", { zoomControl: true, attributionControl: false }).setView(center, zoom);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    const cluster = L.markerClusterGroup({
+      chunkedLoading: true,
+      spiderfyOnEveryZoom: false,
+      showCoverageOnHover: false,
+      removeOutsideVisibleBounds: true,
+      maxClusterRadius: 60,
+    });
+    cluster.addTo(map);
+    mapRef.current = map;
+    clusterRef.current = cluster;
+    return () => { map.remove(); mapRef.current = null; clusterRef.current = null; };
+  }, [center, zoom]);
+
+  useEffect(() => {
+    if (!mapRef.current || !clusterRef.current) return;
+    const cluster = clusterRef.current;
+    cluster.clearLayers();
+    const markers: Marker[] = places.map((p) => {
+      const marker = L.marker([p.lat, p.lng], { title: p.name });
+      marker.bindPopup(
+        `<div style="min-width:180px">
+          <strong>${p.name}</strong><br/>
+          Vegan Score: <b>${p.veganScore ?? ""}</b><br/>
+          <button id="open-${p.id}" style="margin-top:6px">Разгледай</button>
+        </div>`
+      );
+      marker.on("popupopen", () => {
+        const btn = document.getElementById(`open-${p.id}`);
+        if (btn) btn.onclick = () => console.log("open place", p.id);
+      });
+      return marker;
+    });
+    cluster.addLayers(markers);
+  }, [places]);
+
+  return <div id="map" style={{ width: "100%", height: "100%" }} />;
+}
+
+STEP 3 — FE in‑memory cache (TTL 5 мин)
+- Създай src/utils/cache.ts с:
+
+type CacheEntry<T> = { value: T; expiresAt: number };
+const store = new Map<string, CacheEntry<any>>();
+const TTL_MS = 5 * 60 * 1000;
+
+export function cacheGet<T>(key: string): T | null {
+  const e = store.get(key);
+  if (!e) return null;
+  if (Date.now() > e.expiresAt) { store.delete(key); return null; }
+  return e.value as T;
+}
+export function cacheSet<T>(key: string, value: T, ttlMs: number = TTL_MS) {
+  store.set(key, { value, expiresAt: Date.now() + ttlMs });
+}
+export function makeKeyFromBBox(b: { n: number; s: number; e: number; w: number }, extra?: string) {
+  return `bbox:${b.n.toFixed(4)}:${b.s.toFixed(4)}:${b.e.toFixed(4)}:${b.w.toFixed(4)}:${extra ?? ""}`;
+}
+
+- Ако има hook за зареждане на места (напр. src/hooks/usePlaces.ts), адаптирай го:
+  - генерирай ключ с makeKeyFromBBox
+  - първо чети cacheGet; ако липсва → fetch към `${import.meta.env.VITE_API_BASE}/places?...`; после cacheSet.
+
+STEP 4 — Общ fetch wrapper и API_BASE (frontend)
+- Създай/редактирай src/lib/api.ts:
+
+export const API_BASE = import.meta.env.VITE_API_BASE;
+export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
+    ...init,
+    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+- Замени директните fetch повиквания с apiGet.
+
+STEP 5 — Backend cache + CORS
+
+A) Ако е Express (Node):
+- Отвори server/index.ts (или аналог) и приложи:
+
+import express from "express";
+import cors from "cors";
+
+const app = express();
+app.use(express.json());
+
+const allowedOrigins = [
+  "https://www.veganmapai.ai",
+  "https://vegan-map-ai-bkozarev.replit.app",
+  "http://localhost:5173",
+];
+
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type","Authorization"],
+}));
+
+type CacheEntry<T> = { value: T; expiresAt: number };
+const cache = new Map<string, CacheEntry<any>>();
+const TTL_MS = 5 * 60 * 1000;
+function getCache<T>(k: string): T | null { const e = cache.get(k); if (!e) return null; if (Date.now() > e.expiresAt) { cache.delete(k); return null; } return e.value; }
+function setCache<T>(k: string, v: T, ttl = TTL_MS) { cache.set(k, { value: v, expiresAt: Date.now() + ttl }); }
+function makeKey(q: any) { const { n, s, e, w, profile = "default" } = q; return `bbox:${n}:${s}:${e}:${w}:${profile}`; }
+
+app.get("/places", async (req, res) => {
+  const key = makeKey(req.query);
+  const cached = getCache<any[]>(key);
+  if (cached) return res.json(cached);
+  const data = await fetchPlacesFromDataSource(req.query); // имплементирай според източника
+  setCache(key, data);
+  res.json(data);
+});
+
+async function fetchPlacesFromDataSource(q: any) {
+  // TODO: реален източник (DB/Google/Yelp). Временно демо:
+  return [
+    { id: "1", name: "Vegan Spot", lat: 42.695, lng: 23.332, veganScore: 8.7 },
+    { id: "2", name: "Green Deli",  lat: 42.696, lng: 23.331, veganScore: 7.9 },
+  ];
+}
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`API on :${port}`));
+
+B) Ако е FastAPI (Python):
+- Отвори main.py и приложи:
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import time
+
+app = FastAPI()
+origins = [
+    "https://www.veganmapai.ai",
+    "https://vegan-map-ai-bkozarev.replit.app",
+    "http://localhost:5173",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+TTL_MS = 5 * 60 * 1000
+_cache = {}  # key -> (value, expires_at_ms)
+
+def cache_get(key: str):
+    v = _cache.get(key)
+    if not v: return None
+    value, exp = v
+    if time.time()*1000 > exp:
+        _cache.pop(key, None)
+        return None
+    return value
+
+def cache_set(key: str, value):
+    _cache[key] = (value, time.time()*1000 + TTL_MS)
+
+def make_key(n,s,e,w,profile):
+    return f"bbox:{n}:{s}:{e}:{w}:{profile}"
+
+@app.get("/places")
+def places(n: float, s: float, e: float, w: float, profile: str = "default"):
+    key = make_key(n,s,e,w,profile)
+    cached = cache_get(key)
+    if cached is not None:
+        return cached
+    # TODO: реални данни
+    data = [
+        {"id":"1","name":"Vegan Spot","lat":42.695,"lng":23.332,"veganScore":8.7},
+        {"id":"2","name":"Green Deli","lat":42.696,"lng":23.331,"veganScore":7.9},
+    ]
+    cache_set(key, data)
+    return data
+
+STEP 6 — Env / Secrets (API_BASE)
+- Настрой Secrets/ENV:
+  - За frontend:
+    - DEV: VITE_API_BASE=http://localhost:3000
+    - PROD: VITE_API_BASE=https://api.veganmapai.ai
+  - За backend:
+    - NODE_ENV=production (ако е Node)
+- Ако фронтенд билдът чете .env файлове, добави:
+  - .env → VITE_API_BASE=http://localhost:3000
+  - .env.production → VITE_API_BASE=https://api.veganmapai.ai
+  (В Replit предпочети Secrets вместо .env.production.)
+
+STEP 7 — Build & smoke tests
+- Изпълни:
+  npm install
+  npm run build (frontend)
+- Рестартирай бекенда.
+- CORS проверка:
+  curl -I -H "Origin:https://www.veganmapai.ai" https://api.veganmapai.ai/places || true
+  (Очакваме Access-Control-Allow-Origin: https://www.veganmapai.ai)
+- Отвори приложението (Replit preview и прод домейн) и провери:
+  - Клъстери се визуализират.
+  - При пан/зум в рамките на 5 мин няма излишни повторни заявки (Network таба се минимизира).
+  - /places връща данни в прод (ако не — провери reverse proxy/DNS към бекенда).
+
+STEP 8 — Commit
+- Направи git commit с ясно съобщение “feat(map): marker clustering + FE/BE TTL cache; chore(cors): unify API_BASE & CORS for prod”.
+
+Изведи кратък отчет какво е променено (файлове) и резултатите от проверките (успех/грешки).

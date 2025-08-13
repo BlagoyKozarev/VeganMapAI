@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# === GCP проект и настройки ===
+PROJECT_ID="centered-inn-460216-r9"
+PROJECT_NUMBER="846776345356"
+REGION="europe-central2"                 # Варшава
+SERVICE_NAME="veganmapai-service"
+PORT="5000"
+ENV_LOCAL=".env.local"
+ENV_PROD=".env.production"
+
+# === Service Account auth ===
+if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q "@"; then
+  KEY_JSON="$(ls -1 attached_assets/*.json | head -1)"
+  [[ -z "${KEY_JSON:-}" ]] && { echo "❌ Няма намерен service-account ключ в attached_assets/*.json"; exit 1; }
+  gcloud auth activate-service-account --key-file="$KEY_JSON"
+fi
+
+# === Задаване на проект и активиране на API-та ===
+gcloud config set project "$PROJECT_ID"
+gcloud config set run/region "$REGION"
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com
+
+# === Създаване на Artifact Registry репо (ако липсва) ===
+REPO="veganmapai"
+gcloud artifacts repositories describe "$REPO" --location="$REGION" >/dev/null 2>&1 || \
+gcloud artifacts repositories create "$REPO" --repository-format=Docker --location="$REGION"
+
+# === Build & Deploy ===
+IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/backend:$(date +%Y%m%d-%H%M%S)"
+if [[ -f Dockerfile ]]; then
+  gcloud builds submit --tag "$IMAGE" .
+  DEPLOY_IMAGE="--image $IMAGE"
+else
+  DEPLOY_IMAGE="--source ."
+fi
+
+# === Четене на CDN_GEOJSON от env (ако има) ===
+CDN_GEOJSON="$(grep -E '^NEXT_PUBLIC_CDN_GEOJSON=' "$ENV_PROD" 2>/dev/null | cut -d= -f2- || true)"
+[[ -z "$CDN_GEOJSON" ]] && CDN_GEOJSON="$(grep -E '^NEXT_PUBLIC_CDN_GEOJSON=' "$ENV_LOCAL" 2>/dev/null | cut -d= -f2- || true)"
+
+# === Deploy в Cloud Run ===
+gcloud run deploy "$SERVICE_NAME" $DEPLOY_IMAGE \
+  --region="$REGION" \
+  --allow-unauthenticated \
+  --port="$PORT" \
+  --set-env-vars "NEXT_PUBLIC_CDN_GEOJSON=${CDN_GEOJSON:-}"
+
+# === Вземане на URL и запис в env ===
+SERVICE_URL="$(gcloud run services describe "$SERVICE_NAME" --region="$REGION" --format='value(status.url)')"
+
+upsert_env() { local f="$1"; local k="$2"; local v="$3"; touch "$f"; grep -q "^$k=" "$f" && sed -i "s|^$k=.*|$k=$v|" "$f" || echo "$k=$v" >> "$f"; }
+upsert_env "$ENV_LOCAL" "NEXT_PUBLIC_API_BASE" "$SERVICE_URL"
+upsert_env "$ENV_PROD"  "NEXT_PUBLIC_API_BASE" "$SERVICE_URL"
+upsert_env "$ENV_LOCAL" "CLOUD_RUN_SERVICE"    "$SERVICE_NAME"
+upsert_env "$ENV_LOCAL" "CLOUD_RUN_REGION"     "$REGION"
+upsert_env "$ENV_PROD"  "CLOUD_RUN_SERVICE"    "$SERVICE_NAME"
+upsert_env "$ENV_PROD"  "CLOUD_RUN_REGION"     "$REGION"
+
+echo "✅ Cloud Run bootstrap завършен"
+echo "🌐 Service URL: $SERVICE_URL"

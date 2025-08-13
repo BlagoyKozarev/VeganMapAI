@@ -1,0 +1,80 @@
+#!/bin/bash
+set -euo pipefail
+
+# ==== CONFIG ====
+REMOTE="${REMOTE:-origin}"
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
+STRATEGY="${STRATEGY:-rebase}"   # rebase | force_local (overwrites remote)
+
+echo "[i] Remote: $REMOTE | Branch: $BRANCH | Strategy: $STRATEGY"
+
+# 0) Проверка на remote
+git remote -v || { echo "✗ Няма настроен remote. Пример: git remote add origin <URL>"; exit 1; }
+
+# 1) Пази локален backup, ако нещо се обърка
+BACKUP="backup-before-sync-$(date +%Y%m%d-%H%M%S)"
+git branch "$BACKUP" || true
+echo "[✓] Backup branch: $BACKUP"
+
+# 2) Ако има незаключени промени – stash
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "[i] Има локални промени → stash"
+  git stash push -u -m "auto-stash-before-sync-$(date +%Y%m%d-%H%M%S)"
+fi
+
+# 3) Вземи последните промени от remote
+git fetch "$REMOTE" --prune
+
+# 4) Покажи дивергенция
+echo "---- Дивергенция ----"
+git log --oneline --left-right --graph "$BRANCH...$REMOTE/$BRANCH" || true
+echo "---------------------"
+
+if [ "$STRATEGY" = "rebase" ]; then
+  echo "[i] Rebase върху $REMOTE/$BRANCH"
+  set +e
+  git rebase "$REMOTE/$BRANCH"
+  REBASE_RC=$?
+  set -e
+
+  if [ $REBASE_RC -ne 0 ]; then
+    echo "⚠ Конфликти при rebase. Опитвам auto-resolve за тривиални случаи."
+    # Показване на конфликтни файлове
+    git status --porcelain | awk '/^UU /{print $2}' || true
+
+    # Ако искаш да приемеш remote версията за всичко (бърз изход):
+    # git checkout --theirs .
+    # git add -A
+
+    # Или да приемеш локалната навсякъде:
+    # git checkout --ours .
+    # git add -A
+
+    # Ако няма автоматично решение, прекрати rebase и излез с инструкции
+    if ! git rebase --continue 2>/dev/null; then
+      echo "✗ Неуспешен auto-resolve. Отвори конфликтните файлове, реши ги, после:"
+      echo "   git add <files> && git rebase --continue"
+      echo "   (или git rebase --abort за отказ)"
+      exit 2
+    fi
+  fi
+
+  echo "[✓] Rebase завърши. Пускам push…"
+  git push "$REMOTE" "$BRANCH"
+
+elif [ "$STRATEGY" = "force_local" ]; then
+  echo "⚠ ВНИМАНИЕ: Ще презапиша remote историята с локалната."
+  git push "$REMOTE" "$BRANCH" --force
+
+else
+  echo "✗ Непозната STRATEGY: $STRATEGY (валидни: rebase | force_local)"
+  exit 1
+fi
+
+# 5) Ако имаш stash – върни го (по желание)
+if git stash list | grep -q auto-stash-before-sync; then
+  echo "[i] Връщам stash…"
+  git stash pop || true
+fi
+
+echo "[✓] Готово: remote и локалното са синхронизирани."

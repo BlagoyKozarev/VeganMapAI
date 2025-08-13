@@ -1,0 +1,502 @@
+// Google Maps API Optimization Strategy for VeganMapAI
+// Target: 95% cost reduction for 250K restaurants
+// Current: $50K initial cost → Target: $2.5K initial cost
+
+interface RestaurantCache {
+  placeId: string;
+  basicData: any;
+  detailedData?: any;
+  photos?: string[];
+  lastUpdated: Date;
+  cacheLevel: 'basic' | 'detailed' | 'full';
+}
+
+interface GeoHashConfig {
+  precision: number; // 5-7 for different zoom levels
+  maxRestaurantsPerHash: number;
+  cacheExpiry: number; // in days
+}
+
+export class GoogleMapsOptimizer {
+  private cache: Map<string, RestaurantCache>;
+  private geoHashCache: Map<string, string[]>; // geohash -> restaurant IDs
+  private apiCallTracker: Map<string, number>; // daily API call tracking
+  private emergencyMode: boolean = false; // когато достигнем лимити
+
+  constructor() {
+    this.cache = new Map();
+    this.geoHashCache = new Map();
+    this.apiCallTracker = new Map();
+  }
+
+  /**
+   * PHASE 1: Pre-populate US restaurant data using BULK operations
+   * Този метод ще се използва ВЕДНЪЖ за initial US data population
+   */
+  async bulkPopulateUSRestaurants(): Promise<void> {
+    console.log('🚀 Starting BULK US restaurant population - this will take hours but save $40K+');
+
+    const usCities = [
+      { name: 'New York', lat: 40.7128, lng: -74.0060, radius: 50000 },
+      { name: 'Los Angeles', lat: 34.0522, lng: -118.2437, radius: 80000 },
+      { name: 'Chicago', lat: 41.8781, lng: -87.6298, radius: 50000 },
+      // ... останалите 17 града
+    ];
+
+    for (const city of usCities) {
+      console.log(`📍 Processing ${city.name}...`);
+      
+      // Използвай Google Places Text Search (по-евтин от Nearby Search)
+      await this.bulkTextSearch(city, [
+        'vegan restaurant',
+        'vegetarian restaurant', 
+        'health food restaurant',
+        'organic restaurant',
+        'plant based restaurant'
+      ]);
+
+      // Rate limiting - важно!
+      await this.sleep(2000); // 2 секунди между градове
+    }
+
+    console.log('✅ Bulk population complete');
+  }
+
+  /**
+   * Bulk Text Search - много по-евтин от Places API
+   */
+  private async bulkTextSearch(city: any, queries: string[]): Promise<void> {
+    for (const query of queries) {
+      try {
+        const searchQuery = `${query} in ${city.name}`;
+        
+        // Text Search API - $32 per 1000 requests vs $17 per 1000 for basic data
+        const response = await this.makeTextSearchRequest(searchQuery, city);
+        
+        // Кеширай резултатите с geo-hash
+        await this.cacheRestaurantsWithGeoHash(response.results, city);
+        
+        // Rate limiting между queries
+        await this.sleep(1000);
+        
+      } catch (error) {
+        console.error(`Error in text search for ${query} in ${city.name}:`, error);
+        
+        if (error.message.includes('QUOTA_EXCEEDED')) {
+          console.warn('🚨 Daily quota exceeded - entering emergency mode');
+          this.emergencyMode = true;
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * Intelligent Geo-Hash caching система
+   */
+  private async cacheRestaurantsWithGeoHash(restaurants: any[], city: any): Promise<void> {
+    for (const restaurant of restaurants) {
+      const geoHash = this.generateGeoHash(
+        restaurant.geometry.location.lat,
+        restaurant.geometry.location.lng,
+        6 // precision за city-level caching
+      );
+
+      // Cache basic restaurant data
+      const cacheEntry: RestaurantCache = {
+        placeId: restaurant.place_id,
+        basicData: {
+          name: restaurant.name,
+          address: restaurant.formatted_address,
+          location: restaurant.geometry.location,
+          types: restaurant.types,
+          rating: restaurant.rating,
+          priceLevel: restaurant.price_level,
+          businessStatus: restaurant.business_status
+        },
+        lastUpdated: new Date(),
+        cacheLevel: 'basic'
+      };
+
+      this.cache.set(restaurant.place_id, cacheEntry);
+
+      // Group by geo-hash
+      const existingHashes = this.geoHashCache.get(geoHash) || [];
+      existingHashes.push(restaurant.place_id);
+      this.geoHashCache.set(geoHash, existingHashes);
+    }
+  }
+
+  /**
+   * Smart restaurant loading based on viewport
+   * Това заменя costly Places API calls с cached data
+   */
+  async getRestaurantsInViewport(bounds: any, maxResults: number = 100): Promise<any[]> {
+    const relevantGeoHashes = this.getGeoHashesInBounds(bounds);
+    const restaurants: any[] = [];
+
+    for (const geoHash of relevantGeoHashes) {
+      const restaurantIds = this.geoHashCache.get(geoHash) || [];
+      
+      for (const placeId of restaurantIds) {
+        const cached = this.cache.get(placeId);
+        
+        if (cached && this.isInViewport(cached.basicData.location, bounds)) {
+          restaurants.push(cached.basicData);
+          
+          if (restaurants.length >= maxResults) {
+            return restaurants;
+          }
+        }
+      }
+    }
+
+    // Ако нямаме достатъчно cached data, прави targeted API calls
+    if (restaurants.length < 20 && !this.emergencyMode) {
+      console.log('📡 Making targeted API calls to fill viewport...');
+      const additionalRestaurants = await this.makeTargetedNearbySearch(bounds, 20 - restaurants.length);
+      restaurants.push(...additionalRestaurants);
+    }
+
+    return restaurants;
+  }
+
+  /**
+   * Lazy loading на detailed restaurant data САМО когато потребителят кликне
+   */
+  async getRestaurantDetails(placeId: string, forceRefresh: boolean = false): Promise<any> {
+    const cached = this.cache.get(placeId);
+    
+    // Провери кеша първо
+    if (cached && !forceRefresh) {
+      if (cached.cacheLevel === 'full') {
+        return cached.detailedData;
+      }
+      
+      if (cached.cacheLevel === 'detailed' && this.isFreshEnough(cached.lastUpdated, 7)) {
+        return cached.detailedData;
+      }
+    }
+
+    // Направи Places Details API call само ако е необходимо
+    console.log(`📡 Fetching details for ${placeId}`);
+    
+    try {
+      const details = await this.makePlaceDetailsRequest(placeId);
+      
+      // Update cache с detailed data
+      if (cached) {
+        cached.detailedData = details;
+        cached.cacheLevel = 'detailed';
+        cached.lastUpdated = new Date();
+      }
+
+      this.trackAPICall('place_details');
+      return details;
+      
+    } catch (error) {
+      console.error('Failed to fetch restaurant details:', error);
+      
+      // Fallback to basic data ако detailed fails
+      return cached?.basicData || null;
+    }
+  }
+
+  /**
+   * Photo loading optimization - load photos on demand
+   */
+  async getRestaurantPhotos(placeId: string, maxPhotos: number = 3): Promise<string[]> {
+    const cached = this.cache.get(placeId);
+    
+    if (cached?.photos && this.isFreshEnough(cached.lastUpdated, 30)) {
+      return cached.photos.slice(0, maxPhotos);
+    }
+
+    // Photos са скъпи - load само когато е необходимо
+    try {
+      const photos = await this.loadPhotosOptimized(placeId, maxPhotos);
+      
+      if (cached) {
+        cached.photos = photos;
+        cached.lastUpdated = new Date();
+      }
+
+      return photos;
+      
+    } catch (error) {
+      console.error('Failed to load photos:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Emergency mode - когато достигнем дневни лимити
+   */
+  private activateEmergencyMode(): void {
+    this.emergencyMode = true;
+    console.warn('🚨 Emergency mode activated - serving cached data only');
+    
+    // Notify users about limited functionality
+    this.broadcastEmergencyMode();
+  }
+
+  /**
+   * API call tracking и quota management
+   */
+  private trackAPICall(type: string): void {
+    const today = new Date().toDateString();
+    const key = `${today}-${type}`;
+    const count = this.apiCallTracker.get(key) || 0;
+    this.apiCallTracker.set(key, count + 1);
+
+    // Check daily limits
+    const dailyTotal = Array.from(this.apiCallTracker.entries())
+      .filter(([k]) => k.startsWith(today))
+      .reduce((sum, [, count]) => sum + count, 0);
+
+    if (dailyTotal > 8000) { // 80% of 10K daily quota
+      console.warn('⚠️ Approaching daily API limit');
+    }
+
+    if (dailyTotal > 9500) { // 95% of quota
+      this.activateEmergencyMode();
+    }
+  }
+
+  /**
+   * Cost estimation и reporting
+   */
+  getCostReport(): any {
+    const costs = {
+      textSearch: this.getAPICallCount('text_search') * 0.032,
+      nearbySearch: this.getAPICallCount('nearby_search') * 0.032,
+      placeDetails: this.getAPICallCount('place_details') * 0.017,
+      photos: this.getAPICallCount('photos') * 0.007
+    };
+
+    return {
+      daily: Object.values(costs).reduce((a, b) => a + b, 0),
+      monthly: Object.values(costs).reduce((a, b) => a + b, 0) * 30,
+      breakdown: costs
+    };
+  }
+
+  // Utility methods
+  private generateGeoHash(lat: number, lng: number, precision: number): string {
+    // Simplified geohash implementation
+    const latRange = [-90, 90];
+    const lngRange = [-180, 180];
+    let hash = '';
+    let isLat = true;
+
+    for (let i = 0; i < precision * 5; i++) {
+      if (isLat) {
+        const mid = (latRange[0] + latRange[1]) / 2;
+        if (lat >= mid) {
+          hash += '1';
+          latRange[0] = mid;
+        } else {
+          hash += '0';
+          latRange[1] = mid;
+        }
+      } else {
+        const mid = (lngRange[0] + lngRange[1]) / 2;
+        if (lng >= mid) {
+          hash += '1';
+          lngRange[0] = mid;
+        } else {
+          hash += '0';
+          lngRange[1] = mid;
+        }
+      }
+      isLat = !isLat;
+    }
+
+    return hash;
+  }
+
+  private getGeoHashesInBounds(bounds: any): string[] {
+    // Calculate all geohashes that intersect with viewport bounds
+    const hashes: string[] = [];
+    
+    const latStep = (bounds.north - bounds.south) / 10;
+    const lngStep = (bounds.east - bounds.west) / 10;
+
+    for (let lat = bounds.south; lat <= bounds.north; lat += latStep) {
+      for (let lng = bounds.west; lng <= bounds.east; lng += lngStep) {
+        hashes.push(this.generateGeoHash(lat, lng, 6));
+      }
+    }
+
+    return [...new Set(hashes)]; // Remove duplicates
+  }
+
+  private isInViewport(location: any, bounds: any): boolean {
+    return location.lat >= bounds.south && 
+           location.lat <= bounds.north && 
+           location.lng >= bounds.west && 
+           location.lng <= bounds.east;
+  }
+
+  private isFreshEnough(lastUpdated: Date, maxAgeDays: number): boolean {
+    const ageInDays = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
+    return ageInDays <= maxAgeDays;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private getAPICallCount(type: string): number {
+    const today = new Date().toDateString();
+    return this.apiCallTracker.get(`${today}-${type}`) || 0;
+  }
+
+  // Mock API methods - replace with actual Google Maps API calls
+  private async makeTextSearchRequest(query: string, location: any): Promise<any> {
+    // Implementation with actual Google Maps Text Search API
+    throw new Error('Implement Google Maps Text Search API call');
+  }
+
+  private async makePlaceDetailsRequest(placeId: string): Promise<any> {
+    // Implementation with actual Google Maps Place Details API
+    throw new Error('Implement Google Maps Place Details API call');
+  }
+
+  private async makeTargetedNearbySearch(bounds: any, maxResults: number): Promise<any[]> {
+    // Implementation with actual Google Maps Nearby Search API
+    throw new Error('Implement Google Maps Nearby Search API call');
+  }
+
+  private async loadPhotosOptimized(placeId: string, maxPhotos: number): Promise<string[]> {
+    // Implementation with actual Google Maps Photos API
+    throw new Error('Implement Google Maps Photos API call');
+  }
+
+  private broadcastEmergencyMode(): void {
+    // Notify frontend about emergency mode
+    console.log('Broadcasting emergency mode to users');
+  }
+}
+
+// ===== INTEGRATION STRATEGY =====
+
+/**
+ * PHASE 1: Initial Data Population (One-time cost)
+ * 
+ * Instead of: 250K individual Place Details calls = $50K
+ * Use: Text Search + Selective Details = $2.5K
+ * 
+ * Strategy:
+ * 1. Text Search в top 20 US cities = ~500 API calls = $16
+ * 2. Cache basic data за ~150K ресторанти
+ * 3. Detailed data само за popular/clicked restaurants = ~$1K  
+ * 4. Photos on-demand only = $500
+ * Total: ~$2K vs $50K (96% спестяване!)
+ */
+
+/**
+ * PHASE 2: Operational Optimization
+ * 
+ * Daily operations:
+ * - Служи cached data за 95% от requests
+ * - Fresh API calls само за нови ресторанти
+ * - Photo refresh само веднъж седмично
+ * - Review updates само за high-traffic restaurants
+ * 
+ * Monthly cost: $500-1000 vs $10K+ (90% спестяване)
+ */
+
+/**
+ * PHASE 3: Advanced Caching Strategy
+ */
+export class AdvancedCachingStrategy {
+  /**
+   * Multi-tier caching system
+   */
+  private readonly CACHE_TIERS = {
+    HOT: 1,    // Most accessed restaurants - refresh daily
+    WARM: 7,   // Moderate access - refresh weekly  
+    COLD: 30,  // Rarely accessed - refresh monthly
+    FROZEN: 90 // Very rare - refresh quarterly
+  };
+
+  /**
+   * Intelligent cache warming based on user behavior
+   */
+  async warmCacheForPopularRestaurants(): Promise<void> {
+    // Identify restaurants with high click-through rates
+    const popularRestaurants = await this.getPopularRestaurants();
+    
+    for (const restaurant of popularRestaurants) {
+      if (this.needsRefresh(restaurant.placeId, this.CACHE_TIERS.HOT)) {
+        await this.refreshRestaurantData(restaurant.placeId);
+      }
+    }
+  }
+
+  /**
+   * Predictive caching за viewport movements
+   */
+  async preloadAdjacentAreas(currentBounds: any): Promise<void> {
+    const adjacentBounds = this.calculateAdjacentViewports(currentBounds);
+    
+    // Preload data за areas които потребителят вероятно ще посети
+    for (const bounds of adjacentBounds) {
+      const restaurants = await this.getCachedRestaurantsInBounds(bounds);
+      
+      if (restaurants.length < 10) {
+        // Low coverage - може да е нужен API call
+        this.scheduleBackgroundAPICall(bounds);
+      }
+    }
+  }
+
+  private async getPopularRestaurants(): Promise<any[]> {
+    // Query database за most clicked restaurants
+    return [];
+  }
+
+  private needsRefresh(placeId: string, maxAgeDays: number): boolean {
+    const cached = this.cache?.get(placeId);
+    return !cached || !this.isFreshEnough(cached.lastUpdated, maxAgeDays);
+  }
+
+  private async refreshRestaurantData(placeId: string): Promise<void> {
+    // Selective refresh based on data age and importance
+  }
+
+  private calculateAdjacentViewports(bounds: any): any[] {
+    // Calculate surrounding map areas
+    return [];
+  }
+
+  private async getCachedRestaurantsInBounds(bounds: any): Promise<any[]> {
+    // Get restaurants from cache only
+    return [];
+  }
+
+  private scheduleBackgroundAPICall(bounds: any): void {
+    // Schedule low-priority API call for later
+  }
+}
+
+// ===== COST PROJECTION =====
+
+/**
+ * COST BREAKDOWN WITH OPTIMIZATION:
+ * 
+ * Initial Population:
+ * - Text Search: 1,000 calls × $0.032 = $32
+ * - Place Details (selective): 50,000 calls × $0.017 = $850  
+ * - Photos (on-demand): 10,000 calls × $0.007 = $70
+ * Total Initial: ~$1,000 (vs $50,000 unoptimized)
+ * 
+ * Monthly Operations:
+ * - New restaurants: 1,000 calls × $0.017 = $17
+ * - Updates: 5,000 calls × $0.017 = $85
+ * - Photos: 2,000 calls × $0.007 = $14
+ * Total Monthly: ~$120 (vs $10,000+ unoptimized)
+ * 
+ * TOTAL FIRST YEAR SAVINGS: ~$100,000+ 🎯
+ */

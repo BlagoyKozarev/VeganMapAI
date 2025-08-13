@@ -1,0 +1,823 @@
+# 🧪 GBGPT BULK RESTAURANT TEST - 50 СОФИЯ РЕСТОРАНТА
+
+## 🎯 ЦЕЛ НА ТЕСТА
+Зареждане на 50 нови ресторанта в София и тестване на GBGPT AI scoring в production environment.
+
+---
+
+## 📋 СТЪПКА 1: Създай Test Endpoint за Bulk Import
+
+### Създай `server/routes/bulkTestGBGPT.ts`:
+
+```typescript
+import express from 'express';
+import { GBGPTProvider } from '../providers/gbgptProvider.js';
+import { db } from '../db.js';
+import { restaurants } from '../../shared/schema.js';
+
+const router = express.Router();
+
+/**
+ * Bulk import и scoring на нови ресторанти
+ */
+router.post('/bulk-test-gbgpt', async (req, res) => {
+  try {
+    console.log('🚀 Starting bulk GBGPT test with 50 Sofia restaurants...');
+    
+    // Sample София ресторанти за тестване
+    const testRestaurants = [
+      {
+        name: "Кафе-ресторант Космос",
+        address: "ул. Витоша 45, София",
+        cuisineTypes: ["cafe", "bulgarian"],
+        lat: 42.6977,
+        lng: 23.3219,
+        description: "Традиционна българска кухня с модерен подход"
+      },
+      {
+        name: "Пица Темпо",
+        address: "бул. Васил Левски 132, София", 
+        cuisineTypes: ["pizza", "italian"],
+        lat: 42.6869,
+        lng: 23.3228,
+        description: "Италианска пицария с fresh ingredients"
+      },
+      {
+        name: "Ресторант Made in Home",
+        address: "ул. Оборище 42, София",
+        cuisineTypes: ["modern_european", "healthy"],
+        lat: 42.6886,
+        lng: 23.3394,
+        description: "Здравословна кухня с домашен вкус"
+      },
+      {
+        name: "Ethno",
+        address: "ул. Дякон Игнатий 4, София",
+        cuisineTypes: ["traditional", "bulgarian"],
+        lat: 42.6948,
+        lng: 23.3227,
+        description: "Автентична българска кухня в стилна обстановка"
+      },
+      {
+        name: "Rainbow Factory",
+        address: "ул. Цар Самуил 25, София",
+        cuisineTypes: ["healthy", "vegetarian"],
+        lat: 42.6953,
+        lng: 23.3264,
+        description: "Здравословни и vegetarian опции"
+      },
+      {
+        name: "Salad Studio",
+        address: "бул. Витоша 89, София",
+        cuisineTypes: ["healthy", "salads"],
+        lat: 42.6934,
+        lng: 23.3197,
+        description: "Fresh салати и здравословни ястия"
+      },
+      {
+        name: "Bistro Pesto",
+        address: "ул. Шишман 12, София",
+        cuisineTypes: ["italian", "bistro"],
+        lat: 42.6891,
+        lng: 23.3312,
+        description: "Италианско bistro с fresh pasta"
+      },
+      {
+        name: "Green House",
+        address: "ул. Граф Игнатиев 64, София",
+        cuisineTypes: ["healthy", "organic"],
+        lat: 42.6847,
+        lng: 23.3254,
+        description: "Органична храна и зелени smoothies"
+      },
+      {
+        name: "Asia Garden",
+        address: "бул. Черни връх 47, София",
+        cuisineTypes: ["asian", "thai"],
+        lat: 42.6712,
+        lng: 23.3156,
+        description: "Автентична азиатска кухня"
+      },
+      {
+        name: "Vegetarian Delight",
+        address: "ул. Раковски 95, София", 
+        cuisineTypes: ["vegetarian", "vegan"],
+        lat: 42.6923,
+        lng: 23.3278,
+        description: "100% vegetarian ресторант с vegan опции"
+      }
+      // ... добави още 40 ресторанта тук
+    ];
+
+    // Extend array to 50 restaurants
+    const allTestRestaurants = [...testRestaurants];
+    
+    // Generate 40 more restaurants with variations
+    for (let i = 10; i < 50; i++) {
+      allTestRestaurants.push({
+        name: `Тест Ресторант ${i + 1}`,
+        address: `ул. Тестова ${i + 1}, София`,
+        cuisineTypes: ["restaurant", "international"],
+        lat: 42.6977 + (Math.random() - 0.5) * 0.1,
+        lng: 23.3219 + (Math.random() - 0.5) * 0.1,
+        description: `Тестов ресторант номер ${i + 1} за GBGPT анализ`
+      });
+    }
+
+    console.log(`📊 Processing ${allTestRestaurants.length} restaurants with GBGPT...`);
+    
+    const gbgpt = new GBGPTProvider();
+    const results = [];
+    const failures = [];
+    let processed = 0;
+
+    // Process in batches of 5 to avoid overwhelming GBGPT
+    for (let i = 0; i < allTestRestaurants.length; i += 5) {
+      const batch = allTestRestaurants.slice(i, i + 5);
+      
+      console.log(`🔄 Processing batch ${Math.floor(i/5) + 1}/${Math.ceil(allTestRestaurants.length/5)}`);
+      
+      const batchPromises = batch.map(async (restaurant, index) => {
+        try {
+          // Add delay between requests (1 second apart)
+          await new Promise(resolve => setTimeout(resolve, index * 1000));
+          
+          console.log(`🔄 Scoring: ${restaurant.name}`);
+          const startTime = Date.now();
+          
+          const score = await gbgpt.scoreRestaurant(restaurant);
+          const duration = Date.now() - startTime;
+          
+          processed++;
+          console.log(`✅ ${restaurant.name} scored in ${duration}ms (${processed}/${allTestRestaurants.length})`);
+          
+          return {
+            restaurant,
+            score,
+            duration,
+            success: true
+          };
+          
+        } catch (error) {
+          console.error(`❌ Failed to score ${restaurant.name}:`, error.message);
+          
+          return {
+            restaurant,
+            error: error.message,
+            success: false
+          };
+        }
+      });
+
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          if (result.value.success) {
+            results.push(result.value);
+          } else {
+            failures.push(result.value);
+          }
+        }
+      });
+
+      // Progress update
+      const successRate = ((results.length / processed) * 100).toFixed(1);
+      console.log(`📊 Progress: ${processed}/${allTestRestaurants.length} (${successRate}% success rate)`);
+      
+      // Pause between batches (5 seconds)
+      if (i + 5 < allTestRestaurants.length) {
+        console.log('⏳ Waiting 5 seconds before next batch...');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+
+    // Calculate statistics
+    const avgDuration = results.reduce((sum, r) => sum + r.duration, 0) / results.length;
+    const avgScore = results.reduce((sum, r) => sum + r.score.overallScore, 0) / results.length;
+    
+    const stats = {
+      totalProcessed: allTestRestaurants.length,
+      successful: results.length,
+      failed: failures.length,
+      successRate: `${((results.length / allTestRestaurants.length) * 100).toFixed(1)}%`,
+      averageResponseTime: `${avgDuration.toFixed(0)}ms`,
+      averageVeganScore: avgScore.toFixed(2),
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('🎉 Bulk test completed!', stats);
+
+    res.json({
+      success: true,
+      stats,
+      results: results.slice(0, 10), // First 10 for preview
+      failures: failures.slice(0, 5),  // First 5 failures
+      message: `GBGPT bulk test completed: ${results.length}/${allTestRestaurants.length} successful`
+    });
+    
+  } catch (error) {
+    console.error('❌ Bulk GBGPT test failed:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: 'Bulk GBGPT test failed'
+    });
+  }
+});
+
+/**
+ * Import successful results to database
+ */
+router.post('/import-gbgpt-results', async (req, res) => {
+  try {
+    const { results } = req.body;
+    
+    if (!results || !Array.isArray(results)) {
+      return res.status(400).json({ error: 'Results array required' });
+    }
+
+    console.log(`📤 Importing ${results.length} GBGPT-scored restaurants to database...`);
+    
+    const imported = [];
+    
+    for (const result of results) {
+      try {
+        const { restaurant, score } = result;
+        
+        // Insert restaurant with GBGPT score
+        const [insertedRestaurant] = await db.insert(restaurants).values({
+          name: restaurant.name,
+          address: restaurant.address,
+          cuisineTypes: restaurant.cuisineTypes,
+          latitude: restaurant.lat,
+          longitude: restaurant.lng,
+          description: restaurant.description,
+          veganScore: score.overallScore,
+          scoreBreakdown: score.dimensions,
+          scoreReasoning: score.reasoning,
+          scoreProvider: 'GBGPT',
+          scoredAt: new Date()
+        }).returning();
+        
+        imported.push(insertedRestaurant);
+        console.log(`✅ Imported: ${restaurant.name} (Score: ${score.overallScore})`);
+        
+      } catch (error) {
+        console.error(`❌ Failed to import ${result.restaurant.name}:`, error.message);
+      }
+    }
+
+    res.json({
+      success: true,
+      imported: imported.length,
+      message: `Successfully imported ${imported.length} restaurants with GBGPT scores`
+    });
+    
+  } catch (error) {
+    console.error('❌ Import failed:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+export default router;
+```
+
+---
+
+## СТЪПКА 2: Добави Route в Main Server
+
+Добави в `server/index.ts`:
+
+```typescript
+import bulkTestGBGPTRouter from './routes/bulkTestGBGPT.js';
+
+// Add to routes
+app.use('/api', bulkTestGBGPTRouter);
+```
+
+---
+
+## СТЪПКА 3: Execute Bulk Test
+
+### Test Commands:
+
+**1. Health Check първо:**
+```bash
+GET /api/gbgpt-health
+```
+
+**2. Run Bulk Test:**
+```bash
+POST /api/bulk-test-gbgpt
+# Body: {} (empty, ще използва вградените тест данни)
+```
+
+**3. Import Results (ако successful):**
+```bash
+POST /api/import-gbgpt-results
+# Body: { "results": [array of successful results] }
+```
+
+---
+
+## СТЪПКА 4: Monitoring & Analysis
+
+### Expected Timeline:
+```
+- 50 ресторанта × 10 секунди = ~8 минути total
+- Batch processing (5 restaurants at a time) = 10 batches
+- Паузи между batches = ~5 минути
+- Total време: ~15-20 минути
+```
+
+### Success Metrics:
+- **Target Success Rate:** >80% (40+ от 50)
+- **Average Response Time:** <15 секунди per restaurant
+- **Score Distribution:** Reasonable spread (1-5 range)
+- **Bulgarian Quality:** Meaningful reasoning на български
+
+---
+
+## СТЪПКА 5: Fallback Testing
+
+След GBGPT тест, тествай OpenAI fallback:
+
+```bash
+# Temporary disable GBGPT (set wrong API key)
+# Run same bulk test
+# Should fallback to OpenAI and complete в <5 секунди per restaurant
+```
+
+---
+
+## 📊 EXPECTED RESULTS FORMAT
+
+```json
+{
+  "stats": {
+    "totalProcessed": 50,
+    "successful": 42,
+    "failed": 8,
+    "successRate": "84.0%",
+    "averageResponseTime": "12543ms",
+    "averageVeganScore": 3.2
+  },
+  "results": [
+    {
+      "restaurant": { "name": "Кафе-ресторант Космос", ... },
+      "score": {
+        "overallScore": 3.4,
+        "dimensions": { "menuVariety": 6, ... },
+        "reasoning": "Ресторантът има няколко vegan опции...",
+        "confidence": 0.7,
+        "provider": "GBGPT"
+      },
+      "duration": 11250
+    }
+  ]
+}
+```
+
+---
+
+## ⚠️ TROUBLESHOOTING
+
+### Ако GBGPT не е достъпен:
+```
+Expected: Network failures заради private IP
+Solution: Всички requests ще fallback към OpenAI
+Result: Бързо тестване на fallback logic
+```
+
+### Ако има timeout errors:
+```
+Action: Увеличи timeout на 30 секунди
+Code: this.timeout = 30000;
+```
+
+### Ако има parsing errors:
+```
+Debug: Log цялостния GBGPT response
+Add: More robust JSON extraction
+```
+
+---
+
+## 🎯 SUCCESS CRITERIA
+
+### За да считаме теста успешен:
+- ✅ **Bulk endpoint работи** без server crashes
+- ✅ **Batch processing** handles 50 restaurants
+- ✅ **Fallback logic** се активира при GBGPT failure
+- ✅ **Database import** записва резултатите правилно
+- ✅ **Performance metrics** са reasonable (даже със slow GBGPT)
+
+### Bonus Success:
+- 🎁 **GBGPT connectivity** работи от Replit cloud
+- 🎁 **Bulgarian responses** са high quality
+- 🎁 **Score distribution** е realistic за София ресторанти
+
+---
+
+## 🚀 DEPLOYMENT INSTRUCTIONS
+
+**1. Първо създай файла**
+**2. Import route в server**  
+**3. Test connectivity с health check**
+**4. Run bulk test**
+**5. Analyze results и import ако са good**
+
+**Ready to execute bulk GBGPT test?** 🧪
+
+---
+
+## СТЪПКА 6: Създай Comprehensive Test Report
+
+### Създай `server/reports/gbgptTestReport.ts`:
+
+```typescript
+interface TestResult {
+  restaurant: any;
+  score?: any;
+  duration?: number;
+  error?: string;
+  success: boolean;
+  provider: 'GBGPT' | 'OpenAI';
+}
+
+interface TestMetrics {
+  totalRestaurants: number;
+  successfulGBGPT: number;
+  fallbackToOpenAI: number;
+  totalFailures: number;
+  averageGBGPTResponseTime: number;
+  averageOpenAIResponseTime: number;
+  averageVeganScore: number;
+  costAnalysis: {
+    gbgptCostPerRequest: number;
+    openaiCostPerRequest: number;
+    totalEstimatedCost: number;
+  };
+  qualityAnalysis: {
+    scoreDistribution: Record<string, number>;
+    reasoningQuality: 'Poor' | 'Fair' | 'Good' | 'Excellent';
+    bulgarianLanguageQuality: 'Poor' | 'Fair' | 'Good' | 'Excellent';
+  };
+}
+
+export class GBGPTTestReporter {
+  
+  /**
+   * Generate comprehensive test report
+   */
+  static generateReport(results: TestResult[]): TestMetrics {
+    const gbgptResults = results.filter(r => r.success && r.provider === 'GBGPT');
+    const openaiResults = results.filter(r => r.success && r.provider === 'OpenAI');
+    const failures = results.filter(r => !r.success);
+
+    // Performance Analysis
+    const avgGBGPTTime = gbgptResults.length > 0 
+      ? gbgptResults.reduce((sum, r) => sum + (r.duration || 0), 0) / gbgptResults.length
+      : 0;
+
+    const avgOpenAITime = openaiResults.length > 0
+      ? openaiResults.reduce((sum, r) => sum + (r.duration || 0), 0) / openaiResults.length  
+      : 0;
+
+    // Score Analysis
+    const successfulResults = [...gbgptResults, ...openaiResults];
+    const avgScore = successfulResults.length > 0
+      ? successfulResults.reduce((sum, r) => sum + (r.score?.overallScore || 0), 0) / successfulResults.length
+      : 0;
+
+    // Score Distribution Analysis
+    const scoreDistribution = {
+      '1.0-2.0': 0,
+      '2.1-3.0': 0, 
+      '3.1-4.0': 0,
+      '4.1-5.0': 0
+    };
+
+    successfulResults.forEach(result => {
+      const score = result.score?.overallScore || 0;
+      if (score <= 2.0) scoreDistribution['1.0-2.0']++;
+      else if (score <= 3.0) scoreDistribution['2.1-3.0']++;
+      else if (score <= 4.0) scoreDistribution['3.1-4.0']++;
+      else scoreDistribution['4.1-5.0']++;
+    });
+
+    // Cost Analysis (estimates)
+    const gbgptCostPer1000Tokens = 0.002; // $0.002 per 1K tokens (estimate)
+    const openaiCostPer1000Tokens = 0.03;  // $0.03 per 1K tokens (GPT-4o)
+    const avgTokensPerRequest = 800; // Estimate за vegan scoring
+
+    const gbgptCost = (gbgptResults.length * avgTokensPerRequest * gbgptCostPer1000Tokens) / 1000;
+    const openaiCost = (openaiResults.length * avgTokensPerRequest * openaiCostPer1000Tokens) / 1000;
+
+    // Quality Analysis
+    const reasoningQuality = this.analyzeReasoningQuality(gbgptResults);
+    const bulgarianQuality = this.analyzeBulgarianQuality(gbgptResults);
+
+    return {
+      totalRestaurants: results.length,
+      successfulGBGPT: gbgptResults.length,
+      fallbackToOpenAI: openaiResults.length,
+      totalFailures: failures.length,
+      averageGBGPTResponseTime: Math.round(avgGBGPTTime),
+      averageOpenAIResponseTime: Math.round(avgOpenAITime),
+      averageVeganScore: Math.round(avgScore * 100) / 100,
+      costAnalysis: {
+        gbgptCostPerRequest: Math.round(gbgptCost / gbgptResults.length * 10000) / 10000,
+        openaiCostPerRequest: Math.round(openaiCost / openaiResults.length * 10000) / 10000,
+        totalEstimatedCost: Math.round((gbgptCost + openaiCost) * 100) / 100
+      },
+      qualityAnalysis: {
+        scoreDistribution,
+        reasoningQuality,
+        bulgarianLanguageQuality: bulgarianQuality
+      }
+    };
+  }
+
+  /**
+   * Analyze reasoning quality
+   */
+  private static analyzeReasoningQuality(results: TestResult[]): 'Poor' | 'Fair' | 'Good' | 'Excellent' {
+    if (results.length === 0) return 'Poor';
+    
+    const reasoningLengths = results
+      .map(r => r.score?.reasoning?.length || 0)
+      .filter(len => len > 0);
+
+    const avgLength = reasoningLengths.reduce((sum, len) => sum + len, 0) / reasoningLengths.length;
+    
+    // Quality assessment based на reasoning length и complexity
+    if (avgLength < 50) return 'Poor';
+    if (avgLength < 100) return 'Fair';  
+    if (avgLength < 200) return 'Good';
+    return 'Excellent';
+  }
+
+  /**
+   * Analyze Bulgarian language quality
+   */
+  private static analyzeBulgarianQuality(results: TestResult[]): 'Poor' | 'Fair' | 'Good' | 'Excellent' {
+    if (results.length === 0) return 'Poor';
+    
+    const bulgarianTexts = results
+      .map(r => r.score?.reasoning || '')
+      .filter(text => text.length > 0);
+
+    // Check за Bulgarian characters и structure
+    const bulgarianCharCount = bulgarianTexts.reduce((count, text) => {
+      const bulgarianChars = text.match(/[а-я]/gi) || [];
+      return count + bulgarianChars.length;
+    }, 0);
+
+    const totalChars = bulgarianTexts.join('').length;
+    const bulgarianRatio = totalChars > 0 ? bulgarianCharCount / totalChars : 0;
+
+    // Quality assessment
+    if (bulgarianRatio < 0.3) return 'Poor';   // <30% Bulgarian chars
+    if (bulgarianRatio < 0.6) return 'Fair';   // 30-60% Bulgarian chars  
+    if (bulgarianRatio < 0.8) return 'Good';   // 60-80% Bulgarian chars
+    return 'Excellent';                        // >80% Bulgarian chars
+  }
+
+  /**
+   * Generate detailed markdown report
+   */
+  static generateMarkdownReport(metrics: TestMetrics, results: TestResult[]): string {
+    const timestamp = new Date().toLocaleString('bg-BG');
+    
+    return `# 📊 GBGPT BULK TEST REPORT
+
+**Test Date:** ${timestamp}  
+**Total Restaurants:** ${metrics.totalRestaurants}
+
+## 🎯 EXECUTIVE SUMMARY
+
+${this.generateExecutiveSummary(metrics)}
+
+## 📈 PERFORMANCE METRICS
+
+### Response Times:
+- **GBGPT Average:** ${metrics.averageGBGPTResponseTime}ms (${(metrics.averageGBGPTResponseTime/1000).toFixed(1)}s)
+- **OpenAI Average:** ${metrics.averageOpenAIResponseTime}ms (${(metrics.averageOpenAIResponseTime/1000).toFixed(1)}s)
+- **Speed Advantage:** OpenAI е ${Math.round(metrics.averageGBGPTResponseTime/metrics.averageOpenAIResponseTime)}x по-бърз
+
+### Success Rates:
+- **GBGPT Success:** ${metrics.successfulGBGPT}/${metrics.totalRestaurants} (${((metrics.successfulGBGPT/metrics.totalRestaurants)*100).toFixed(1)}%)
+- **OpenAI Fallback:** ${metrics.fallbackToOpenAI}/${metrics.totalRestaurants} (${((metrics.fallbackToOpenAI/metrics.totalRestaurants)*100).toFixed(1)}%)
+- **Total Failures:** ${metrics.totalFailures}/${metrics.totalRestaurants} (${((metrics.totalFailures/metrics.totalRestaurants)*100).toFixed(1)}%)
+
+## 💰 COST ANALYSIS
+
+### Per-Request Costs:
+- **GBGPT:** ${metrics.costAnalysis.gbgptCostPerRequest} per scoring
+- **OpenAI:** ${metrics.costAnalysis.openaiCostPerRequest} per scoring  
+- **Cost Savings:** GBGPT е ${Math.round((metrics.costAnalysis.openaiCostPerRequest/metrics.costAnalysis.gbgptCostPerRequest)*100)/100}x по-евтин
+
+### Projected Monthly Costs (1000 restaurants):
+- **GBGPT-Only:** ${(metrics.costAnalysis.gbgptCostPerRequest * 1000).toFixed(2)}
+- **OpenAI-Only:** ${(metrics.costAnalysis.openaiCostPerRequest * 1000).toFixed(2)}
+- **Hybrid (70% GBGPT):** ${((metrics.costAnalysis.gbgptCostPerRequest * 700) + (metrics.costAnalysis.openaiCostPerRequest * 300)).toFixed(2)}
+
+## 🎯 QUALITY ASSESSMENT
+
+### Vegan Score Distribution:
+${Object.entries(metrics.qualityAnalysis.scoreDistribution)
+  .map(([range, count]) => `- **${range}:** ${count} restaurants (${((count/metrics.totalRestaurants)*100).toFixed(1)}%)`)
+  .join('\n')}
+
+### Language & Content Quality:
+- **Reasoning Quality:** ${metrics.qualityAnalysis.reasoningQuality}
+- **Bulgarian Language:** ${metrics.qualityAnalysis.bulgarianLanguageQuality}  
+- **Average Vegan Score:** ${metrics.averageVeganScore}/5.0
+
+## 🎯 RECOMMENDATIONS
+
+${this.generateRecommendations(metrics)}
+
+## 📋 DETAILED RESULTS
+
+### Top 10 Successful Scores:
+${results.filter(r => r.success).slice(0, 10).map((r, i) => 
+  `${i+1}. **${r.restaurant.name}** - Score: ${r.score?.overallScore}/5 (${r.duration}ms, ${r.provider})`
+).join('\n')}
+
+### Failed Restaurants:
+${results.filter(r => !r.success).slice(0, 5).map((r, i) =>
+  `${i+1}. **${r.restaurant.name}** - Error: ${r.error}`  
+).join('\n')}
+
+---
+
+**Test completed at:** ${timestamp}`;
+  }
+
+  private static generateExecutiveSummary(metrics: TestMetrics): string {
+    const successRate = ((metrics.successfulGBGPT + metrics.fallbackToOpenAI) / metrics.totalRestaurants) * 100;
+    
+    if (successRate > 90) {
+      return "🎉 **EXCELLENT** - System е production-ready с robust performance";
+    } else if (successRate > 75) {
+      return "✅ **GOOD** - System работи добре с minor optimizations needed";  
+    } else if (successRate > 50) {
+      return "⚠️ **FAIR** - System needs significant improvements before production";
+    } else {
+      return "❌ **POOR** - Major issues requiring immediate attention";
+    }
+  }
+
+  private static generateRecommendations(metrics: TestMetrics): string {
+    const recommendations = [];
+    
+    if (metrics.successfulGBGPT < metrics.fallbackToOpenAI) {
+      recommendations.push("- **Use OpenAI as primary** - GBGPT connectivity issues");
+    } else {
+      recommendations.push("- **Use GBGPT as primary** - Good connectivity и performance");
+    }
+    
+    if (metrics.averageGBGPTResponseTime > 15000) {
+      recommendations.push("- **Implement async processing** - GBGPT responses са твърде бавни за real-time");
+    }
+    
+    if (metrics.costAnalysis.gbgptCostPerRequest < metrics.costAnalysis.openaiCostPerRequest) {
+      recommendations.push("- **Cost advantage confirmed** - GBGPT е значително по-евтин");
+    }
+    
+    if (metrics.qualityAnalysis.bulgarianLanguageQuality === 'Excellent') {
+      recommendations.push("- **Bulgarian optimization success** - GBGPT е superior за BG market");
+    }
+    
+    return recommendations.join('\n');
+  }
+}
+
+/**
+ * Enhanced bulk test endpoint with report generation
+ */
+router.post('/bulk-test-gbgpt-with-report', async (req, res) => {
+  try {
+    console.log('🚀 Starting enhanced bulk GBGPT test with comprehensive reporting...');
+    
+    // [Same restaurant processing logic as above]
+    // ... process all 50 restaurants ...
+    
+    // Generate comprehensive metrics
+    const metrics = GBGPTTestReporter.generateReport(results);
+    const reportMarkdown = GBGPTTestReporter.generateMarkdownReport(metrics, results);
+    
+    // Save report to file
+    const fs = await import('fs/promises');
+    const reportPath = `./reports/gbgpt-test-${Date.now()}.md`;
+    
+    try {
+      await fs.mkdir('./reports', { recursive: true });
+      await fs.writeFile(reportPath, reportMarkdown);
+      console.log(`📄 Report saved to: ${reportPath}`);
+    } catch (fileError) {
+      console.warn('⚠️ Could not save report file:', fileError.message);
+    }
+
+    res.json({
+      success: true,
+      metrics,
+      reportPath,
+      reportPreview: reportMarkdown.slice(0, 1000) + '...',
+      rawResults: results.slice(0, 5), // Sample results
+      message: `Test completed: ${metrics.successfulGBGPT + metrics.fallbackToOpenAI}/${metrics.totalRestaurants} successful`
+    });
+    
+  } catch (error) {
+    console.error('❌ Enhanced bulk test failed:', error);
+    
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: 'Enhanced bulk test failed'
+    });
+  }
+});
+```
+
+---
+
+## СТЪПКА 7: Execute Enhanced Test
+
+### Test Commands:
+
+**1. Health Check първо:**
+```bash
+GET /api/gbgpt-health
+```
+
+**2. Run Enhanced Bulk Test:**
+```bash
+POST /api/bulk-test-gbgpt-with-report
+# Автоматично ще генерира comprehensive report
+```
+
+**3. Review Generated Report:**
+```bash
+# Check в console logs за report file location
+# Report ще е saved в ./reports/gbgpt-test-[timestamp].md
+```
+
+---
+
+## 📊 EXPECTED REPORT CONTENTS
+
+### Performance Section:
+- GBGPT vs OpenAI response times (exact milliseconds)
+- Success rates за всеки provider
+- Fallback trigger frequency и effectiveness
+
+### Cost Analysis:
+- Per-request costs за GBGPT vs OpenAI
+- Monthly projections за 1000+ restaurants  
+- ROI analysis за choosing GBGPT vs OpenAI
+
+### Quality Assessment:
+- Vegan score distribution (реалистични ли са scores?)
+- Bulgarian language quality evaluation
+- Reasoning depth и accuracy analysis
+
+### Strategic Recommendations:
+- Кой provider да използваме като primary?
+- За какви cases е optimal GBGPT vs OpenAI?
+- Production deployment strategy
+
+---
+
+## 📞 EXPECTED OUTCOMES
+
+### Scenario A: GBGPT Works
+```
+Result: Amazing - първия AI с Bulgarian vegan scoring
+Impact: Competitive advantage за български пазар
+Next: Production deployment с GBGPT primary
+```
+
+### Scenario B: GBGPT Fails, OpenAI Works  
+```
+Result: Expected fallback behavior confirmed
+Impact: Robust system ready за production
+Next: Deploy със OpenAI, GBGPT за бъдеще
+```
+
+### Scenario C: Both Fail
+```
+Result: Need debugging и architecture review
+Impact: Hold deployment до fix
+Next: Technical troubleshooting session
+```
+
+**All scenarios са valuable за production readiness!** ✨

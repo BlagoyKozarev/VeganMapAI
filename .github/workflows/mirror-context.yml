@@ -1,0 +1,43 @@
+name: Mirror context (public)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'context/**'
+      - 'docs/**'
+      - 'api/openapi.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout core
+        uses: actions/checkout@v4
+
+      - name: Build mirror payload
+        run: |
+          set -euo pipefail
+          mkdir -p mirror/context mirror/docs mirror/api
+          [ -d context ] && cp -r context/* mirror/context/ || true
+          [ -d docs ] && cp -r docs/* mirror/docs/ || true
+          [ -f api/openapi.yml ] && cp api/openapi.yml mirror/api/openapi.yml || true
+          find mirror -type f -exec sed -i 's/[A-Z0-9_]*API_KEY\=[^ ]\+/API_KEY=REDACTED/g' {} \;
+
+      - name: Push to public mirror (no-remote, explicit URL)
+        env:
+          GH_TOKEN: ${{ secrets.CONTEXT_MIRROR_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd mirror
+          git init
+          git config user.email "mirror-bot@users.noreply.github.com"
+          git config user.name "mirror-bot"
+          git add .
+          git commit -m "chore: mirror context from core" || true
+          # директен push към URL с токен; без remote/clone
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/BlagoyKozarev/VeganMapAI-context-mirror.git" HEAD:main

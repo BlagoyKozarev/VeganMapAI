@@ -1,0 +1,1650 @@
+~/workspace$ ./git-comprehensive-cleanup.sh
+🚀 Starting comprehensive Git cleanup for VeganMapAI...
+📝 Setting clean remote URL...
+🔧 Installing git-filter-repo...
+🛡️ Adding comprehensive .gitignore...
+🧹 Removing sensitive files from Git index...
+rm 'attached_assets/.github/workflows/test.yml'
+rm 'attached_assets/.gitignore'
+rm 'attached_assets/.replit'
+rm 'attached_assets/16$MarketGemini_1753614937714.docx'
+rm 'attached_assets/CostAPI Gemini _1753717566072.docx'
+rm 'attached_assets/Full_Description_1753614937713.docx'
+rm 'attached_assets/My_Vegan_Assistant_Extended_Pack_1753614633494.zip'
+rm 'attached_assets/Pasted--0-set-euo-pipefail-export-GH-USER-BlagoyKozarev-export-REPO-NAME--1755094578709_1755094578709.txt'
+rm 'attached_assets/Pasted--1-mkdir-p-veganmapai-frontend-backend-functions-batch-infra-data-g-1754983101453_1754983101454.txt'
+rm 'attached_assets/Pasted--1-secrets-JSON-export-GCP-PROJECT-ID-centered-inn-460216-r9-ex-1754985753646_1754985753647.txt'
+rm 'attached_assets/Pasted--AI-SCORE-EXPLANATIONS-REPLIT-AGENT-INSTRUCTIONS-OBJECTIVE-Add-transparent-explanations-f-1754461529792_1754461529792.txt'
+rm 'attached_assets/Pasted--Auto-QA-CDN-API-health-perf-report-set-e-REPORT-DIR-deploy-reports-mkdir-p-R-1755008140580_1755008140582.txt'
+rm 'attached_assets/Pasted--Bridge-between-the-map-and-the-overlay-UI-VM-UX-Loads-places-from-API-or-local-JSON-render-1754747665762_1754747665762.txt'
+rm 'attached_assets/Pasted--Complete-Production-System-Audit-Find-Root-Cause-OBJECTIVE-Perform-comprehensive-d-1754401567506_1754401567507.txt'
+rm 'attached_assets/Pasted--Complete-Production-System-Audit-Find-Root-Cause-OBJECTIVE-Perform-comprehensive-d-1754401760954_1754401760954.txt'
+rm 'attached_assets/Pasted--DOCTYPE-html-html-lang-bg-head-meta-charset-UTF-8-meta-name-viewport-content--1754706330169_1754706330169.txt'
+rm 'attached_assets/Pasted--DOCTYPE-html-html-lang-bg-head-meta-charset-UTF-8-meta-name-viewport-content-wi-1754481921528_1754481921528.txt'
+rm 'attached_assets/Pasted--DOCTYPE-html-html-lang-en-data-theme-light-head-meta-charset-UTF-8-meta-name--1754716243830_1754716243830.txt'
+rm 'attached_assets/Pasted--DOCTYPE-html-html-lang-en-data-theme-light-head-meta-charset-UTF-8-meta-name--1754716658268_1754716658269.txt'
+rm 'attached_assets/Pasted--DOCTYPE-html-html-lang-en-data-theme-light-head-meta-charset-UTF-8-meta-name-viewp-1754718342113_1754718342113.txt'
+rm 'attached_assets/Pasted--DOCTYPE-html-html-lang-en-head-meta-charset-UTF-8-meta-name-viewport-content--1754707917302_1754707917303.txt'
+rm 'attached_assets/Pasted--DOCTYPE-html-html-lang-en-head-meta-charset-UTF-8-meta-name-viewport-content--1754715612906_1754715612906.txt'
+rm 'attached_assets/Pasted--DevOps-Full-Stack-VeganMapAI--1754922746909_1754922746909.txt'
+rm 'attached_assets/Pasted--GBGPT-BULK-RESTAURANT-TEST-50-50--1754489632507_1754489632509.txt'
+rm 'attached_assets/Pasted--GBGPT-Test-Suite-for-VeganMapAI-Complete-testing-of-GBGPT-capabilities-before-integration--1754314263246_1754314263247.txt'
+rm 'attached_assets/Pasted--Google-Maps-API-Optimization-Strategy-for-VeganMapAI-Target-95-cost-reduction-for-250K-rest-1754316205181_1754316205182.txt'
+rm 'attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319402661_1754319402661.txt'
+rm 'attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319508497_1754319508498.txt'
+rm 'attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319516187_1754319516187.txt'
+rm 'attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319537426_1754319537426.txt'
+rm 'attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319573738_1754319573738.txt'
+rm 'attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319723503_1754319723504.txt'
+rm 'attached_assets/Pasted--Map-Performance-Optimization-for-250K-Restaurants-Challenge-Load-massive-datasets-without-br-1754319110929_1754319110929.txt'
+rm 'attached_assets/Pasted--MapPerformanceManager-ts-Smart-Loading-System-for-250K-Restaurants-Handles-massive-dataset-1754319435222_1754319435222.txt'
+rm 'attached_assets/Pasted--Minimal-bridge-between-the-Map-and-the-overlay-UI-VM-UX-Works-with-Leaflet-if-available-ot-1754722046457_1754722046457.txt'
+rm 'attached_assets/Pasted--OptimizedLeafletMap-tsx-High-performance-map-component-for-250K-restaurants-import-React-u-1754319456430_1754319456430.txt'
+rm 'attached_assets/Pasted--PERFORMANCE-OPTIMIZATION-REPLIT-AGENT-INSTRUCTIONS-OBJECTIVE-Optimize-VeganMapAI-performa-1754462152920_1754462152921.txt'
+rm 'attached_assets/Pasted--REPLIT-AGENT-GBGPT-INTEGRATION-GBGPT-primary-AI-p-1754484897394_1754484897394.txt'
+rm 'attached_assets/Pasted--REPLIT-AGENT-INSTRUCTIONS-Fix-Production-Database-Connection-URGENT-DATABASE-CONNECTION-1754412546860_1754412546861.txt'
+rm 'attached_assets/Pasted--REPLIT-AGENT-INSTRUCTIONS-VeganMapAI-Project-PROJECT-OVERVIEW-VeganMapAI-is-a-critical-1754109593920_1754109593920.txt'
+rm 'attached_assets/Pasted--REQUEST-GBGPT-TEST-REPORT-GENERATION-Replit-Agent--1754491397574_1754491397575.txt'
+rm 'attached_assets/Pasted--Replit-Agent-Fix-Environment-Variables-Loading-PROBLEM-IDENTIFIED-VeganMapAI-deploy-1754135170814_1754135170815.txt'
+rm 'attached_assets/Pasted--UI-CONSISTENCY-POSITIONING-REPLIT-AGENT-INSTRUCTIONS-OBJECTIVE-Optimize-window-positio-1754462445232_1754462445233.txt'
+rm 'attached_assets/Pasted--VeganMapAI-Crew-Prompt-net-version-Project-Goal-Build-a-modular-intelligent-platform-1753591895339_1753591895340.txt'
+rm 'attached_assets/Pasted--VeganMapAI-Daily-Development-Workflow-Morning-Startup-Routine-1-Project-Health--1754109629569_1754109629570.txt'
+rm 'attached_assets/Pasted--VeganMapAI-Welcome-Onboarding-Options-GOAL-Create-immediate-positive-first-impressi-1754409885492_1754409885493.txt'
+rm 'attached_assets/Pasted--auth-fix-solution-ts-Make-map-data-publicly-accessible-SOLUTION-1-Create-public-endpoint-1754368377195_1754368377196.txt'
+rm 'attached_assets/Pasted--debug-sofia-restaurants-ts-Check-Sofia-restaurants-in-production-database-import-db-from-1754368005003_1754368005004.txt'
+rm 'attached_assets/Pasted--frontend-auth-fix-ts-Update-frontend-to-use-public-endpoints-SOLUTION-1-Update-API-calls-1754368389864_1754368389864.txt'
+rm 'attached_assets/Pasted--function-const-UX-const-q-root-document-root-querySelector-q-const-demoPla-1754719713582_1754719713583.txt'
+rm 'attached_assets/Pasted--function-const-UX-const-q-root-document-root-querySelector-q-const-demoPla-1754721018101_1754721018102.txt'
+rm 'attached_assets/Pasted--function-const-UX-const-q-root-document-root-querySelector-q-const-q--1754718774676_1754718774676.txt'
+rm 'attached_assets/Pasted--replit-ai-instructions-This-file-provides-context-to-Replit-AI-Agent-about-this-project--1754109614125_1754109614126.txt'
+rm 'attached_assets/Pasted--root-surface-fff-elev-f5f7fb-text-0f1720-muted-4b5563-line-rgba-15-23--1754719696083_1754719696084.txt'
+rm 'attached_assets/Pasted--root-surface-fff-elev-f5f7fb-text-0f1720-muted-4b5563-line-rgba-15-23--1754720973918_1754720973919.txt'
+rm 'attached_assets/Pasted--root-surface-ffffff-elev-f5f7fb-text-0f1720-muted-4b5563-line-rgba-15--1754718737356_1754718737357.txt'
+rm 'attached_assets/Pasted--useOptimizedMap-ts-React-hook-for-map-performance-integration-import-useState-useEffect-us-1754319688901_1754319688901.txt'
+rm 'attached_assets/Pasted--usr-bin-env-bash-VeganMapAI-Comprehensive-QA-Monitoring-set-euo-pipefail--1755008880271_1755008880272.txt'
+rm 'attached_assets/Pasted--usr-bin-env-bash-set-euo-pipefail-GCP-PROJECT-ID-centered-inn-1755007870148_1755007870149.txt'
+rm 'attached_assets/Pasted--usr-bin-env-bash-set-euo-pipefail-echo-VeganMapAI-GCP-Full-Deploy-Auto-Detect--1755007181438_1755007181439.txt'
+rm 'attached_assets/Pasted-HOTFIX-KEEP-OVERLAY-ON-TOP-OF-MAP-Goal-Make-the-overlay-search-pill-chips-FAB-bottom-shee-1754720254822_1754720254823.txt'
+rm 'attached_assets/Pasted-REPLIT-AGENT-ENABLE-MARKER-CLUSTERING-LEAFLET-MARKERCLUSTER--1754748369552_1754748369552.txt'
+rm 'attached_assets/Pasted-REPLIT-AGENT-FROM-MOCKUP-TO-REAL-PROJECT-GIT-DEPLOY-README--1754750101993_1754750101994.txt'
+rm 'attached_assets/Pasted-REPLIT-AGENT-MORE-FILTERS-DRAWER-drawer--1754748938842_1754748938842.txt'
+rm 'attached_assets/Pasted-REPLIT-AGENT-WIRE-MORE-FILTERS-TO-MAP-Apply-Filters-drawer-p-1754749015300_1754749015301.txt'
+rm 'attached_assets/Pasted-Search-Time-Deployment-Source-Log-2025-08-05-18-01-10-85-81ee5b01-User-Database-initializa-1754451920420_1754451920421.txt'
+rm 'attached_assets/Pasted-import-useState-useRef-from-react-import-Button-from-components-ui-button-import--1753973928504_1753973928505.txt'
+rm 'attached_assets/Pasted-import-useState-useRef-from-react-import-Button-from-components-ui-button-import--1753973950633_1753973950634.txt'
+rm 'attached_assets/Pasted-interface-GBGPTRequest-model-string-prompt-string-max-tokens-number-temperature--1754484678161_1754484678162.txt'
+rm 'attached_assets/Pasted-set-euo-pipefail-CONFIG-PROJECT-ID-centered-1755006525536_1755006525536.txt'
+rm 'attached_assets/Pasted-set-euo-pipefail-CONFIG-PROJECT-ID-centered-inn-460216-r9-REGION-us-c-1754989886106_1754989886107.txt'
+rm 'attached_assets/Pasted-set-euo-pipefail-CONFIG-REMOTE-REMOTE-origin-BRANCH-git-rev-parse-abbre-1755006017094_1755006017095.txt'
+rm 'attached_assets/README-INSTRUCTIONS.txt'
+rm 'attached_assets/README-INSTRUCTIONS_1754062137729.txt'
+rm 'attached_assets/README-PLAYWRIGHT.txt'
+rm 'attached_assets/VeganMapAI-Agent-Test_1754061889970.zip'
+rm 'attached_assets/VeganMapAI-Coverage-Regression-CI_1754062997612.zip'
+rm 'attached_assets/VeganMapAI-Playwright-Test_1754062399813.zip'
+rm 'attached_assets/VeganMapAI-main/.gitignore'
+rm 'attached_assets/VeganMapAI-main/.replit'
+rm 'attached_assets/VeganMapAI-main/attached_assets/16$MarketGemini_1753614937714.docx'
+rm 'attached_assets/VeganMapAI-main/attached_assets/CostAPI Gemini _1753717566072.docx'
+rm 'attached_assets/VeganMapAI-main/attached_assets/Full_Description_1753614937713.docx'
+rm 'attached_assets/VeganMapAI-main/attached_assets/My_Vegan_Assistant_Extended_Pack_1753614633494.zip'
+rm 'attached_assets/VeganMapAI-main/attached_assets/Pasted--VeganMapAI-Crew-Prompt-net-version-Project-Goal-Build-a-modular-intelligent-platform-1753591895339_1753591895340.txt'
+rm 'attached_assets/VeganMapAI-main/attached_assets/VeganMapAI_Fin_GPT_Prompt_1753614937714.docx'
+rm 'attached_assets/VeganMapAI-main/attached_assets/VeganMap_Replit_Whisper_GPT4o_1753896862671.zip'
+rm 'attached_assets/VeganMapAI-main/attached_assets/VeganMap_Replit_Whisper_GPT4o_TTS_1753897574267.zip'
+rm 'attached_assets/VeganMapAI-main/attached_assets/VeganScore_API_Инструменти_Разходи_1753717566070.xlsx'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753620993540.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753621628086.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753621873778.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753622473727.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753622810214.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753622917072.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753622992272.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753623164793.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753623353737.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753623459082.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753623806325.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753623886317.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753625053038.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753636015359.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753636272675.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753720662576.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753721595260.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753722275491.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753786640081.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/image_1753804445220.png'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant/.replit'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant/package.json'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant/public/agent.js'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant/public/index.html'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant/server.js'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/.replit'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/package.json'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/public/agent.js'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/public/index.html'
+rm 'attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/server.js'
+rm 'attached_assets/VeganMapAI-main/attached_assets/ИИ Агент за Откриване на Веган Perplexity_1753614937714.docx'
+rm 'attached_assets/VeganMapAI-main/attached_assets/Оптимизирана_архитектура_Google_Places_API_1753717566071.docx'
+rm 'attached_assets/VeganMapAI-main/client/index.html'
+rm 'attached_assets/VeganMapAI-main/client/public/manifest.json'
+rm 'attached_assets/VeganMapAI-main/client/public/sw.js'
+rm 'attached_assets/VeganMapAI-main/client/src/App.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/layout/TabNavigation.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/map/Map.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/map/MapControls.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/map/RestaurantModal.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/map/RestaurantPin.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/mobile/MobileFilterDrawer.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/mobile/MobileHeader.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/mobile/MobileHeaderClean.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/mobile/MobileHeaderFixed.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/accordion.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/action-menu.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/alert-dialog.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/alert.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/aspect-ratio.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/avatar.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/badge.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/breadcrumb.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/button.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/calendar.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/card.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/carousel.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/chart.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/checkbox.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/collapsible.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/command.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/context-menu.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/dialog.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/drawer.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/dropdown-menu.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/favorite-button.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/form.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/hover-card.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/input-otp.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/input.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/label.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/menubar.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/navigation-menu.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/pagination.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/popover.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/progress.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/radio-group.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/resizable.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/restaurant-dropdown.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/score-badge.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/scroll-area.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/search-bar.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/select.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/separator.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/sheet.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/sidebar.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/skeleton.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/slider.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/switch.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/table.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/tabs.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/textarea.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/toast.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/toaster.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/toggle-group.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/toggle.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/ui/tooltip.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/components/voice/VoiceAssistant.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/hooks/use-mobile.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/hooks/use-toast.ts'
+rm 'attached_assets/VeganMapAI-main/client/src/hooks/useAuth.ts'
+rm 'attached_assets/VeganMapAI-main/client/src/hooks/useGeolocation.ts'
+rm 'attached_assets/VeganMapAI-main/client/src/hooks/useRestaurants.ts'
+rm 'attached_assets/VeganMapAI-main/client/src/index.css'
+rm 'attached_assets/VeganMapAI-main/client/src/lib/authUtils.ts'
+rm 'attached_assets/VeganMapAI-main/client/src/lib/queryClient.ts'
+rm 'attached_assets/VeganMapAI-main/client/src/lib/utils.ts'
+rm 'attached_assets/VeganMapAI-main/client/src/main.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/admin-improve.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/admin-panel.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/admin-scoring.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/ai-chat-old.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/ai-chat.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/api-stats.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/favorites.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/home-backup.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/home.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/landing.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/not-found.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/profile-setup.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/profile.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/restaurant-detail.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/pages/search.tsx'
+rm 'attached_assets/VeganMapAI-main/client/src/types/index.ts'
+rm 'attached_assets/VeganMapAI-main/components.json'
+rm 'attached_assets/VeganMapAI-main/drizzle.config.ts'
+rm 'attached_assets/VeganMapAI-main/improve-batch.js'
+rm 'attached_assets/VeganMapAI-main/mobile-simple.tsx'
+rm 'attached_assets/VeganMapAI-main/package-lock.json'
+rm 'attached_assets/VeganMapAI-main/package.json'
+rm 'attached_assets/VeganMapAI-main/postcss.config.js'
+rm 'attached_assets/VeganMapAI-main/public/mobile-test.html'
+rm 'attached_assets/VeganMapAI-main/replit.md'
+rm 'attached_assets/VeganMapAI-main/server/agents/analyticsAgent.ts'
+rm 'attached_assets/VeganMapAI-main/server/agents/index.ts'
+rm 'attached_assets/VeganMapAI-main/server/agents/mapAgent.ts'
+rm 'attached_assets/VeganMapAI-main/server/agents/profileAgent.ts'
+rm 'attached_assets/VeganMapAI-main/server/agents/reviewAgent.ts'
+rm 'attached_assets/VeganMapAI-main/server/agents/scoreAgent.ts'
+rm 'attached_assets/VeganMapAI-main/server/agents/searchAgent.ts'
+rm 'attached_assets/VeganMapAI-main/server/db.ts'
+rm 'attached_assets/VeganMapAI-main/server/index.ts'
+rm 'attached_assets/VeganMapAI-main/server/replitAuth.ts'
+rm 'attached_assets/VeganMapAI-main/server/routes.ts'
+rm 'attached_assets/VeganMapAI-main/server/routes/api-stats.ts'
+rm 'attached_assets/VeganMapAI-main/server/routes_backup.ts'
+rm 'attached_assets/VeganMapAI-main/server/routes_broken.ts'
+rm 'attached_assets/VeganMapAI-main/server/services/googlePlaces.ts'
+rm 'attached_assets/VeganMapAI-main/server/services/openai.ts'
+rm 'attached_assets/VeganMapAI-main/server/storage.ts'
+rm 'attached_assets/VeganMapAI-main/server/utils/geoCache.ts'
+rm 'attached_assets/VeganMapAI-main/server/vite.ts'
+rm 'attached_assets/VeganMapAI-main/shared/schema.ts'
+rm 'attached_assets/VeganMapAI-main/tailwind.config.ts'
+rm 'attached_assets/VeganMapAI-main/test-audio.mp3'
+rm 'attached_assets/VeganMapAI-main/test-improved-scoring.js'
+rm 'attached_assets/VeganMapAI-main/test-mobile.html'
+rm 'attached_assets/VeganMapAI-main/test-speech.mp3'
+rm 'attached_assets/VeganMapAI-main/tsconfig.json'
+rm 'attached_assets/VeganMapAI-main/vite.config.ts'
+rm 'attached_assets/VeganMapAI-main_1753967449565.zip'
+rm 'attached_assets/VeganMapAI_Fin_GPT_Prompt_1753614937714.docx'
+rm 'attached_assets/VeganMapAI_Upgraded_FULL_1753901801537.zip'
+rm 'attached_assets/VeganMapAI_Upgraded_FULL_1753967449565.zip'
+rm 'attached_assets/VeganMap_Replit_Whisper_GPT4o_1753896862671.zip'
+rm 'attached_assets/VeganMap_Replit_Whisper_GPT4o_TTS_1753897574267.zip'
+rm 'attached_assets/VeganScore_API_Инструменти_Разходи_1753717566070.xlsx'
+rm 'attached_assets/agent-gpt-helper_1754060117208.ts'
+rm 'attached_assets/api.test_1754062137727.ts'
+rm 'attached_assets/attached_assets/16$MarketGemini_1753614937714.docx'
+rm 'attached_assets/attached_assets/CostAPI Gemini _1753717566072.docx'
+rm 'attached_assets/attached_assets/Full_Description_1753614937713.docx'
+rm 'attached_assets/attached_assets/My_Vegan_Assistant_Extended_Pack_1753614633494.zip'
+rm 'attached_assets/attached_assets/Pasted--VeganMapAI-Crew-Prompt-net-version-Project-Goal-Build-a-modular-intelligent-platform-1753591895339_1753591895340.txt'
+rm 'attached_assets/attached_assets/VeganMapAI_Fin_GPT_Prompt_1753614937714.docx'
+rm 'attached_assets/attached_assets/VeganMap_Replit_Whisper_GPT4o_1753896862671.zip'
+rm 'attached_assets/attached_assets/VeganMap_Replit_Whisper_GPT4o_TTS_1753897574267.zip'
+rm 'attached_assets/attached_assets/VeganScore_API_Инструменти_Разходи_1753717566070.xlsx'
+rm 'attached_assets/attached_assets/image_1753620993540.png'
+rm 'attached_assets/attached_assets/image_1753621628086.png'
+rm 'attached_assets/attached_assets/image_1753621873778.png'
+rm 'attached_assets/attached_assets/image_1753622473727.png'
+rm 'attached_assets/attached_assets/image_1753622810214.png'
+rm 'attached_assets/attached_assets/image_1753622917072.png'
+rm 'attached_assets/attached_assets/image_1753622992272.png'
+rm 'attached_assets/attached_assets/image_1753623164793.png'
+rm 'attached_assets/attached_assets/image_1753623353737.png'
+rm 'attached_assets/attached_assets/image_1753623459082.png'
+rm 'attached_assets/attached_assets/image_1753623806325.png'
+rm 'attached_assets/attached_assets/image_1753623886317.png'
+rm 'attached_assets/attached_assets/image_1753625053038.png'
+rm 'attached_assets/attached_assets/image_1753636015359.png'
+rm 'attached_assets/attached_assets/image_1753636272675.png'
+rm 'attached_assets/attached_assets/image_1753720662576.png'
+rm 'attached_assets/attached_assets/image_1753721595260.png'
+rm 'attached_assets/attached_assets/image_1753722275491.png'
+rm 'attached_assets/attached_assets/image_1753786640081.png'
+rm 'attached_assets/attached_assets/image_1753804445220.png'
+rm 'attached_assets/attached_assets/voice_assistant/.replit'
+rm 'attached_assets/attached_assets/voice_assistant/package.json'
+rm 'attached_assets/attached_assets/voice_assistant/public/agent.js'
+rm 'attached_assets/attached_assets/voice_assistant/public/index.html'
+rm 'attached_assets/attached_assets/voice_assistant/server.js'
+rm 'attached_assets/attached_assets/voice_assistant_tts/.replit'
+rm 'attached_assets/attached_assets/voice_assistant_tts/package.json'
+rm 'attached_assets/attached_assets/voice_assistant_tts/public/agent.js'
+rm 'attached_assets/attached_assets/voice_assistant_tts/public/index.html'
+rm 'attached_assets/attached_assets/voice_assistant_tts/server.js'
+rm 'attached_assets/attached_assets/ИИ Агент за Откриване на Веган Perplexity_1753614937714.docx'
+rm 'attached_assets/attached_assets/Оптимизирана_архитектура_Google_Places_API_1753717566071.docx'
+rm 'attached_assets/audio.test_1754062137728.ts'
+rm 'attached_assets/client/index.html'
+rm 'attached_assets/client/public/manifest.json'
+rm 'attached_assets/client/public/sw.js'
+rm 'attached_assets/client/src/App.tsx'
+rm 'attached_assets/client/src/components/layout/TabNavigation.tsx'
+rm 'attached_assets/client/src/components/map/Map.tsx'
+rm 'attached_assets/client/src/components/map/MapControls.tsx'
+rm 'attached_assets/client/src/components/map/RestaurantModal.tsx'
+rm 'attached_assets/client/src/components/map/RestaurantPin.tsx'
+rm 'attached_assets/client/src/components/mobile/MobileFilterDrawer.tsx'
+rm 'attached_assets/client/src/components/mobile/MobileHeader.tsx'
+rm 'attached_assets/client/src/components/mobile/MobileHeaderClean.tsx'
+rm 'attached_assets/client/src/components/mobile/MobileHeaderFixed.tsx'
+rm 'attached_assets/client/src/components/ui/accordion.tsx'
+rm 'attached_assets/client/src/components/ui/action-menu.tsx'
+rm 'attached_assets/client/src/components/ui/alert-dialog.tsx'
+rm 'attached_assets/client/src/components/ui/alert.tsx'
+rm 'attached_assets/client/src/components/ui/aspect-ratio.tsx'
+rm 'attached_assets/client/src/components/ui/avatar.tsx'
+rm 'attached_assets/client/src/components/ui/badge.tsx'
+rm 'attached_assets/client/src/components/ui/breadcrumb.tsx'
+rm 'attached_assets/client/src/components/ui/button.tsx'
+rm 'attached_assets/client/src/components/ui/calendar.tsx'
+rm 'attached_assets/client/src/components/ui/card.tsx'
+rm 'attached_assets/client/src/components/ui/carousel.tsx'
+rm 'attached_assets/client/src/components/ui/chart.tsx'
+rm 'attached_assets/client/src/components/ui/checkbox.tsx'
+rm 'attached_assets/client/src/components/ui/collapsible.tsx'
+rm 'attached_assets/client/src/components/ui/command.tsx'
+rm 'attached_assets/client/src/components/ui/context-menu.tsx'
+rm 'attached_assets/client/src/components/ui/dialog.tsx'
+rm 'attached_assets/client/src/components/ui/drawer.tsx'
+rm 'attached_assets/client/src/components/ui/dropdown-menu.tsx'
+rm 'attached_assets/client/src/components/ui/favorite-button.tsx'
+rm 'attached_assets/client/src/components/ui/form.tsx'
+rm 'attached_assets/client/src/components/ui/hover-card.tsx'
+rm 'attached_assets/client/src/components/ui/input-otp.tsx'
+rm 'attached_assets/client/src/components/ui/input.tsx'
+rm 'attached_assets/client/src/components/ui/label.tsx'
+rm 'attached_assets/client/src/components/ui/menubar.tsx'
+rm 'attached_assets/client/src/components/ui/navigation-menu.tsx'
+rm 'attached_assets/client/src/components/ui/pagination.tsx'
+rm 'attached_assets/client/src/components/ui/popover.tsx'
+rm 'attached_assets/client/src/components/ui/progress.tsx'
+rm 'attached_assets/client/src/components/ui/radio-group.tsx'
+rm 'attached_assets/client/src/components/ui/resizable.tsx'
+rm 'attached_assets/client/src/components/ui/restaurant-dropdown.tsx'
+rm 'attached_assets/client/src/components/ui/score-badge.tsx'
+rm 'attached_assets/client/src/components/ui/scroll-area.tsx'
+rm 'attached_assets/client/src/components/ui/search-bar.tsx'
+rm 'attached_assets/client/src/components/ui/select.tsx'
+rm 'attached_assets/client/src/components/ui/separator.tsx'
+rm 'attached_assets/client/src/components/ui/sheet.tsx'
+rm 'attached_assets/client/src/components/ui/sidebar.tsx'
+rm 'attached_assets/client/src/components/ui/skeleton.tsx'
+rm 'attached_assets/client/src/components/ui/slider.tsx'
+rm 'attached_assets/client/src/components/ui/switch.tsx'
+rm 'attached_assets/client/src/components/ui/table.tsx'
+rm 'attached_assets/client/src/components/ui/tabs.tsx'
+rm 'attached_assets/client/src/components/ui/textarea.tsx'
+rm 'attached_assets/client/src/components/ui/toast.tsx'
+rm 'attached_assets/client/src/components/ui/toaster.tsx'
+rm 'attached_assets/client/src/components/ui/toggle-group.tsx'
+rm 'attached_assets/client/src/components/ui/toggle.tsx'
+rm 'attached_assets/client/src/components/ui/tooltip.tsx'
+rm 'attached_assets/client/src/components/voice/VoiceAssistant.tsx'
+rm 'attached_assets/client/src/hooks/use-mobile.tsx'
+rm 'attached_assets/client/src/hooks/use-toast.ts'
+rm 'attached_assets/client/src/hooks/useAuth.ts'
+rm 'attached_assets/client/src/hooks/useGeolocation.ts'
+rm 'attached_assets/client/src/hooks/useRestaurants.ts'
+rm 'attached_assets/client/src/index.css'
+rm 'attached_assets/client/src/lib/authUtils.ts'
+rm 'attached_assets/client/src/lib/queryClient.ts'
+rm 'attached_assets/client/src/lib/utils.ts'
+rm 'attached_assets/client/src/main.tsx'
+rm 'attached_assets/client/src/pages/admin-improve.tsx'
+rm 'attached_assets/client/src/pages/admin-panel.tsx'
+rm 'attached_assets/client/src/pages/admin-scoring.tsx'
+rm 'attached_assets/client/src/pages/ai-chat-old.tsx'
+rm 'attached_assets/client/src/pages/ai-chat.tsx'
+rm 'attached_assets/client/src/pages/api-stats.tsx'
+rm 'attached_assets/client/src/pages/favorites.tsx'
+rm 'attached_assets/client/src/pages/home-backup.tsx'
+rm 'attached_assets/client/src/pages/home.tsx'
+rm 'attached_assets/client/src/pages/landing.tsx'
+rm 'attached_assets/client/src/pages/not-found.tsx'
+rm 'attached_assets/client/src/pages/profile-setup.tsx'
+rm 'attached_assets/client/src/pages/profile.tsx'
+rm 'attached_assets/client/src/pages/restaurant-detail.tsx'
+rm 'attached_assets/client/src/pages/search.tsx'
+rm 'attached_assets/client/src/types/index.ts'
+rm 'attached_assets/components.json'
+rm 'attached_assets/drizzle.config.ts'
+rm 'attached_assets/google_maps_cluster_example_1753978707214.zip'
+rm 'attached_assets/image_1753620993540.png'
+rm 'attached_assets/image_1753621628086.png'
+rm 'attached_assets/image_1753621873778.png'
+rm 'attached_assets/image_1753622473727.png'
+rm 'attached_assets/image_1753622810214.png'
+rm 'attached_assets/image_1753622917072.png'
+rm 'attached_assets/image_1753622992272.png'
+rm 'attached_assets/image_1753623164793.png'
+rm 'attached_assets/image_1753623353737.png'
+rm 'attached_assets/image_1753623459082.png'
+rm 'attached_assets/image_1753623806325.png'
+rm 'attached_assets/image_1753623886317.png'
+rm 'attached_assets/image_1753625053038.png'
+rm 'attached_assets/image_1753636015359.png'
+rm 'attached_assets/image_1753636272675.png'
+rm 'attached_assets/image_1753720662576.png'
+rm 'attached_assets/image_1753721595260.png'
+rm 'attached_assets/image_1753722275491.png'
+rm 'attached_assets/image_1753786640081.png'
+rm 'attached_assets/image_1753804445220.png'
+rm 'attached_assets/image_1753969244637.png'
+rm 'attached_assets/image_1753969589970.png'
+rm 'attached_assets/image_1753970185302.png'
+rm 'attached_assets/image_1753971937029.png'
+rm 'attached_assets/image_1753972078043.png'
+rm 'attached_assets/image_1753972360190.png'
+rm 'attached_assets/image_1753972520784.png'
+rm 'attached_assets/image_1753972654095.png'
+rm 'attached_assets/image_1753972778530.png'
+rm 'attached_assets/image_1753972994798.png'
+rm 'attached_assets/image_1753973108782.png'
+rm 'attached_assets/image_1753973239202.png'
+rm 'attached_assets/image_1753973396840.png'
+rm 'attached_assets/image_1753974553705.png'
+rm 'attached_assets/image_1753974693628.png'
+rm 'attached_assets/image_1753975908902.png'
+rm 'attached_assets/image_1753976083485.png'
+rm 'attached_assets/image_1753976226363.png'
+rm 'attached_assets/image_1753976410262.png'
+rm 'attached_assets/image_1753977289278.png'
+rm 'attached_assets/image_1753977488225.png'
+rm 'attached_assets/image_1753977606691.png'
+rm 'attached_assets/image_1754056328065.png'
+rm 'attached_assets/image_1754056660641.png'
+rm 'attached_assets/image_1754056760969.png'
+rm 'attached_assets/image_1754056881317.png'
+rm 'attached_assets/image_1754056978506.png'
+rm 'attached_assets/image_1754057065319.png'
+rm 'attached_assets/image_1754057292699.png'
+rm 'attached_assets/image_1754057414468.png'
+rm 'attached_assets/image_1754057593179.png'
+rm 'attached_assets/image_1754057711467.png'
+rm 'attached_assets/image_1754057881539.png'
+rm 'attached_assets/image_1754058004907.png'
+rm 'attached_assets/image_1754060303622.png'
+rm 'attached_assets/image_1754060460110.png'
+rm 'attached_assets/image_1754060619669.png'
+rm 'attached_assets/image_1754061345009.png'
+rm 'attached_assets/image_1754115078010.png'
+rm 'attached_assets/image_1754115436711.png'
+rm 'attached_assets/image_1754130936408.png'
+rm 'attached_assets/image_1754130989607.png'
+rm 'attached_assets/image_1754136432163.png'
+rm 'attached_assets/image_1754194518204.png'
+rm 'attached_assets/image_1754194657348.png'
+rm 'attached_assets/image_1754194781048.png'
+rm 'attached_assets/image_1754321043165.png'
+rm 'attached_assets/image_1754371643462.png'
+rm 'attached_assets/image_1754374342647.png'
+rm 'attached_assets/image_1754375913723.png'
+rm 'attached_assets/image_1754376057913.png'
+rm 'attached_assets/image_1754395558564.png'
+rm 'attached_assets/image_1754395761145.png'
+rm 'attached_assets/image_1754395968769.png'
+rm 'attached_assets/image_1754396721755.png'
+rm 'attached_assets/image_1754396924563.png'
+rm 'attached_assets/image_1754397423952.png'
+rm 'attached_assets/image_1754397912972.png'
+rm 'attached_assets/image_1754398593551.png'
+rm 'attached_assets/image_1754398676333.png'
+rm 'attached_assets/image_1754399020524.png'
+rm 'attached_assets/image_1754399219092.png'
+rm 'attached_assets/image_1754400246570.png'
+rm 'attached_assets/image_1754400756132.png'
+rm 'attached_assets/image_1754404744580.png'
+rm 'attached_assets/image_1754404910618.png'
+rm 'attached_assets/image_1754405076136.png'
+rm 'attached_assets/image_1754405163538.png'
+rm 'attached_assets/image_1754405177930.png'
+rm 'attached_assets/image_1754405238859.png'
+rm 'attached_assets/image_1754405394635.png'
+rm 'attached_assets/image_1754405442844.png'
+rm 'attached_assets/image_1754406322859.png'
+rm 'attached_assets/image_1754406558192.png'
+rm 'attached_assets/image_1754407572333.png'
+rm 'attached_assets/image_1754413000998.png'
+rm 'attached_assets/image_1754413092231.png'
+rm 'attached_assets/image_1754413119051.png'
+rm 'attached_assets/image_1754413139048.png'
+rm 'attached_assets/image_1754414175480.png'
+rm 'attached_assets/image_1754447428392.png'
+rm 'attached_assets/image_1754448719850.png'
+rm 'attached_assets/image_1754448881852.png'
+rm 'attached_assets/image_1754449043515.png'
+rm 'attached_assets/image_1754449939127.png'
+rm 'attached_assets/image_1754450178075.png'
+rm 'attached_assets/image_1754452056512.png'
+rm 'attached_assets/image_1754623222689.png'
+rm 'attached_assets/image_1754623228579.png'
+rm 'attached_assets/image_1754714909114.png'
+rm 'attached_assets/image_1754721470406.png'
+rm 'attached_assets/image_1754747963759.png'
+rm 'attached_assets/image_1754751036290.png'
+rm 'attached_assets/image_1754881589326.png'
+rm 'attached_assets/image_1754882914575.png'
+rm 'attached_assets/image_1754883905112.png'
+rm 'attached_assets/image_1754920862154.png'
+rm 'attached_assets/image_1754922388924.png'
+rm 'attached_assets/image_1754922403079.png'
+rm 'attached_assets/image_1754922666734.png'
+rm 'attached_assets/image_1754922682928.png'
+rm 'attached_assets/image_1754923946350.png'
+rm 'attached_assets/image_1754923957376.png'
+rm 'attached_assets/image_1754924259852.png'
+rm 'attached_assets/image_1754924272549.png'
+rm 'attached_assets/image_1754927620307.png'
+rm 'attached_assets/image_1754927634526.png'
+rm 'attached_assets/image_1754927855795.png'
+rm 'attached_assets/image_1754928003510.png'
+rm 'attached_assets/image_1754928028496.png'
+rm 'attached_assets/image_1754928045905.png'
+rm 'attached_assets/image_1754928076407.png'
+rm 'attached_assets/image_1754928361926.png'
+rm 'attached_assets/image_1754928375036.png'
+rm 'attached_assets/image_1754928513134.png'
+rm 'attached_assets/image_1754928537415.png'
+rm 'attached_assets/image_1754928547504.png'
+rm 'attached_assets/image_1754928980985.png'
+rm 'attached_assets/image_1754929449396.png'
+rm 'attached_assets/image_1754929466699.png'
+rm 'attached_assets/image_1754929806936.png'
+rm 'attached_assets/image_1754929819727.png'
+rm 'attached_assets/image_1754929831271.png'
+rm 'attached_assets/image_1755000767768.png'
+rm 'attached_assets/image_1755001106064.png'
+rm 'attached_assets/improve-batch.js'
+rm 'attached_assets/improved_voice_assistant_1753976570615.zip'
+rm 'attached_assets/map.test_1754062137729.ts'
+rm 'attached_assets/mobile-simple.tsx'
+rm 'attached_assets/package-lock.json'
+rm 'attached_assets/package.json'
+rm 'attached_assets/postcss.config.js'
+rm 'attached_assets/public/manifest.json'
+rm 'attached_assets/public/mobile-test.html'
+rm 'attached_assets/public/serviceWorker.ts'
+rm 'attached_assets/replit.md'
+rm 'attached_assets/scoring.test_1754062137728.ts'
+rm 'attached_assets/server/agents/analyticsAgent.ts'
+rm 'attached_assets/server/agents/index.ts'
+rm 'attached_assets/server/agents/mapAgent.ts'
+rm 'attached_assets/server/agents/profileAgent.ts'
+rm 'attached_assets/server/agents/reviewAgent.ts'
+rm 'attached_assets/server/agents/scoreAgent.ts'
+rm 'attached_assets/server/agents/searchAgent.ts'
+rm 'attached_assets/server/db.ts'
+rm 'attached_assets/server/index.ts'
+rm 'attached_assets/server/replitAuth.ts'
+rm 'attached_assets/server/routes.ts'
+rm 'attached_assets/server/routes/api-stats.ts'
+rm 'attached_assets/server/routes_backup.ts'
+rm 'attached_assets/server/routes_broken.ts'
+rm 'attached_assets/server/services/googlePlaces.ts'
+rm 'attached_assets/server/services/openai.ts'
+rm 'attached_assets/server/storage.ts'
+rm 'attached_assets/server/utils/geoCache.ts'
+rm 'attached_assets/server/vite.ts'
+rm 'attached_assets/shared/schema.ts'
+rm 'attached_assets/tailwind.config.ts'
+rm 'attached_assets/test-audio.mp3'
+rm 'attached_assets/test-mobile.html'
+rm 'attached_assets/test-speech.mp3'
+rm 'attached_assets/tsconfig.json'
+rm 'attached_assets/upgraded_full/.github/workflows/test.yml'
+rm 'attached_assets/upgraded_full/.gitignore'
+rm 'attached_assets/upgraded_full/.replit'
+rm 'attached_assets/upgraded_full/attached_assets/16$MarketGemini_1753614937714.docx'
+rm 'attached_assets/upgraded_full/attached_assets/CostAPI Gemini _1753717566072.docx'
+rm 'attached_assets/upgraded_full/attached_assets/Full_Description_1753614937713.docx'
+rm 'attached_assets/upgraded_full/attached_assets/My_Vegan_Assistant_Extended_Pack_1753614633494.zip'
+rm 'attached_assets/upgraded_full/attached_assets/Pasted--VeganMapAI-Crew-Prompt-net-version-Project-Goal-Build-a-modular-intelligent-platform-1753591895339_1753591895340.txt'
+rm 'attached_assets/upgraded_full/attached_assets/VeganMapAI_Fin_GPT_Prompt_1753614937714.docx'
+rm 'attached_assets/upgraded_full/attached_assets/VeganMap_Replit_Whisper_GPT4o_1753896862671.zip'
+rm 'attached_assets/upgraded_full/attached_assets/VeganMap_Replit_Whisper_GPT4o_TTS_1753897574267.zip'
+rm 'attached_assets/upgraded_full/attached_assets/VeganScore_API_Инструменти_Разходи_1753717566070.xlsx'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753620993540.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753621628086.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753621873778.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753622473727.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753622810214.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753622917072.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753622992272.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753623164793.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753623353737.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753623459082.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753623806325.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753623886317.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753625053038.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753636015359.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753636272675.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753720662576.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753721595260.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753722275491.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753786640081.png'
+rm 'attached_assets/upgraded_full/attached_assets/image_1753804445220.png'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant/.replit'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant/package.json'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant/public/agent.js'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant/public/index.html'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant/server.js'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant_tts/.replit'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant_tts/package.json'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant_tts/public/agent.js'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant_tts/public/index.html'
+rm 'attached_assets/upgraded_full/attached_assets/voice_assistant_tts/server.js'
+rm 'attached_assets/upgraded_full/attached_assets/ИИ Агент за Откриване на Веган Perplexity_1753614937714.docx'
+rm 'attached_assets/upgraded_full/attached_assets/Оптимизирана_архитектура_Google_Places_API_1753717566071.docx'
+rm 'attached_assets/upgraded_full/client/index.html'
+rm 'attached_assets/upgraded_full/client/public/manifest.json'
+rm 'attached_assets/upgraded_full/client/public/sw.js'
+rm 'attached_assets/upgraded_full/client/src/App.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/layout/TabNavigation.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/map/Map.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/map/MapControls.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/map/RestaurantModal.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/map/RestaurantPin.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/mobile/MobileFilterDrawer.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/mobile/MobileHeader.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/mobile/MobileHeaderClean.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/mobile/MobileHeaderFixed.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/accordion.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/action-menu.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/alert-dialog.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/alert.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/aspect-ratio.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/avatar.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/badge.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/breadcrumb.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/button.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/calendar.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/card.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/carousel.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/chart.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/checkbox.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/collapsible.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/command.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/context-menu.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/dialog.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/drawer.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/dropdown-menu.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/favorite-button.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/form.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/hover-card.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/input-otp.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/input.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/label.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/menubar.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/navigation-menu.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/pagination.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/popover.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/progress.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/radio-group.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/resizable.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/restaurant-dropdown.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/score-badge.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/scroll-area.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/search-bar.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/select.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/separator.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/sheet.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/sidebar.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/skeleton.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/slider.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/switch.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/table.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/tabs.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/textarea.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/toast.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/toaster.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/toggle-group.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/toggle.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/ui/tooltip.tsx'
+rm 'attached_assets/upgraded_full/client/src/components/voice/VoiceAssistant.tsx'
+rm 'attached_assets/upgraded_full/client/src/hooks/use-mobile.tsx'
+rm 'attached_assets/upgraded_full/client/src/hooks/use-toast.ts'
+rm 'attached_assets/upgraded_full/client/src/hooks/useAuth.ts'
+rm 'attached_assets/upgraded_full/client/src/hooks/useGeolocation.ts'
+rm 'attached_assets/upgraded_full/client/src/hooks/useRestaurants.ts'
+rm 'attached_assets/upgraded_full/client/src/index.css'
+rm 'attached_assets/upgraded_full/client/src/lib/authUtils.ts'
+rm 'attached_assets/upgraded_full/client/src/lib/queryClient.ts'
+rm 'attached_assets/upgraded_full/client/src/lib/utils.ts'
+rm 'attached_assets/upgraded_full/client/src/main.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/admin-improve.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/admin-panel.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/admin-scoring.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/ai-chat-old.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/ai-chat.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/api-stats.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/favorites.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/home-backup.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/home.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/landing.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/not-found.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/profile-setup.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/profile.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/restaurant-detail.tsx'
+rm 'attached_assets/upgraded_full/client/src/pages/search.tsx'
+rm 'attached_assets/upgraded_full/client/src/types/index.ts'
+rm 'attached_assets/upgraded_full/components.json'
+rm 'attached_assets/upgraded_full/drizzle.config.ts'
+rm 'attached_assets/upgraded_full/improve-batch.js'
+rm 'attached_assets/upgraded_full/mobile-simple.tsx'
+rm 'attached_assets/upgraded_full/package-lock.json'
+rm 'attached_assets/upgraded_full/package.json'
+rm 'attached_assets/upgraded_full/postcss.config.js'
+rm 'attached_assets/upgraded_full/public/manifest.json'
+rm 'attached_assets/upgraded_full/public/mobile-test.html'
+rm 'attached_assets/upgraded_full/public/serviceWorker.ts'
+rm 'attached_assets/upgraded_full/replit.md'
+rm 'attached_assets/upgraded_full/server/agents/analyticsAgent.ts'
+rm 'attached_assets/upgraded_full/server/agents/index.ts'
+rm 'attached_assets/upgraded_full/server/agents/mapAgent.ts'
+rm 'attached_assets/upgraded_full/server/agents/profileAgent.ts'
+rm 'attached_assets/upgraded_full/server/agents/reviewAgent.ts'
+rm 'attached_assets/upgraded_full/server/agents/scoreAgent.ts'
+rm 'attached_assets/upgraded_full/server/agents/searchAgent.ts'
+rm 'attached_assets/upgraded_full/server/db.ts'
+rm 'attached_assets/upgraded_full/server/index.ts'
+rm 'attached_assets/upgraded_full/server/replitAuth.ts'
+rm 'attached_assets/upgraded_full/server/routes.ts'
+rm 'attached_assets/upgraded_full/server/routes/api-stats.ts'
+rm 'attached_assets/upgraded_full/server/routes_backup.ts'
+rm 'attached_assets/upgraded_full/server/routes_broken.ts'
+rm 'attached_assets/upgraded_full/server/services/googlePlaces.ts'
+rm 'attached_assets/upgraded_full/server/services/openai.ts'
+rm 'attached_assets/upgraded_full/server/storage.ts'
+rm 'attached_assets/upgraded_full/server/utils/geoCache.ts'
+rm 'attached_assets/upgraded_full/server/vite.ts'
+rm 'attached_assets/upgraded_full/shared/schema.ts'
+rm 'attached_assets/upgraded_full/tailwind.config.ts'
+rm 'attached_assets/upgraded_full/test-audio.mp3'
+rm 'attached_assets/upgraded_full/test-mobile.html'
+rm 'attached_assets/upgraded_full/test-speech.mp3'
+rm 'attached_assets/upgraded_full/tsconfig.json'
+rm 'attached_assets/upgraded_full/vite.config.ts'
+rm 'attached_assets/vite.config.ts'
+rm 'attached_assets/voice_assistant/.replit'
+rm 'attached_assets/voice_assistant/package.json'
+rm 'attached_assets/voice_assistant/public/agent.js'
+rm 'attached_assets/voice_assistant/public/index.html'
+rm 'attached_assets/voice_assistant/server.js'
+rm 'attached_assets/voice_assistant_openai_tts_1753974276436.zip'
+rm 'attached_assets/voice_assistant_tts/.replit'
+rm 'attached_assets/voice_assistant_tts/package.json'
+rm 'attached_assets/voice_assistant_tts/public/agent.js'
+rm 'attached_assets/voice_assistant_tts/public/index.html'
+rm 'attached_assets/voice_assistant_tts/server.js'
+rm 'attached_assets/ИИ Агент за Откриване на Веган Perplexity_1753614937714.docx'
+rm 'attached_assets/Оптимизирана_архитектура_Google_Places_API_1753717566071.docx'
+rm 'all-50-results.json'
+rm 'all-results.json'
+rm 'bulk-test-results.json'
+rm 'centered-inn-460216-r9-0f1b22fc9460.json'
+rm 'components.json'
+rm 'full-bulk-results.json'
+rm 'import-data.json'
+rm 'package-lock.json'
+rm 'package.json'
+rm 'restaurants-export.json'
+rm 'tsconfig.json'
+rm '.env.example'
+rm '.env.local'
+rm '.env.production'
+rm 'GIT-PUSH-WITH-TOKEN.sh'
+rm 'git-cleanup.sh'
+rm 'git-commands.sh'
+rm 'git-commit-context.sh'
+rm 'git-commit-gcp.sh'
+rm 'git-commit-instructions.sh'
+rm 'git-commit-production-fix.sh'
+rm 'git-commit-today.sh'
+rm 'git-comprehensive-cleanup.sh'
+rm 'git-final-commit.sh'
+rm 'git-init.sh'
+rm 'git-push.sh'
+rm 'git-smart-sync.sh'
+rm 'git-test-workflow.sh'
+[main b751e9d] security: Add comprehensive .gitignore and untrack sensitive files
+ 793 files changed, 32 insertions(+), 130794 deletions(-)
+ delete mode 100644 .env.example
+ delete mode 100644 .env.local
+ delete mode 100644 .env.production
+ delete mode 100755 GIT-PUSH-WITH-TOKEN.sh
+ delete mode 100644 all-50-results.json
+ delete mode 100644 all-results.json
+ delete mode 100644 attached_assets/.github/workflows/test.yml
+ delete mode 100644 attached_assets/.gitignore
+ delete mode 100644 attached_assets/.replit
+ delete mode 100644 attached_assets/16$MarketGemini_1753614937714.docx
+ delete mode 100644 attached_assets/CostAPI Gemini _1753717566072.docx
+ delete mode 100644 attached_assets/Full_Description_1753614937713.docx
+ delete mode 100644 attached_assets/My_Vegan_Assistant_Extended_Pack_1753614633494.zip
+ delete mode 100644 attached_assets/Pasted--0-set-euo-pipefail-export-GH-USER-BlagoyKozarev-export-REPO-NAME--1755094578709_1755094578709.txt
+ delete mode 100644 attached_assets/Pasted--1-mkdir-p-veganmapai-frontend-backend-functions-batch-infra-data-g-1754983101453_1754983101454.txt
+ delete mode 100644 attached_assets/Pasted--1-secrets-JSON-export-GCP-PROJECT-ID-centered-inn-460216-r9-ex-1754985753646_1754985753647.txt
+ delete mode 100644 attached_assets/Pasted--AI-SCORE-EXPLANATIONS-REPLIT-AGENT-INSTRUCTIONS-OBJECTIVE-Add-transparent-explanations-f-1754461529792_1754461529792.txt
+ delete mode 100644 attached_assets/Pasted--Auto-QA-CDN-API-health-perf-report-set-e-REPORT-DIR-deploy-reports-mkdir-p-R-1755008140580_1755008140582.txt
+ delete mode 100644 attached_assets/Pasted--Bridge-between-the-map-and-the-overlay-UI-VM-UX-Loads-places-from-API-or-local-JSON-render-1754747665762_1754747665762.txt
+ delete mode 100644 attached_assets/Pasted--Complete-Production-System-Audit-Find-Root-Cause-OBJECTIVE-Perform-comprehensive-d-1754401567506_1754401567507.txt
+ delete mode 100644 attached_assets/Pasted--Complete-Production-System-Audit-Find-Root-Cause-OBJECTIVE-Perform-comprehensive-d-1754401760954_1754401760954.txt
+ delete mode 100644 attached_assets/Pasted--DOCTYPE-html-html-lang-bg-head-meta-charset-UTF-8-meta-name-viewport-content--1754706330169_1754706330169.txt
+ delete mode 100644 attached_assets/Pasted--DOCTYPE-html-html-lang-bg-head-meta-charset-UTF-8-meta-name-viewport-content-wi-1754481921528_1754481921528.txt
+ delete mode 100644 attached_assets/Pasted--DOCTYPE-html-html-lang-en-data-theme-light-head-meta-charset-UTF-8-meta-name--1754716243830_1754716243830.txt
+ delete mode 100644 attached_assets/Pasted--DOCTYPE-html-html-lang-en-data-theme-light-head-meta-charset-UTF-8-meta-name--1754716658268_1754716658269.txt
+ delete mode 100644 attached_assets/Pasted--DOCTYPE-html-html-lang-en-data-theme-light-head-meta-charset-UTF-8-meta-name-viewp-1754718342113_1754718342113.txt
+ delete mode 100644 attached_assets/Pasted--DOCTYPE-html-html-lang-en-head-meta-charset-UTF-8-meta-name-viewport-content--1754707917302_1754707917303.txt
+ delete mode 100644 attached_assets/Pasted--DOCTYPE-html-html-lang-en-head-meta-charset-UTF-8-meta-name-viewport-content--1754715612906_1754715612906.txt
+ delete mode 100644 attached_assets/Pasted--DevOps-Full-Stack-VeganMapAI--1754922746909_1754922746909.txt
+ delete mode 100644 attached_assets/Pasted--GBGPT-BULK-RESTAURANT-TEST-50-50--1754489632507_1754489632509.txt
+ delete mode 100644 attached_assets/Pasted--GBGPT-Test-Suite-for-VeganMapAI-Complete-testing-of-GBGPT-capabilities-before-integration--1754314263246_1754314263247.txt
+ delete mode 100644 attached_assets/Pasted--Google-Maps-API-Optimization-Strategy-for-VeganMapAI-Target-95-cost-reduction-for-250K-rest-1754316205181_1754316205182.txt
+ delete mode 100644 attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319402661_1754319402661.txt
+ delete mode 100644 attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319508497_1754319508498.txt
+ delete mode 100644 attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319516187_1754319516187.txt
+ delete mode 100644 attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319537426_1754319537426.txt
+ delete mode 100644 attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319573738_1754319573738.txt
+ delete mode 100644 attached_assets/Pasted--Map-Performance-Optimization-Implementation-Instructions-OVERVIEW-Implement-high-pe-1754319723503_1754319723504.txt
+ delete mode 100644 attached_assets/Pasted--Map-Performance-Optimization-for-250K-Restaurants-Challenge-Load-massive-datasets-without-br-1754319110929_1754319110929.txt
+ delete mode 100644 attached_assets/Pasted--MapPerformanceManager-ts-Smart-Loading-System-for-250K-Restaurants-Handles-massive-dataset-1754319435222_1754319435222.txt
+ delete mode 100644 attached_assets/Pasted--Minimal-bridge-between-the-Map-and-the-overlay-UI-VM-UX-Works-with-Leaflet-if-available-ot-1754722046457_1754722046457.txt
+ delete mode 100644 attached_assets/Pasted--OptimizedLeafletMap-tsx-High-performance-map-component-for-250K-restaurants-import-React-u-1754319456430_1754319456430.txt
+ delete mode 100644 attached_assets/Pasted--PERFORMANCE-OPTIMIZATION-REPLIT-AGENT-INSTRUCTIONS-OBJECTIVE-Optimize-VeganMapAI-performa-1754462152920_1754462152921.txt
+ delete mode 100644 attached_assets/Pasted--REPLIT-AGENT-GBGPT-INTEGRATION-GBGPT-primary-AI-p-1754484897394_1754484897394.txt
+ delete mode 100644 attached_assets/Pasted--REPLIT-AGENT-INSTRUCTIONS-Fix-Production-Database-Connection-URGENT-DATABASE-CONNECTION-1754412546860_1754412546861.txt
+ delete mode 100644 attached_assets/Pasted--REPLIT-AGENT-INSTRUCTIONS-VeganMapAI-Project-PROJECT-OVERVIEW-VeganMapAI-is-a-critical-1754109593920_1754109593920.txt
+ delete mode 100644 attached_assets/Pasted--REQUEST-GBGPT-TEST-REPORT-GENERATION-Replit-Agent--1754491397574_1754491397575.txt
+ delete mode 100644 attached_assets/Pasted--Replit-Agent-Fix-Environment-Variables-Loading-PROBLEM-IDENTIFIED-VeganMapAI-deploy-1754135170814_1754135170815.txt
+ delete mode 100644 attached_assets/Pasted--UI-CONSISTENCY-POSITIONING-REPLIT-AGENT-INSTRUCTIONS-OBJECTIVE-Optimize-window-positio-1754462445232_1754462445233.txt
+ delete mode 100644 attached_assets/Pasted--VeganMapAI-Crew-Prompt-net-version-Project-Goal-Build-a-modular-intelligent-platform-1753591895339_1753591895340.txt
+ delete mode 100644 attached_assets/Pasted--VeganMapAI-Daily-Development-Workflow-Morning-Startup-Routine-1-Project-Health--1754109629569_1754109629570.txt
+ delete mode 100644 attached_assets/Pasted--VeganMapAI-Welcome-Onboarding-Options-GOAL-Create-immediate-positive-first-impressi-1754409885492_1754409885493.txt
+ delete mode 100644 attached_assets/Pasted--auth-fix-solution-ts-Make-map-data-publicly-accessible-SOLUTION-1-Create-public-endpoint-1754368377195_1754368377196.txt
+ delete mode 100644 attached_assets/Pasted--debug-sofia-restaurants-ts-Check-Sofia-restaurants-in-production-database-import-db-from-1754368005003_1754368005004.txt
+ delete mode 100644 attached_assets/Pasted--frontend-auth-fix-ts-Update-frontend-to-use-public-endpoints-SOLUTION-1-Update-API-calls-1754368389864_1754368389864.txt
+ delete mode 100644 attached_assets/Pasted--function-const-UX-const-q-root-document-root-querySelector-q-const-demoPla-1754719713582_1754719713583.txt
+ delete mode 100644 attached_assets/Pasted--function-const-UX-const-q-root-document-root-querySelector-q-const-demoPla-1754721018101_1754721018102.txt
+ delete mode 100644 attached_assets/Pasted--function-const-UX-const-q-root-document-root-querySelector-q-const-q--1754718774676_1754718774676.txt
+ delete mode 100644 attached_assets/Pasted--replit-ai-instructions-This-file-provides-context-to-Replit-AI-Agent-about-this-project--1754109614125_1754109614126.txt
+ delete mode 100644 attached_assets/Pasted--root-surface-fff-elev-f5f7fb-text-0f1720-muted-4b5563-line-rgba-15-23--1754719696083_1754719696084.txt
+ delete mode 100644 attached_assets/Pasted--root-surface-fff-elev-f5f7fb-text-0f1720-muted-4b5563-line-rgba-15-23--1754720973918_1754720973919.txt
+ delete mode 100644 attached_assets/Pasted--root-surface-ffffff-elev-f5f7fb-text-0f1720-muted-4b5563-line-rgba-15--1754718737356_1754718737357.txt
+ delete mode 100644 attached_assets/Pasted--useOptimizedMap-ts-React-hook-for-map-performance-integration-import-useState-useEffect-us-1754319688901_1754319688901.txt
+ delete mode 100644 attached_assets/Pasted--usr-bin-env-bash-VeganMapAI-Comprehensive-QA-Monitoring-set-euo-pipefail--1755008880271_1755008880272.txt
+ delete mode 100644 attached_assets/Pasted--usr-bin-env-bash-set-euo-pipefail-GCP-PROJECT-ID-centered-inn-1755007870148_1755007870149.txt
+ delete mode 100644 attached_assets/Pasted--usr-bin-env-bash-set-euo-pipefail-echo-VeganMapAI-GCP-Full-Deploy-Auto-Detect--1755007181438_1755007181439.txt
+ delete mode 100644 attached_assets/Pasted-HOTFIX-KEEP-OVERLAY-ON-TOP-OF-MAP-Goal-Make-the-overlay-search-pill-chips-FAB-bottom-shee-1754720254822_1754720254823.txt
+ delete mode 100644 attached_assets/Pasted-REPLIT-AGENT-ENABLE-MARKER-CLUSTERING-LEAFLET-MARKERCLUSTER--1754748369552_1754748369552.txt
+ delete mode 100644 attached_assets/Pasted-REPLIT-AGENT-FROM-MOCKUP-TO-REAL-PROJECT-GIT-DEPLOY-README--1754750101993_1754750101994.txt
+ delete mode 100644 attached_assets/Pasted-REPLIT-AGENT-MORE-FILTERS-DRAWER-drawer--1754748938842_1754748938842.txt
+ delete mode 100644 attached_assets/Pasted-REPLIT-AGENT-WIRE-MORE-FILTERS-TO-MAP-Apply-Filters-drawer-p-1754749015300_1754749015301.txt
+ delete mode 100644 attached_assets/Pasted-Search-Time-Deployment-Source-Log-2025-08-05-18-01-10-85-81ee5b01-User-Database-initializa-1754451920420_1754451920421.txt
+ delete mode 100644 attached_assets/Pasted-import-useState-useRef-from-react-import-Button-from-components-ui-button-import--1753973928504_1753973928505.txt
+ delete mode 100644 attached_assets/Pasted-import-useState-useRef-from-react-import-Button-from-components-ui-button-import--1753973950633_1753973950634.txt
+ delete mode 100644 attached_assets/Pasted-interface-GBGPTRequest-model-string-prompt-string-max-tokens-number-temperature--1754484678161_1754484678162.txt
+ delete mode 100644 attached_assets/Pasted-set-euo-pipefail-CONFIG-PROJECT-ID-centered-1755006525536_1755006525536.txt
+ delete mode 100644 attached_assets/Pasted-set-euo-pipefail-CONFIG-PROJECT-ID-centered-inn-460216-r9-REGION-us-c-1754989886106_1754989886107.txt
+ delete mode 100644 attached_assets/Pasted-set-euo-pipefail-CONFIG-REMOTE-REMOTE-origin-BRANCH-git-rev-parse-abbre-1755006017094_1755006017095.txt
+ delete mode 100644 attached_assets/README-INSTRUCTIONS.txt
+ delete mode 100644 attached_assets/README-INSTRUCTIONS_1754062137729.txt
+ delete mode 100644 attached_assets/README-PLAYWRIGHT.txt
+ delete mode 100644 attached_assets/VeganMapAI-Agent-Test_1754061889970.zip
+ delete mode 100644 attached_assets/VeganMapAI-Coverage-Regression-CI_1754062997612.zip
+ delete mode 100644 attached_assets/VeganMapAI-Playwright-Test_1754062399813.zip
+ delete mode 100644 attached_assets/VeganMapAI-main/.gitignore
+ delete mode 100644 attached_assets/VeganMapAI-main/.replit
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/16$MarketGemini_1753614937714.docx
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/CostAPI Gemini _1753717566072.docx
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/Full_Description_1753614937713.docx
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/My_Vegan_Assistant_Extended_Pack_1753614633494.zip
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/Pasted--VeganMapAI-Crew-Prompt-net-version-Project-Goal-Build-a-modular-intelligent-platform-1753591895339_1753591895340.txt
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/VeganMapAI_Fin_GPT_Prompt_1753614937714.docx
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/VeganMap_Replit_Whisper_GPT4o_1753896862671.zip
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/VeganMap_Replit_Whisper_GPT4o_TTS_1753897574267.zip
+ delete mode 100644 "attached_assets/VeganMapAI-main/attached_assets/VeganScore_API_\320\230\320\275\321\201\321\202\321\200\321\203\320\274\320\265\320\275\321\202\320\270_\320\240\320\260\320\267\321\205\320\276\320\264\320\270_1753717566070.xlsx"
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753620993540.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753621628086.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753621873778.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753622473727.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753622810214.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753622917072.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753622992272.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753623164793.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753623353737.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753623459082.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753623806325.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753623886317.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753625053038.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753636015359.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753636272675.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753720662576.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753721595260.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753722275491.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753786640081.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/image_1753804445220.png
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant/.replit
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant/package.json
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant/public/agent.js
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant/public/index.html
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant/server.js
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/.replit
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/package.json
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/public/agent.js
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/public/index.html
+ delete mode 100644 attached_assets/VeganMapAI-main/attached_assets/voice_assistant_tts/server.js
+ delete mode 100644 "attached_assets/VeganMapAI-main/attached_assets/\320\230\320\230 \320\220\320\263\320\265\320\275\321\202 \320\267\320\260 \320\236\321\202\320\272\321\200\320\270\320\262\320\260\320\275\320\265 \320\275\320\260 \320\222\320\265\320\263\320\260\320\275 Perplexity_1753614937714.docx"
+ delete mode 100644 "attached_assets/VeganMapAI-main/attached_assets/\320\236\320\277\321\202\320\270\320\274\320\270\320\267\320\270\321\200\320\260\320\275\320\260_\320\260\321\200\321\205\320\270\321\202\320\265\320\272\321\202\321\203\321\200\320\260_Google_Places_API_1753717566071.docx"
+ delete mode 100644 attached_assets/VeganMapAI-main/client/index.html
+ delete mode 100644 attached_assets/VeganMapAI-main/client/public/manifest.json
+ delete mode 100644 attached_assets/VeganMapAI-main/client/public/sw.js
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/App.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/layout/TabNavigation.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/map/Map.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/map/MapControls.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/map/RestaurantModal.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/map/RestaurantPin.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/mobile/MobileFilterDrawer.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/mobile/MobileHeader.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/mobile/MobileHeaderClean.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/mobile/MobileHeaderFixed.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/accordion.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/action-menu.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/alert-dialog.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/alert.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/aspect-ratio.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/avatar.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/badge.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/breadcrumb.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/button.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/calendar.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/card.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/carousel.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/chart.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/checkbox.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/collapsible.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/command.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/context-menu.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/dialog.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/drawer.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/dropdown-menu.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/favorite-button.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/form.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/hover-card.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/input-otp.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/input.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/label.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/menubar.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/navigation-menu.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/pagination.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/popover.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/progress.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/radio-group.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/resizable.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/restaurant-dropdown.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/score-badge.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/scroll-area.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/search-bar.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/select.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/separator.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/sheet.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/sidebar.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/skeleton.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/slider.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/switch.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/table.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/tabs.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/textarea.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/toast.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/toaster.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/toggle-group.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/toggle.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/ui/tooltip.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/components/voice/VoiceAssistant.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/hooks/use-mobile.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/hooks/use-toast.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/hooks/useAuth.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/hooks/useGeolocation.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/hooks/useRestaurants.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/index.css
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/lib/authUtils.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/lib/queryClient.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/lib/utils.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/main.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/admin-improve.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/admin-panel.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/admin-scoring.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/ai-chat-old.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/ai-chat.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/api-stats.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/favorites.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/home-backup.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/home.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/landing.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/not-found.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/profile-setup.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/profile.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/restaurant-detail.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/pages/search.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/client/src/types/index.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/components.json
+ delete mode 100644 attached_assets/VeganMapAI-main/drizzle.config.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/improve-batch.js
+ delete mode 100644 attached_assets/VeganMapAI-main/mobile-simple.tsx
+ delete mode 100644 attached_assets/VeganMapAI-main/package-lock.json
+ delete mode 100644 attached_assets/VeganMapAI-main/package.json
+ delete mode 100644 attached_assets/VeganMapAI-main/postcss.config.js
+ delete mode 100644 attached_assets/VeganMapAI-main/public/mobile-test.html
+ delete mode 100644 attached_assets/VeganMapAI-main/replit.md
+ delete mode 100644 attached_assets/VeganMapAI-main/server/agents/analyticsAgent.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/agents/index.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/agents/mapAgent.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/agents/profileAgent.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/agents/reviewAgent.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/agents/scoreAgent.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/agents/searchAgent.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/db.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/index.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/replitAuth.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/routes.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/routes/api-stats.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/routes_backup.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/routes_broken.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/services/googlePlaces.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/services/openai.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/storage.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/utils/geoCache.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/server/vite.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/shared/schema.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/tailwind.config.ts
+ delete mode 100644 attached_assets/VeganMapAI-main/test-audio.mp3
+ delete mode 100644 attached_assets/VeganMapAI-main/test-improved-scoring.js
+ delete mode 100644 attached_assets/VeganMapAI-main/test-mobile.html
+ delete mode 100644 attached_assets/VeganMapAI-main/test-speech.mp3
+ delete mode 100644 attached_assets/VeganMapAI-main/tsconfig.json
+ delete mode 100644 attached_assets/VeganMapAI-main/vite.config.ts
+ delete mode 100644 attached_assets/VeganMapAI-main_1753967449565.zip
+ delete mode 100644 attached_assets/VeganMapAI_Fin_GPT_Prompt_1753614937714.docx
+ delete mode 100644 attached_assets/VeganMapAI_Upgraded_FULL_1753901801537.zip
+ delete mode 100644 attached_assets/VeganMapAI_Upgraded_FULL_1753967449565.zip
+ delete mode 100644 attached_assets/VeganMap_Replit_Whisper_GPT4o_1753896862671.zip
+ delete mode 100644 attached_assets/VeganMap_Replit_Whisper_GPT4o_TTS_1753897574267.zip
+ delete mode 100644 "attached_assets/VeganScore_API_\320\230\320\275\321\201\321\202\321\200\321\203\320\274\320\265\320\275\321\202\320\270_\320\240\320\260\320\267\321\205\320\276\320\264\320\270_1753717566070.xlsx"
+ delete mode 100644 attached_assets/agent-gpt-helper_1754060117208.ts
+ delete mode 100644 attached_assets/api.test_1754062137727.ts
+ delete mode 100644 attached_assets/attached_assets/16$MarketGemini_1753614937714.docx
+ delete mode 100644 attached_assets/attached_assets/CostAPI Gemini _1753717566072.docx
+ delete mode 100644 attached_assets/attached_assets/Full_Description_1753614937713.docx
+ delete mode 100644 attached_assets/attached_assets/My_Vegan_Assistant_Extended_Pack_1753614633494.zip
+ delete mode 100644 attached_assets/attached_assets/Pasted--VeganMapAI-Crew-Prompt-net-version-Project-Goal-Build-a-modular-intelligent-platform-1753591895339_1753591895340.txt
+ delete mode 100644 attached_assets/attached_assets/VeganMapAI_Fin_GPT_Prompt_1753614937714.docx
+ delete mode 100644 attached_assets/attached_assets/VeganMap_Replit_Whisper_GPT4o_1753896862671.zip
+ delete mode 100644 attached_assets/attached_assets/VeganMap_Replit_Whisper_GPT4o_TTS_1753897574267.zip
+ delete mode 100644 "attached_assets/attached_assets/VeganScore_API_\320\230\320\275\321\201\321\202\321\200\321\203\320\274\320\265\320\275\321\202\320\270_\320\240\320\260\320\267\321\205\320\276\320\264\320\270_1753717566070.xlsx"
+ delete mode 100644 attached_assets/attached_assets/image_1753620993540.png
+ delete mode 100644 attached_assets/attached_assets/image_1753621628086.png
+ delete mode 100644 attached_assets/attached_assets/image_1753621873778.png
+ delete mode 100644 attached_assets/attached_assets/image_1753622473727.png
+ delete mode 100644 attached_assets/attached_assets/image_1753622810214.png
+ delete mode 100644 attached_assets/attached_assets/image_1753622917072.png
+ delete mode 100644 attached_assets/attached_assets/image_1753622992272.png
+ delete mode 100644 attached_assets/attached_assets/image_1753623164793.png
+ delete mode 100644 attached_assets/attached_assets/image_1753623353737.png
+ delete mode 100644 attached_assets/attached_assets/image_1753623459082.png
+ delete mode 100644 attached_assets/attached_assets/image_1753623806325.png
+ delete mode 100644 attached_assets/attached_assets/image_1753623886317.png
+ delete mode 100644 attached_assets/attached_assets/image_1753625053038.png
+ delete mode 100644 attached_assets/attached_assets/image_1753636015359.png
+ delete mode 100644 attached_assets/attached_assets/image_1753636272675.png
+ delete mode 100644 attached_assets/attached_assets/image_1753720662576.png
+ delete mode 100644 attached_assets/attached_assets/image_1753721595260.png
+ delete mode 100644 attached_assets/attached_assets/image_1753722275491.png
+ delete mode 100644 attached_assets/attached_assets/image_1753786640081.png
+ delete mode 100644 attached_assets/attached_assets/image_1753804445220.png
+ delete mode 100644 attached_assets/attached_assets/voice_assistant/.replit
+ delete mode 100644 attached_assets/attached_assets/voice_assistant/package.json
+ delete mode 100644 attached_assets/attached_assets/voice_assistant/public/agent.js
+ delete mode 100644 attached_assets/attached_assets/voice_assistant/public/index.html
+ delete mode 100644 attached_assets/attached_assets/voice_assistant/server.js
+ delete mode 100644 attached_assets/attached_assets/voice_assistant_tts/.replit
+ delete mode 100644 attached_assets/attached_assets/voice_assistant_tts/package.json
+ delete mode 100644 attached_assets/attached_assets/voice_assistant_tts/public/agent.js
+ delete mode 100644 attached_assets/attached_assets/voice_assistant_tts/public/index.html
+ delete mode 100644 attached_assets/attached_assets/voice_assistant_tts/server.js
+ delete mode 100644 "attached_assets/attached_assets/\320\230\320\230 \320\220\320\263\320\265\320\275\321\202 \320\267\320\260 \320\236\321\202\320\272\321\200\320\270\320\262\320\260\320\275\320\265 \320\275\320\260 \320\222\320\265\320\263\320\260\320\275 Perplexity_1753614937714.docx"
+ delete mode 100644 "attached_assets/attached_assets/\320\236\320\277\321\202\320\270\320\274\320\270\320\267\320\270\321\200\320\260\320\275\320\260_\320\260\321\200\321\205\320\270\321\202\320\265\320\272\321\202\321\203\321\200\320\260_Google_Places_API_1753717566071.docx"
+ delete mode 100644 attached_assets/audio.test_1754062137728.ts
+ delete mode 100644 attached_assets/client/index.html
+ delete mode 100644 attached_assets/client/public/manifest.json
+ delete mode 100644 attached_assets/client/public/sw.js
+ delete mode 100644 attached_assets/client/src/App.tsx
+ delete mode 100644 attached_assets/client/src/components/layout/TabNavigation.tsx
+ delete mode 100644 attached_assets/client/src/components/map/Map.tsx
+ delete mode 100644 attached_assets/client/src/components/map/MapControls.tsx
+ delete mode 100644 attached_assets/client/src/components/map/RestaurantModal.tsx
+ delete mode 100644 attached_assets/client/src/components/map/RestaurantPin.tsx
+ delete mode 100644 attached_assets/client/src/components/mobile/MobileFilterDrawer.tsx
+ delete mode 100644 attached_assets/client/src/components/mobile/MobileHeader.tsx
+ delete mode 100644 attached_assets/client/src/components/mobile/MobileHeaderClean.tsx
+ delete mode 100644 attached_assets/client/src/components/mobile/MobileHeaderFixed.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/accordion.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/action-menu.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/alert-dialog.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/alert.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/aspect-ratio.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/avatar.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/badge.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/breadcrumb.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/button.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/calendar.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/card.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/carousel.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/chart.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/checkbox.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/collapsible.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/command.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/context-menu.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/dialog.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/drawer.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/dropdown-menu.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/favorite-button.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/form.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/hover-card.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/input-otp.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/input.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/label.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/menubar.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/navigation-menu.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/pagination.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/popover.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/progress.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/radio-group.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/resizable.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/restaurant-dropdown.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/score-badge.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/scroll-area.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/search-bar.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/select.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/separator.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/sheet.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/sidebar.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/skeleton.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/slider.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/switch.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/table.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/tabs.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/textarea.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/toast.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/toaster.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/toggle-group.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/toggle.tsx
+ delete mode 100644 attached_assets/client/src/components/ui/tooltip.tsx
+ delete mode 100644 attached_assets/client/src/components/voice/VoiceAssistant.tsx
+ delete mode 100644 attached_assets/client/src/hooks/use-mobile.tsx
+ delete mode 100644 attached_assets/client/src/hooks/use-toast.ts
+ delete mode 100644 attached_assets/client/src/hooks/useAuth.ts
+ delete mode 100644 attached_assets/client/src/hooks/useGeolocation.ts
+ delete mode 100644 attached_assets/client/src/hooks/useRestaurants.ts
+ delete mode 100644 attached_assets/client/src/index.css
+ delete mode 100644 attached_assets/client/src/lib/authUtils.ts
+ delete mode 100644 attached_assets/client/src/lib/queryClient.ts
+ delete mode 100644 attached_assets/client/src/lib/utils.ts
+ delete mode 100644 attached_assets/client/src/main.tsx
+ delete mode 100644 attached_assets/client/src/pages/admin-improve.tsx
+ delete mode 100644 attached_assets/client/src/pages/admin-panel.tsx
+ delete mode 100644 attached_assets/client/src/pages/admin-scoring.tsx
+ delete mode 100644 attached_assets/client/src/pages/ai-chat-old.tsx
+ delete mode 100644 attached_assets/client/src/pages/ai-chat.tsx
+ delete mode 100644 attached_assets/client/src/pages/api-stats.tsx
+ delete mode 100644 attached_assets/client/src/pages/favorites.tsx
+ delete mode 100644 attached_assets/client/src/pages/home-backup.tsx
+ delete mode 100644 attached_assets/client/src/pages/home.tsx
+ delete mode 100644 attached_assets/client/src/pages/landing.tsx
+ delete mode 100644 attached_assets/client/src/pages/not-found.tsx
+ delete mode 100644 attached_assets/client/src/pages/profile-setup.tsx
+ delete mode 100644 attached_assets/client/src/pages/profile.tsx
+ delete mode 100644 attached_assets/client/src/pages/restaurant-detail.tsx
+ delete mode 100644 attached_assets/client/src/pages/search.tsx
+ delete mode 100644 attached_assets/client/src/types/index.ts
+ delete mode 100644 attached_assets/components.json
+ delete mode 100644 attached_assets/drizzle.config.ts
+ delete mode 100644 attached_assets/google_maps_cluster_example_1753978707214.zip
+ delete mode 100644 attached_assets/image_1753620993540.png
+ delete mode 100644 attached_assets/image_1753621628086.png
+ delete mode 100644 attached_assets/image_1753621873778.png
+ delete mode 100644 attached_assets/image_1753622473727.png
+ delete mode 100644 attached_assets/image_1753622810214.png
+ delete mode 100644 attached_assets/image_1753622917072.png
+ delete mode 100644 attached_assets/image_1753622992272.png
+ delete mode 100644 attached_assets/image_1753623164793.png
+ delete mode 100644 attached_assets/image_1753623353737.png
+ delete mode 100644 attached_assets/image_1753623459082.png
+ delete mode 100644 attached_assets/image_1753623806325.png
+ delete mode 100644 attached_assets/image_1753623886317.png
+ delete mode 100644 attached_assets/image_1753625053038.png
+ delete mode 100644 attached_assets/image_1753636015359.png
+ delete mode 100644 attached_assets/image_1753636272675.png
+ delete mode 100644 attached_assets/image_1753720662576.png
+ delete mode 100644 attached_assets/image_1753721595260.png
+ delete mode 100644 attached_assets/image_1753722275491.png
+ delete mode 100644 attached_assets/image_1753786640081.png
+ delete mode 100644 attached_assets/image_1753804445220.png
+ delete mode 100644 attached_assets/image_1753969244637.png
+ delete mode 100644 attached_assets/image_1753969589970.png
+ delete mode 100644 attached_assets/image_1753970185302.png
+ delete mode 100644 attached_assets/image_1753971937029.png
+ delete mode 100644 attached_assets/image_1753972078043.png
+ delete mode 100644 attached_assets/image_1753972360190.png
+ delete mode 100644 attached_assets/image_1753972520784.png
+ delete mode 100644 attached_assets/image_1753972654095.png
+ delete mode 100644 attached_assets/image_1753972778530.png
+ delete mode 100644 attached_assets/image_1753972994798.png
+ delete mode 100644 attached_assets/image_1753973108782.png
+ delete mode 100644 attached_assets/image_1753973239202.png
+ delete mode 100644 attached_assets/image_1753973396840.png
+ delete mode 100644 attached_assets/image_1753974553705.png
+ delete mode 100644 attached_assets/image_1753974693628.png
+ delete mode 100644 attached_assets/image_1753975908902.png
+ delete mode 100644 attached_assets/image_1753976083485.png
+ delete mode 100644 attached_assets/image_1753976226363.png
+ delete mode 100644 attached_assets/image_1753976410262.png
+ delete mode 100644 attached_assets/image_1753977289278.png
+ delete mode 100644 attached_assets/image_1753977488225.png
+ delete mode 100644 attached_assets/image_1753977606691.png
+ delete mode 100644 attached_assets/image_1754056328065.png
+ delete mode 100644 attached_assets/image_1754056660641.png
+ delete mode 100644 attached_assets/image_1754056760969.png
+ delete mode 100644 attached_assets/image_1754056881317.png
+ delete mode 100644 attached_assets/image_1754056978506.png
+ delete mode 100644 attached_assets/image_1754057065319.png
+ delete mode 100644 attached_assets/image_1754057292699.png
+ delete mode 100644 attached_assets/image_1754057414468.png
+ delete mode 100644 attached_assets/image_1754057593179.png
+ delete mode 100644 attached_assets/image_1754057711467.png
+ delete mode 100644 attached_assets/image_1754057881539.png
+ delete mode 100644 attached_assets/image_1754058004907.png
+ delete mode 100644 attached_assets/image_1754060303622.png
+ delete mode 100644 attached_assets/image_1754060460110.png
+ delete mode 100644 attached_assets/image_1754060619669.png
+ delete mode 100644 attached_assets/image_1754061345009.png
+ delete mode 100644 attached_assets/image_1754115078010.png
+ delete mode 100644 attached_assets/image_1754115436711.png
+ delete mode 100644 attached_assets/image_1754130936408.png
+ delete mode 100644 attached_assets/image_1754130989607.png
+ delete mode 100644 attached_assets/image_1754136432163.png
+ delete mode 100644 attached_assets/image_1754194518204.png
+ delete mode 100644 attached_assets/image_1754194657348.png
+ delete mode 100644 attached_assets/image_1754194781048.png
+ delete mode 100644 attached_assets/image_1754321043165.png
+ delete mode 100644 attached_assets/image_1754371643462.png
+ delete mode 100644 attached_assets/image_1754374342647.png
+ delete mode 100644 attached_assets/image_1754375913723.png
+ delete mode 100644 attached_assets/image_1754376057913.png
+ delete mode 100644 attached_assets/image_1754395558564.png
+ delete mode 100644 attached_assets/image_1754395761145.png
+ delete mode 100644 attached_assets/image_1754395968769.png
+ delete mode 100644 attached_assets/image_1754396721755.png
+ delete mode 100644 attached_assets/image_1754396924563.png
+ delete mode 100644 attached_assets/image_1754397423952.png
+ delete mode 100644 attached_assets/image_1754397912972.png
+ delete mode 100644 attached_assets/image_1754398593551.png
+ delete mode 100644 attached_assets/image_1754398676333.png
+ delete mode 100644 attached_assets/image_1754399020524.png
+ delete mode 100644 attached_assets/image_1754399219092.png
+ delete mode 100644 attached_assets/image_1754400246570.png
+ delete mode 100644 attached_assets/image_1754400756132.png
+ delete mode 100644 attached_assets/image_1754404744580.png
+ delete mode 100644 attached_assets/image_1754404910618.png
+ delete mode 100644 attached_assets/image_1754405076136.png
+ delete mode 100644 attached_assets/image_1754405163538.png
+ delete mode 100644 attached_assets/image_1754405177930.png
+ delete mode 100644 attached_assets/image_1754405238859.png
+ delete mode 100644 attached_assets/image_1754405394635.png
+ delete mode 100644 attached_assets/image_1754405442844.png
+ delete mode 100644 attached_assets/image_1754406322859.png
+ delete mode 100644 attached_assets/image_1754406558192.png
+ delete mode 100644 attached_assets/image_1754407572333.png
+ delete mode 100644 attached_assets/image_1754413000998.png
+ delete mode 100644 attached_assets/image_1754413092231.png
+ delete mode 100644 attached_assets/image_1754413119051.png
+ delete mode 100644 attached_assets/image_1754413139048.png
+ delete mode 100644 attached_assets/image_1754414175480.png
+ delete mode 100644 attached_assets/image_1754447428392.png
+ delete mode 100644 attached_assets/image_1754448719850.png
+ delete mode 100644 attached_assets/image_1754448881852.png
+ delete mode 100644 attached_assets/image_1754449043515.png
+ delete mode 100644 attached_assets/image_1754449939127.png
+ delete mode 100644 attached_assets/image_1754450178075.png
+ delete mode 100644 attached_assets/image_1754452056512.png
+ delete mode 100644 attached_assets/image_1754623222689.png
+ delete mode 100644 attached_assets/image_1754623228579.png
+ delete mode 100644 attached_assets/image_1754714909114.png
+ delete mode 100644 attached_assets/image_1754721470406.png
+ delete mode 100644 attached_assets/image_1754747963759.png
+ delete mode 100644 attached_assets/image_1754751036290.png
+ delete mode 100644 attached_assets/image_1754881589326.png
+ delete mode 100644 attached_assets/image_1754882914575.png
+ delete mode 100644 attached_assets/image_1754883905112.png
+ delete mode 100644 attached_assets/image_1754920862154.png
+ delete mode 100644 attached_assets/image_1754922388924.png
+ delete mode 100644 attached_assets/image_1754922403079.png
+ delete mode 100644 attached_assets/image_1754922666734.png
+ delete mode 100644 attached_assets/image_1754922682928.png
+ delete mode 100644 attached_assets/image_1754923946350.png
+ delete mode 100644 attached_assets/image_1754923957376.png
+ delete mode 100644 attached_assets/image_1754924259852.png
+ delete mode 100644 attached_assets/image_1754924272549.png
+ delete mode 100644 attached_assets/image_1754927620307.png
+ delete mode 100644 attached_assets/image_1754927634526.png
+ delete mode 100644 attached_assets/image_1754927855795.png
+ delete mode 100644 attached_assets/image_1754928003510.png
+ delete mode 100644 attached_assets/image_1754928028496.png
+ delete mode 100644 attached_assets/image_1754928045905.png
+ delete mode 100644 attached_assets/image_1754928076407.png
+ delete mode 100644 attached_assets/image_1754928361926.png
+ delete mode 100644 attached_assets/image_1754928375036.png
+ delete mode 100644 attached_assets/image_1754928513134.png
+ delete mode 100644 attached_assets/image_1754928537415.png
+ delete mode 100644 attached_assets/image_1754928547504.png
+ delete mode 100644 attached_assets/image_1754928980985.png
+ delete mode 100644 attached_assets/image_1754929449396.png
+ delete mode 100644 attached_assets/image_1754929466699.png
+ delete mode 100644 attached_assets/image_1754929806936.png
+ delete mode 100644 attached_assets/image_1754929819727.png
+ delete mode 100644 attached_assets/image_1754929831271.png
+ delete mode 100644 attached_assets/image_1755000767768.png
+ delete mode 100644 attached_assets/image_1755001106064.png
+ delete mode 100644 attached_assets/improve-batch.js
+ delete mode 100644 attached_assets/improved_voice_assistant_1753976570615.zip
+ delete mode 100644 attached_assets/map.test_1754062137729.ts
+ delete mode 100644 attached_assets/mobile-simple.tsx
+ delete mode 100644 attached_assets/package-lock.json
+ delete mode 100644 attached_assets/package.json
+ delete mode 100644 attached_assets/postcss.config.js
+ delete mode 100644 attached_assets/public/manifest.json
+ delete mode 100644 attached_assets/public/mobile-test.html
+ delete mode 100644 attached_assets/public/serviceWorker.ts
+ delete mode 100644 attached_assets/replit.md
+ delete mode 100644 attached_assets/scoring.test_1754062137728.ts
+ delete mode 100644 attached_assets/server/agents/analyticsAgent.ts
+ delete mode 100644 attached_assets/server/agents/index.ts
+ delete mode 100644 attached_assets/server/agents/mapAgent.ts
+ delete mode 100644 attached_assets/server/agents/profileAgent.ts
+ delete mode 100644 attached_assets/server/agents/reviewAgent.ts
+ delete mode 100644 attached_assets/server/agents/scoreAgent.ts
+ delete mode 100644 attached_assets/server/agents/searchAgent.ts
+ delete mode 100644 attached_assets/server/db.ts
+ delete mode 100644 attached_assets/server/index.ts
+ delete mode 100644 attached_assets/server/replitAuth.ts
+ delete mode 100644 attached_assets/server/routes.ts
+ delete mode 100644 attached_assets/server/routes/api-stats.ts
+ delete mode 100644 attached_assets/server/routes_backup.ts
+ delete mode 100644 attached_assets/server/routes_broken.ts
+ delete mode 100644 attached_assets/server/services/googlePlaces.ts
+ delete mode 100644 attached_assets/server/services/openai.ts
+ delete mode 100644 attached_assets/server/storage.ts
+ delete mode 100644 attached_assets/server/utils/geoCache.ts
+ delete mode 100644 attached_assets/server/vite.ts
+ delete mode 100644 attached_assets/shared/schema.ts
+ delete mode 100644 attached_assets/tailwind.config.ts
+ delete mode 100644 attached_assets/test-audio.mp3
+ delete mode 100644 attached_assets/test-mobile.html
+ delete mode 100644 attached_assets/test-speech.mp3
+ delete mode 100644 attached_assets/tsconfig.json
+ delete mode 100644 attached_assets/upgraded_full/.github/workflows/test.yml
+ delete mode 100644 attached_assets/upgraded_full/.gitignore
+ delete mode 100644 attached_assets/upgraded_full/.replit
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/16$MarketGemini_1753614937714.docx
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/CostAPI Gemini _1753717566072.docx
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/Full_Description_1753614937713.docx
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/My_Vegan_Assistant_Extended_Pack_1753614633494.zip
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/Pasted--VeganMapAI-Crew-Prompt-net-version-Project-Goal-Build-a-modular-intelligent-platform-1753591895339_1753591895340.txt
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/VeganMapAI_Fin_GPT_Prompt_1753614937714.docx
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/VeganMap_Replit_Whisper_GPT4o_1753896862671.zip
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/VeganMap_Replit_Whisper_GPT4o_TTS_1753897574267.zip
+ delete mode 100644 "attached_assets/upgraded_full/attached_assets/VeganScore_API_\320\230\320\275\321\201\321\202\321\200\321\203\320\274\320\265\320\275\321\202\320\270_\320\240\320\260\320\267\321\205\320\276\320\264\320\270_1753717566070.xlsx"
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753620993540.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753621628086.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753621873778.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753622473727.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753622810214.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753622917072.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753622992272.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753623164793.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753623353737.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753623459082.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753623806325.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753623886317.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753625053038.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753636015359.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753636272675.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753720662576.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753721595260.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753722275491.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753786640081.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/image_1753804445220.png
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant/.replit
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant/package.json
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant/public/agent.js
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant/public/index.html
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant/server.js
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant_tts/.replit
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant_tts/package.json
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant_tts/public/agent.js
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant_tts/public/index.html
+ delete mode 100644 attached_assets/upgraded_full/attached_assets/voice_assistant_tts/server.js
+ delete mode 100644 "attached_assets/upgraded_full/attached_assets/\320\230\320\230 \320\220\320\263\320\265\320\275\321\202 \320\267\320\260 \320\236\321\202\320\272\321\200\320\270\320\262\320\260\320\275\320\265 \320\275\320\260 \320\222\320\265\320\263\320\260\320\275 Perplexity_1753614937714.docx"
+ delete mode 100644 "attached_assets/upgraded_full/attached_assets/\320\236\320\277\321\202\320\270\320\274\320\270\320\267\320\270\321\200\320\260\320\275\320\260_\320\260\321\200\321\205\320\270\321\202\320\265\320\272\321\202\321\203\321\200\320\260_Google_Places_API_1753717566071.docx"
+ delete mode 100644 attached_assets/upgraded_full/client/index.html
+ delete mode 100644 attached_assets/upgraded_full/client/public/manifest.json
+ delete mode 100644 attached_assets/upgraded_full/client/public/sw.js
+ delete mode 100644 attached_assets/upgraded_full/client/src/App.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/layout/TabNavigation.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/map/Map.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/map/MapControls.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/map/RestaurantModal.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/map/RestaurantPin.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/mobile/MobileFilterDrawer.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/mobile/MobileHeader.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/mobile/MobileHeaderClean.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/mobile/MobileHeaderFixed.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/accordion.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/action-menu.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/alert-dialog.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/alert.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/aspect-ratio.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/avatar.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/badge.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/breadcrumb.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/button.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/calendar.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/card.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/carousel.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/chart.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/checkbox.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/collapsible.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/command.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/context-menu.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/dialog.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/drawer.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/dropdown-menu.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/favorite-button.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/form.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/hover-card.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/input-otp.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/input.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/label.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/menubar.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/navigation-menu.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/pagination.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/popover.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/progress.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/radio-group.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/resizable.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/restaurant-dropdown.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/score-badge.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/scroll-area.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/search-bar.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/select.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/separator.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/sheet.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/sidebar.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/skeleton.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/slider.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/switch.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/table.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/tabs.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/textarea.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/toast.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/toaster.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/toggle-group.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/toggle.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/ui/tooltip.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/components/voice/VoiceAssistant.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/hooks/use-mobile.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/hooks/use-toast.ts
+ delete mode 100644 attached_assets/upgraded_full/client/src/hooks/useAuth.ts
+ delete mode 100644 attached_assets/upgraded_full/client/src/hooks/useGeolocation.ts
+ delete mode 100644 attached_assets/upgraded_full/client/src/hooks/useRestaurants.ts
+ delete mode 100644 attached_assets/upgraded_full/client/src/index.css
+ delete mode 100644 attached_assets/upgraded_full/client/src/lib/authUtils.ts
+ delete mode 100644 attached_assets/upgraded_full/client/src/lib/queryClient.ts
+ delete mode 100644 attached_assets/upgraded_full/client/src/lib/utils.ts
+ delete mode 100644 attached_assets/upgraded_full/client/src/main.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/admin-improve.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/admin-panel.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/admin-scoring.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/ai-chat-old.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/ai-chat.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/api-stats.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/favorites.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/home-backup.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/home.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/landing.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/not-found.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/profile-setup.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/profile.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/restaurant-detail.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/pages/search.tsx
+ delete mode 100644 attached_assets/upgraded_full/client/src/types/index.ts
+ delete mode 100644 attached_assets/upgraded_full/components.json
+ delete mode 100644 attached_assets/upgraded_full/drizzle.config.ts
+ delete mode 100644 attached_assets/upgraded_full/improve-batch.js
+ delete mode 100644 attached_assets/upgraded_full/mobile-simple.tsx
+ delete mode 100644 attached_assets/upgraded_full/package-lock.json
+ delete mode 100644 attached_assets/upgraded_full/package.json
+ delete mode 100644 attached_assets/upgraded_full/postcss.config.js
+ delete mode 100644 attached_assets/upgraded_full/public/manifest.json
+ delete mode 100644 attached_assets/upgraded_full/public/mobile-test.html
+ delete mode 100644 attached_assets/upgraded_full/public/serviceWorker.ts
+ delete mode 100644 attached_assets/upgraded_full/replit.md
+ delete mode 100644 attached_assets/upgraded_full/server/agents/analyticsAgent.ts
+ delete mode 100644 attached_assets/upgraded_full/server/agents/index.ts
+ delete mode 100644 attached_assets/upgraded_full/server/agents/mapAgent.ts
+ delete mode 100644 attached_assets/upgraded_full/server/agents/profileAgent.ts
+ delete mode 100644 attached_assets/upgraded_full/server/agents/reviewAgent.ts
+ delete mode 100644 attached_assets/upgraded_full/server/agents/scoreAgent.ts
+ delete mode 100644 attached_assets/upgraded_full/server/agents/searchAgent.ts
+ delete mode 100644 attached_assets/upgraded_full/server/db.ts
+ delete mode 100644 attached_assets/upgraded_full/server/index.ts
+ delete mode 100644 attached_assets/upgraded_full/server/replitAuth.ts
+ delete mode 100644 attached_assets/upgraded_full/server/routes.ts
+ delete mode 100644 attached_assets/upgraded_full/server/routes/api-stats.ts
+ delete mode 100644 attached_assets/upgraded_full/server/routes_backup.ts
+ delete mode 100644 attached_assets/upgraded_full/server/routes_broken.ts
+ delete mode 100644 attached_assets/upgraded_full/server/services/googlePlaces.ts
+ delete mode 100644 attached_assets/upgraded_full/server/services/openai.ts
+ delete mode 100644 attached_assets/upgraded_full/server/storage.ts
+ delete mode 100644 attached_assets/upgraded_full/server/utils/geoCache.ts
+ delete mode 100644 attached_assets/upgraded_full/server/vite.ts
+ delete mode 100644 attached_assets/upgraded_full/shared/schema.ts
+ delete mode 100644 attached_assets/upgraded_full/tailwind.config.ts
+ delete mode 100644 attached_assets/upgraded_full/test-audio.mp3
+ delete mode 100644 attached_assets/upgraded_full/test-mobile.html
+ delete mode 100644 attached_assets/upgraded_full/test-speech.mp3
+ delete mode 100644 attached_assets/upgraded_full/tsconfig.json
+ delete mode 100644 attached_assets/upgraded_full/vite.config.ts
+ delete mode 100644 attached_assets/vite.config.ts
+ delete mode 100644 attached_assets/voice_assistant/.replit
+ delete mode 100644 attached_assets/voice_assistant/package.json
+ delete mode 100644 attached_assets/voice_assistant/public/agent.js
+ delete mode 100644 attached_assets/voice_assistant/public/index.html
+ delete mode 100644 attached_assets/voice_assistant/server.js
+ delete mode 100644 attached_assets/voice_assistant_openai_tts_1753974276436.zip
+ delete mode 100644 attached_assets/voice_assistant_tts/.replit
+ delete mode 100644 attached_assets/voice_assistant_tts/package.json
+ delete mode 100644 attached_assets/voice_assistant_tts/public/agent.js
+ delete mode 100644 attached_assets/voice_assistant_tts/public/index.html
+ delete mode 100644 attached_assets/voice_assistant_tts/server.js
+ delete mode 100644 "attached_assets/\320\230\320\230 \320\220\320\263\320\265\320\275\321\202 \320\267\320\260 \320\236\321\202\320\272\321\200\320\270\320\262\320\260\320\275\320\265 \320\275\320\260 \320\222\320\265\320\263\320\260\320\275 Perplexity_1753614937714.docx"
+ delete mode 100644 "attached_assets/\320\236\320\277\321\202\320\270\320\274\320\270\320\267\320\270\321\200\320\260\320\275\320\260_\320\260\321\200\321\205\320\270\321\202\320\265\320\272\321\202\321\203\321\200\320\260_Google_Places_API_1753717566071.docx"
+ delete mode 100644 bulk-test-results.json
+ delete mode 100644 centered-inn-460216-r9-0f1b22fc9460.json
+ delete mode 100644 components.json
+ delete mode 100644 full-bulk-results.json
+ delete mode 100755 git-cleanup.sh
+ delete mode 100755 git-commands.sh
+ delete mode 100755 git-commit-context.sh
+ delete mode 100755 git-commit-gcp.sh
+ delete mode 100755 git-commit-instructions.sh
+ delete mode 100644 git-commit-production-fix.sh
+ delete mode 100755 git-commit-today.sh
+ delete mode 100755 git-comprehensive-cleanup.sh
+ delete mode 100755 git-final-commit.sh
+ delete mode 100755 git-init.sh
+ delete mode 100644 git-push.sh
+ delete mode 100755 git-smart-sync.sh
+ delete mode 100755 git-test-workflow.sh
+ delete mode 100644 import-data.json
+ delete mode 100644 package-lock.json
+ delete mode 100644 package.json
+ delete mode 100644 restaurants-export.json
+ delete mode 100644 tsconfig.json
+🔍 Identifying problematic blobs...
+🧽 Cleaning Git history...
+NOTICE: Removing 'origin' remote; see 'Why is my origin removed?'
+        in the manual if you want to push back there.
+        (was https://github.com/BlagoyKozarev/VeganMapAI.git)
+Parsed 128 commits
+New history written in 0.16 seconds; now repacking/cleaning...
+Repacking your repo and cleaning out old unneeded objects
+HEAD is now at 35c3357 security: Add comprehensive .gitignore and untrack sensitive files
+Enumerating objects: 1238, done.
+Counting objects: 100% (1188/1188), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (871/871), done.
+Writing objects: 100% (1188/1188), done.
+Total 1188 (delta 388), reused 912 (delta 282), pack-reused 0 (from 0)
+Completely finished after 10.08 seconds.
+Parsed 127 commits
+New history written in 0.08 seconds; now repacking/cleaning...
+Repacking your repo and cleaning out old unneeded objects
+HEAD is now at db2eb4a security: Add comprehensive .gitignore and untrack sensitive files
+Enumerating objects: 848, done.
+Counting objects: 100% (803/803), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (495/495), done.
+Writing objects: 100% (803/803), done.
+Total 803 (delta 287), reused 779 (delta 283), pack-reused 0 (from 0)
+Completely finished after 0.33 seconds.
+🔐 Replacing sensitive patterns in history...
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/bin/git-filter-repo", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/git_filter_repo.py", line 4968, in main
+    args = FilteringOptions.parse_args(sys.argv[1:])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/git_filter_repo.py", line 2430, in parse_args
+    args.replace_text = FilteringOptions.get_replace_text(args.replace_text)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/git_filter_repo.py", line 2347, in get_replace_text
+    replace_regexes.append((re.compile(regex), replacement))
+                            ^^^^^^^^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/re/__init__.py", line 227, in compile
+    return _compile(pattern, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/re/__init__.py", line 294, in _compile
+    p = _compiler.compile(pattern, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/re/_compiler.py", line 745, in compile
+    p = _parser.parse(p, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/re/_parser.py", line 989, in parse
+    p = _parse_sub(source, state, flags & SRE_FLAG_VERBOSE, 0)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/re/_parser.py", line 464, in _parse_sub
+    itemsappend(_parse(source, state, verbose, nested + 1,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/re/_parser.py", line 694, in _parse
+    raise source.error("multiple repeat",
