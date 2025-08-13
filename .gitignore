@@ -1,0 +1,55 @@
+node_modules/
+.replit
+*.log
+.DS_Store
+.env
+uploads/
+dist/
+build/
+
+# -- Security: ignore secrets/keys/tokens --
+*.p8
+*.pem
+*.key
+*.p12
+*.keystore
+*service-account*.json
+*_sa_*.json
+*credentials*.json
+attached_assets/*.json
+*.env
+.env
+.env.*
+secrets/*
+
+# ====== Security & Secrets ======
+*.key
+*.p12
+*.pem
+*.cer
+*.crt
+*.der
+*.jks
+*.keystore
+*.p8
+*.pfx
+*.json
+.env
+.env.*
+attached_assets/
+*.bak
+*.backup
+*.old
+*secret*
+*token*
+*credentials*
+
+# ====== Git cleanup scripts ======
+git-*.sh
+GIT-*.sh
+*.token
+
+# ====== Replit artifacts ======
+replit_secrets/*
+.replit_secrets/
+

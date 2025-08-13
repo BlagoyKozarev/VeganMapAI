@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeganMapAI - Discover Vegan-Friendly Places</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        nav a {
+            margin-left: 2rem;
+            text-decoration: none;
+            color: #666;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #4CAF50;
+        }
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #764ba2;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .features {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #333;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-card h3 {
+            color: #4CAF50;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        footer {
+            background: #333;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        footer a {
+            color: #4CAF50;
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .hero p { font-size: 1rem; }
+            header { flex-direction: column; gap: 1rem; }
+            nav a { margin: 0 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">🌱 VeganMapAI</div>
+        <nav>
+            <a href="/test-map">Map</a>
+            <a href="/pages/api.html">API</a>
+            <a href="/pages/settings.html">Settings</a>
+            <a href="#">Sign In</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Discover Vegan-Friendly Places</h1>
+        <p>AI-powered scores for every restaurant. Find your perfect plant-based meal with confidence.</p>
+        <a href="/test-map" class="cta-button">Launch Map →</a>
+    </section>
+
+    <section class="features">
+        <h2>Why VeganMapAI?</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h3>🤖 AI-Powered Scoring</h3>
+                <p>Our advanced AI analyzes menus, reviews, and restaurant data to provide accurate vegan-friendliness scores.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🗺️ Interactive Map</h3>
+                <p>Beautiful, responsive map with clustering, filters, and real-time search. Works perfectly on mobile and desktop.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🔍 Smart Filters</h3>
+                <p>Filter by cuisine, price, rating, and dietary preferences. Find exactly what you're looking for.</p>
+            </div>
+            <div class="feature-card">
+                <h3>📊 Detailed Breakdowns</h3>
+                <p>Understand why each place received its score with transparent component analysis.</p>
+            </div>
+            <div class="feature-card">
+                <h3>📍 Location Aware</h3>
+                <p>Find vegan options near you with GPS-based search and personalized recommendations.</p>
+            </div>
+            <div class="feature-card">
+                <h3>🌟 Community Driven</h3>
+                <p>Contribute reviews and help build the most comprehensive vegan restaurant database.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 VeganMapAI. All rights reserved.</p>
+        <div style="margin-top: 1rem;">
+            <a href="/pages/score-methodology.html">Score Methodology</a>
+            <a href="/pages/api.html">API Access</a>
+            <a href="/pages/settings.html">Settings</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Map Test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        
+        #map {
+            width: 100%;
+            height: 70vh;
+            background: #e0e0e0;
+        }
+        
+        #status {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            max-height: 30vh;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        .warning { color: orange; }
+        
+        #controls {
+            padding: 10px;
+            background: #f5f5f5;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 8px 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button onclick="testMapInit()">Test Map Init</button>
+        <button onclick="testTiles()">Test Tiles</button>
+        <button onclick="testMarkers()">Test Markers</button>
+        <button onclick="testAPI()">Test API</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    
+    <div id="map"></div>
+    
+    <div id="status">
+        <h4>Diagnostic Logs:</h4>
+        <div id="logs"></div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map = null;
+        const logs = document.getElementById('logs');
+        
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logs.appendChild(entry);
+            console.log(message);
+        }
+        
+        function clearLogs() {
+            logs.innerHTML = '';
+            log('Logs cleared', 'info');
+        }
+        
+        // Device info
+        log(`Device: ${navigator.userAgent}`, 'info');
+        log(`Screen: ${window.innerWidth}x${window.innerHeight}`, 'info');
+        log(`Touch: ${('ontouchstart' in window) ? 'Yes' : 'No'}`, 'info');
+        
+        // Test map initialization
+        function testMapInit() {
+            try {
+                if (map) {
+                    map.remove();
+                    log('Removed existing map', 'info');
+                }
+                
+                log('Initializing Leaflet map...', 'info');
+                
+                map = L.map('map', {
+                    center: [42.6977, 23.3219],
+                    zoom: 11,
+                    zoomControl: true,
+                    dragging: true,
+                    touchZoom: true,
+                    scrollWheelZoom: false,
+                    tap: true
+                });
+                
+                log('Map created successfully!', 'success');
+                
+                // Add event listeners
+                map.on('load', () => log('Map load event fired', 'success'));
+                map.on('click', (e) => log(`Map clicked at: ${e.latlng}`, 'info'));
+                map.on('error', (e) => log(`Map error: ${e.message}`, 'error'));
+                
+                return true;
+            } catch (error) {
+                log(`Map init failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Test tile loading
+        function testTiles() {
+            if (!map) {
+                log('Initialize map first!', 'warning');
+                return;
+            }
+            
+            try {
+                log('Adding OSM tile layer...', 'info');
+                
+                const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                });
+                
+                let tilesLoaded = 0;
+                tileLayer.on('tileload', () => {
+                    tilesLoaded++;
+                    if (tilesLoaded === 1) {
+                        log('First tile loaded!', 'success');
+                    }
+                });
+                
+                tileLayer.on('tileerror', (e) => {
+                    log(`Tile error: ${e.error}`, 'error');
+                });
+                
+                tileLayer.addTo(map);
+                log('Tile layer added', 'success');
+                
+                // Force redraw
+                setTimeout(() => {
+                    map.invalidateSize();
+                    log('Map size invalidated', 'info');
+                }, 100);
+                
+            } catch (error) {
+                log(`Tile loading failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test markers
+        function testMarkers() {
+            if (!map) {
+                log('Initialize map first!', 'warning');
+                return;
+            }
+            
+            try {
+                log('Adding test markers...', 'info');
+                
+                // Add 5 test markers
+                const testLocations = [
+                    [42.6977, 23.3219],
+                    [42.7000, 23.3300],
+                    [42.6950, 23.3150],
+                    [42.7050, 23.3250],
+                    [42.6900, 23.3100]
+                ];
+                
+                testLocations.forEach((loc, i) => {
+                    const marker = L.marker(loc);
+                    marker.bindPopup(`Test Marker ${i + 1}`);
+                    marker.addTo(map);
+                });
+                
+                log(`Added ${testLocations.length} test markers`, 'success');
+                
+            } catch (error) {
+                log(`Marker test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test API
+        async function testAPI() {
+            try {
+                log('Testing API endpoint...', 'info');
+                
+                const response = await fetch('/api/restaurants/public/map-data');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const restaurants = data.restaurants || data;
+                
+                log(`API Success! Loaded ${restaurants.length} restaurants`, 'success');
+                
+                // Try adding first 10 restaurants as markers
+                if (map && restaurants.length > 0) {
+                    log('Adding restaurant markers...', 'info');
+                    
+                    let added = 0;
+                    restaurants.slice(0, 10).forEach(r => {
+                        if (r.latitude && r.longitude) {
+                            const marker = L.marker([
+                                parseFloat(r.latitude),
+                                parseFloat(r.longitude)
+                            ]);
+                            marker.bindPopup(r.name);
+                            marker.addTo(map);
+                            added++;
+                        }
+                    });
+                    
+                    log(`Added ${added} restaurant markers`, 'success');
+                }
+                
+            } catch (error) {
+                log(`API test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-initialize on load
+        window.addEventListener('load', () => {
+            log('Page loaded, auto-initializing...', 'info');
+            if (testMapInit()) {
+                testTiles();
+            }
+        });
+    </script>
+</body>
+</html>

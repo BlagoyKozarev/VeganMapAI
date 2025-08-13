@@ -1,0 +1,169 @@
+:root{
+  --surface:#fff;
+  --elev:#f5f7fb;
+  --text:#0f1720;
+  --muted:#4b5563;
+  --line:rgba(15,23,32,0.08);
+  --accent:#22c55e;
+  --accent-600:#16a34a;
+  --shadow:0 6px 24px rgba(0,0,0,.12);
+}
+
+/* Optional: hide tall banners on /test-map */
+.vm-compact header, .vm-compact .top-banner { display:none !important; }
+
+/* Overlay host (over the map) */
+#vm-overlay{position:absolute; left:0; right:0; top:10px; z-index:10040; pointer-events:none}
+#vm-overlay .row{display:flex; gap:8px; align-items:center; padding:0 10px}
+
+/* Search pill */
+.vm-search{pointer-events:auto; display:flex; align-items:center; gap:10px;
+  background:var(--surface); border:1px solid var(--line); border-radius:999px;
+  padding:10px 14px; box-shadow:var(--shadow); max-width:620px; flex:1; min-width:220px}
+.vm-search input{flex:1; border:0; outline:none; background:transparent; color:var(--text); font-weight:600}
+
+/* Icon system */
+.vm-ico{width:20px; height:20px; display:inline-block}
+.vm-fab .vm-ico{width:22px; height:22px}
+.vm-fab-icon{display:block}
+
+/* Chip strip */
+.vm-chips{pointer-events:auto; display:flex; gap:8px; overflow-x:auto; padding:8px 10px 0; scrollbar-width:none}
+.vm-chips::-webkit-scrollbar{display:none}
+.vm-chip{flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; padding:8px 12px;
+  border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--text);
+  box-shadow:var(--shadow); font-weight:700}
+.vm-chip[data-on="1"]{background:#eaf9f0; border-color:#d2f0dc}
+
+/* FABS stack (right side) */
+#vm-fabs{position:absolute; right:12px; top:92px; z-index:10041; pointer-events:auto; display:flex; flex-direction:column; gap:10px}
+.vm-fab{width:48px; height:48px; border-radius:50%; background:var(--surface); border:1px solid var(--line);
+  box-shadow:var(--shadow); display:grid; place-items:center; color:var(--text); font-weight:800; cursor:pointer}
+.vm-fab:active{transform:scale(0.98)}
+.vm-fab svg{width:22px; height:22px}
+
+/* Bottom sheet */
+#vm-sheet{position:fixed; left:0; right:0; bottom:0; z-index:10042; transform:translateY(100%);
+  transition:transform .22s ease; pointer-events:none}
+#vm-sheet.open{transform:translateY(0); pointer-events:auto}
+.vm-sheet-card{margin:6px auto; max-width:720px; background:var(--surface); border:1px solid var(--line);
+  border-radius:18px 18px 0 0; box-shadow:0 -8px 26px rgba(0,0,0,.14); padding:12px}
+.vm-handle{width:46px; height:4px; border-radius:999px; background:#d1d5db; margin:4px auto 10px}
+.vm-title{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.vm-title h4{margin:0; font-size:16px}
+.vm-sub{color:var(--muted); font-size:13px; margin-top:2px}
+.vm-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+.vm-btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:999px;
+  padding:10px 14px; background:transparent; color:var(--text); font-weight:700; cursor:pointer}
+.vm-btn:hover{background:var(--elev)}
+.vm-btn-primary{background:var(--accent); color:#06240f; border:0}
+.vm-btn-primary:hover{background:var(--accent-600)}
+
+/* Right score panel */
+#vm-score{position:fixed; top:0; right:0; height:100vh; width:360px; max-width:90vw;
+  background:var(--surface); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(0,0,0,.08);
+  transform:translateX(100%); transition:transform .25s ease; z-index:10043; display:flex; flex-direction:column}
+#vm-score.open{transform:translateX(0)}
+#vm-score header{display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--line)}
+#vm-score .panel{padding:12px 14px; overflow:auto}
+.vm-kv{display:grid; grid-template-columns:1fr auto; gap:8px; margin:4px 0}
+.vm-meter{height:8px; background:var(--elev); border-radius:6px; overflow:hidden}
+.vm-meter > span{display:block; height:100%; background:var(--accent)}
+
+/* -------- Responsive adjustments -------- */
+
+/* На малки екрани, search pill заема почти цялата ширина */
+@media (max-width: 640px) {
+  .vm-search {
+    max-width: none;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  .vm-search input {
+    font-size: 14px;
+  }
+  /* Chips: по-компактни и по-малък gap */
+  .vm-chips {
+    gap: 6px;
+    padding: 6px 8px 0;
+  }
+  .vm-chip {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  /* FAB stack: по-малки бутони и по-близко един до друг */
+  #vm-fabs {
+    top: 80px;
+    gap: 8px;
+  }
+  .vm-fab {
+    width: 42px;
+    height: 42px;
+  }
+  .vm-fab svg {
+    width: 20px;
+    height: 20px;
+  }
+  /* Bottom sheet: почти цялата височина на екрана, по-големи тап зони */
+  #vm-sheet.open .vm-sheet-card {
+    padding: 16px 12px 24px;
+  }
+  .vm-title h4 {
+    font-size: 15px;
+  }
+  .vm-actions {
+    gap: 6px;
+  }
+  .vm-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .vm-btn-primary {
+    font-size: 13px;
+  }
+}
+
+/* На съвсем малки екрани (< 400px) — още по-компактно */
+@media (max-width: 400px) {
+  .vm-chip {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  .vm-btn {
+    font-size: 12px;
+    padding: 7px 10px;
+  }
+}
+
+/* Drawer (More filters) */
+#vm-drawer {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100vh; width: 320px; max-width: 90vw;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: -8px 0 20px rgba(0,0,0,0.12);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 10050;
+  display: flex; flex-direction: column;
+}
+#vm-drawer.open { transform: translateX(0); }
+#vm-drawer header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+#vm-drawer .panel { flex: 1; overflow: auto; padding: 12px 14px; }
+#vm-drawer label { display: block; font-weight: 600; margin-top: 14px; }
+#vm-drawer select, #vm-drawer input {
+  width: 100%; padding: 8px;
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--elev);
+  color: var(--text);
+}
+#vm-drawer .actions { padding: 12px 14px; border-top: 1px solid var(--line); }
+#vm-drawer .vm-btn { width: 100%; justify-content: center; }
