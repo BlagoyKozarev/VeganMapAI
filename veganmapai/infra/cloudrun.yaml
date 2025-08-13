@@ -1,0 +1,45 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: veganmap-api
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/min-instances: "0"
+        run.googleapis.com/max-instances: "100"
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/memory: "512Mi"
+        run.googleapis.com/cpu: "1000m"
+    spec:
+      containers:
+        - image: gcr.io/centered-inn-460216-r9/veganmap-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: API_BASE
+              value: "https://api.veganmapai.ai"
+            - name: FIREBASE_PROJECT
+              value: "centered-inn-460216-r9"
+            - name: GA4_MEASUREMENT_ID
+              value: "G-XXXXXXXXXX"
+            - name: GOOGLE_MAPS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: google-maps-key
+                  key: api-key
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-key
+                  key: api-key
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+      timeoutSeconds: 300
+      ingress: all

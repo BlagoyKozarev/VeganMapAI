@@ -1,0 +1,85 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "sofia_1",
+        "name": "Green Cat Vegan Restaurant",
+        "vegan_score": 9.2,
+        "price": "$$",
+        "cuisine": "Vegan",
+        "address": "ul. William Gladstone 12, Sofia",
+        "phone": "+359 2 981 0643",
+        "urls": { 
+          "website": "https://greencat.bg",
+          "maps": "https://maps.google.com/?q=Green+Cat+Sofia" 
+        }
+      },
+      "geometry": { "type": "Point", "coordinates": [ 23.3219, 42.6977 ] }
+    },
+    {
+      "type": "Feature", 
+      "properties": {
+        "id": "sofia_2",
+        "name": "Soul Kitchen Sofia",
+        "vegan_score": 8.5,
+        "price": "$",
+        "cuisine": "Healthy",
+        "address": "ul. Tsar Samuil 29, Sofia",
+        "phone": "+359 88 123 4567",
+        "urls": {
+          "website": "https://soulkitchen.bg",
+          "maps": "https://maps.google.com/?q=Soul+Kitchen+Sofia"
+        }
+      },
+      "geometry": { "type": "Point", "coordinates": [ 23.3158, 42.6986 ] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "sofia_3",
+        "name": "Veda House",
+        "vegan_score": 8.8,
+        "price": "$$",
+        "cuisine": "Vegetarian",
+        "address": "ul. Baba Nedelya 11, Sofia",
+        "urls": {
+          "website": "https://vedahouse.bg",
+          "maps": "https://maps.google.com/?q=Veda+House+Sofia"
+        }
+      },
+      "geometry": { "type": "Point", "coordinates": [ 23.3203, 42.6965 ] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "sofia_4",
+        "name": "Rainbow Factory",
+        "vegan_score": 7.9,
+        "price": "$",
+        "cuisine": "Raw Vegan",
+        "address": "ul. Stambolijski 31, Sofia",
+        "urls": {
+          "maps": "https://maps.google.com/?q=Rainbow+Factory+Sofia"
+        }
+      },
+      "geometry": { "type": "Point", "coordinates": [ 23.3245, 42.6945 ] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "sofia_5",
+        "name": "Sunflower Café",
+        "vegan_score": 8.1,
+        "price": "$",
+        "cuisine": "Café",
+        "address": "ul. Vitosha 15, Sofia",
+        "urls": {
+          "maps": "https://maps.google.com/?q=Sunflower+Café+Sofia"
+        }
+      },
+      "geometry": { "type": "Point", "coordinates": [ 23.3098, 42.7012 ] }
+    }
+  ]
+}

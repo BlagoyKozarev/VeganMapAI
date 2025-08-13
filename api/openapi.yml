@@ -1,0 +1,13 @@
+openapi: 3.0.3
+info:
+  title: Vegan Score Agent API
+  version: "0.0.1"
+servers:
+  - url: https://api.veganmapai.ai
+paths:
+  /health:
+    get:
+      summary: Healthcheck
+      responses:
+        '200':
+          description: OK

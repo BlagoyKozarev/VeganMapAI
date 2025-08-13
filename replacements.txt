@@ -1,0 +1,9 @@
+regex:ghp_[A-Za-z0-9]{36}==>***GITHUB_TOKEN_REMOVED***
+regex:(?s)-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY----->***PRIVATE_KEY_REMOVED***
+regex:(?s)-----BEGIN RSA PRIVATE KEY-----.*?-----END RSA PRIVATE KEY----->***RSA_PRIVATE_KEY_REMOVED***
+regex:(?i)"private_key"\s*:\s*".*?"==>"private_key":"***REMOVED***"
+regex:(?i)"client_secret"\s*:\s*".*?"==>"client_secret":"***REMOVED***"
+regex:(?i)"access_token"\s*:\s*".*?"==>"access_token":"***REMOVED***"
+regex:(?i)"auth_token"\s*:\s*".*?"==>"auth_token":"***REMOVED***"
+regex:(?i)"api_key"\s*:\s*".*?"==>"api_key":"***REMOVED***"
+regex:centered-inn-460216-r9==>***PROJECT_ID_REMOVED***

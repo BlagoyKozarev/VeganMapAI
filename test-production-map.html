@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Production Deployment Test</h1>
+    
+    <div id="status" class="status loading">
+        Готов за тестване...
+    </div>
+    
+    <div>
+        <button onclick="testProduction()">Тест Production API</button>
+        <button onclick="openProduction()">Отвори Production сайта</button>
+    </div>
+    
+    <div id="results" class="results" style="display:none;">
+        <h3>Резултати:</h3>
+        <pre id="resultsText"></pre>
+    </div>
+
+    <script>
+        // Опитваме различни възможни URL-и
+        const possibleUrls = [
+            'https://veganmapai-bkozarev.replit.app',
+            'https://veganmapai.replit.app',
+            'https://veganmapai-bkozarev.repl.co',
+            'https://veganmapai.repl.co'
+        ];
+        
+        async function testProduction() {
+            const statusEl = document.getElementById('status');
+            const resultsEl = document.getElementById('results');
+            const resultsTextEl = document.getElementById('resultsText');
+            
+            statusEl.className = 'status loading';
+            statusEl.textContent = 'Тестване на production API...';
+            resultsEl.style.display = 'none';
+            
+            let workingUrl = null;
+            let results = [];
+            
+            for (const url of possibleUrls) {
+                try {
+                    const response = await fetch(`${url}/api/restaurants/public/map-data`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        mode: 'cors'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const restaurantCount = data.restaurants ? data.restaurants.length : 0;
+                        
+                        results.push(`✅ ${url} - РАБОТИ! Намерени ${restaurantCount} ресторанта`);
+                        
+                        if (restaurantCount > 0 && !workingUrl) {
+                            workingUrl = url;
+                            statusEl.className = 'status success';
+                            statusEl.innerHTML = `
+                                <strong>🎉 УСПЕХ!</strong><br>
+                                Production работи на: <a href="${url}" target="_blank">${url}</a><br>
+                                Намерени са ${restaurantCount} ресторанта!
+                            `;
+                        }
+                    } else {
+                        results.push(`❌ ${url} - HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${url} - ${error.message}`);
+                }
+            }
+            
+            if (!workingUrl) {
+                statusEl.className = 'status error';
+                statusEl.innerHTML = `
+                    <strong>⚠️ ВНИМАНИЕ!</strong><br>
+                    Production API все още не отговаря.<br>
+                    Моля, изчакайте 1-2 минути след Redeploy и опитайте отново.
+                `;
+            }
+            
+            resultsEl.style.display = 'block';
+            resultsTextEl.textContent = results.join('\n');
+        }
+        
+        function openProduction() {
+            // Опитваме да отворим първия URL
+            window.open(possibleUrls[0], '_blank');
+        }
+        
+        // Автоматичен тест при зареждане
+        setTimeout(() => {
+            console.log('Ready for testing. Click the button to test production.');
+        }, 1000);
+    </script>
+</body>
+</html>
