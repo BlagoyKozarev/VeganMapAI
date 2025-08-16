@@ -73,9 +73,9 @@ apiRouter.get('/recommend', async (req, res) => {
   const items = nearbyRestaurants.map(r => ({
     id: r.id,
     name: r.name,
-    score: r.veganScore,
-    lat: r.latitude,
-    lng: r.longitude
+    score: Number(r.veganScore),   // ← число
+    lat: Number(r.latitude),       // ← число
+    lng: Number(r.longitude)       // ← число
   }));
   
   res.type('application/json').json({ count: items.length, restaurants: items });
