@@ -42,11 +42,13 @@ validateEnvironment();
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
 import testGBGPTRouter from './routes/testGBGPT.js';
 import bulkTestGBGPTRouter from './routes/bulkTestGBGPT.js';
+import { geoCache, geoCacheMiddleware } from './middleware/geoCache.js';
 
 const app = express();
 
@@ -116,6 +118,25 @@ app.use(compression({
   }
 }));
 
+// Rate limiting middleware
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300, // Limit each IP to 300 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: '15 minutes'
+  },
+  // Standard rate limit handling
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json(options.message);
+  }
+});
+
+// Apply rate limiting to API routes only
+app.use('/api', limiter);
+
 app.use(express.json({ limit: '1mb' })); // Limit JSON payload size
 app.use(express.urlencoded({ extended: false }));
 
@@ -152,8 +173,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Add cached places endpoint BEFORE other routes
-app.get('/api/places', async (req, res) => {
+// Add geo-cached places endpoint BEFORE other routes
+app.get('/api/places', geoCacheMiddleware('places'), async (req, res) => {
   try {
     const { n, s, e, w, profile } = req.query;
     

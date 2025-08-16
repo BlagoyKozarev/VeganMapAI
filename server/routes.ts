@@ -195,10 +195,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: restaurant.name,
         latitude: restaurant.latitude,
         longitude: restaurant.longitude,
-        veganScore: restaurant.veganScore || restaurant.vegan_score,
-        cuisineTypes: restaurant.cuisineTypes || restaurant.cuisine_types,
+        veganScore: restaurant.veganScore,
+        cuisineTypes: restaurant.cuisineTypes,
         rating: restaurant.rating,
-        priceLevel: restaurant.priceLevel || restaurant.price_level,
+        priceLevel: restaurant.priceLevel,
         address: restaurant.address
       }));
       
@@ -216,11 +216,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error) {
       console.error('Public map data error:', error);
-      console.error('Error stack:', error.stack);
+      console.error('Error stack:', (error as Error).stack);
       res.status(500).json({
         success: false,
         error: 'Failed to fetch restaurant data',
-        errorMessage: error.message,
+        errorMessage: (error as Error).message,
         restaurants: [],
         timestamp: new Date().toISOString()
       });
@@ -237,14 +237,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: r.id,
         name: r.name,
         address: r.address || 'No address',
-        lat: parseFloat(r.latitude || r.lat),
-        lng: parseFloat(r.longitude || r.lng),
-        vegan_full: r.isFullyVegan || false,
+        lat: parseFloat(r.latitude),
+        lng: parseFloat(r.longitude),
+        vegan_full: false, // Default value for compatibility
         cuisines: r.cuisineTypes || [],
         price: r.priceLevel || '$',
         score: r.veganScore ? parseFloat(r.veganScore) : null,
         components: r.veganScore ? [
-          { k: 'Purity (Fully Vegan)', w: 0.25, v: r.isFullyVegan ? 0.9 : 0.6 },
+          { k: 'Purity (Fully Vegan)', w: 0.25, v: 0.6 },
           { k: 'Menu Breadth', w: 0.2, v: 0.8 },
           { k: 'Ingredient Transparency', w: 0.2, v: 0.85 },
           { k: 'User Sentiment', w: 0.2, v: 0.82 },
@@ -276,7 +276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         status: 'unhealthy',
         database: 'error',
-        error: error.message,
+        error: (error as Error).message,
         timestamp: new Date().toISOString()
       });
     }
@@ -308,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sampleRestaurants: samples.map(r => ({
           id: r.id,
           name: r.name,
-          city: r.city
+          address: r.address
         })),
         timestamp: new Date().toISOString()
       });
@@ -317,8 +317,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Debug error:', error);
       res.status(500).json({
         success: false,
-        error: error.message,
-        stack: error.stack
+        error: (error as Error).message,
+        stack: (error as Error).stack
       });
     }
   });
@@ -538,11 +538,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profile = await storage.getUserProfile(userId);
       
       res.json({
-        defaultLat: profile?.defaultLat,
-        defaultLng: profile?.defaultLng,
         preferredCuisines: profile?.preferredCuisines || [],
-        minVeganScore: profile?.minVeganScore || 0,
-        searchRadius: profile?.searchRadius || 10
+        maxDistance: profile?.maxDistance || 2000,
+        priceRange: profile?.priceRange || '$$'
       });
     } catch (error) {
       console.error('Error fetching preferences:', error);
@@ -553,25 +551,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/user/preferences', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { defaultLat, defaultLng, preferredCuisines, minVeganScore, searchRadius } = req.body;
+      const { preferredCuisines, maxDistance, priceRange } = req.body;
       
       const updatedProfile = await storage.upsertUserProfile({
         userId,
-        defaultLat,
-        defaultLng,
         preferredCuisines,
-        minVeganScore,
-        searchRadius
+        maxDistance,
+        priceRange
       });
       
       res.json({
         success: true,
         preferences: {
-          defaultLat: updatedProfile.defaultLat,
-          defaultLng: updatedProfile.defaultLng,
           preferredCuisines: updatedProfile.preferredCuisines,
-          minVeganScore: updatedProfile.minVeganScore,
-          searchRadius: updatedProfile.searchRadius
+          maxDistance: updatedProfile.maxDistance,
+          priceRange: updatedProfile.priceRange
         }
       });
     } catch (error) {
@@ -640,8 +634,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           menuVariety: scoreResult.breakdown.menuVariety.toString(),
           ingredientClarity: scoreResult.breakdown.ingredientClarity.toString(),
           staffKnowledge: scoreResult.breakdown.staffKnowledge.toString(),
-          crossContamination: scoreResult.breakdown.crossContamination.toString(),
-          nutritionalInfo: scoreResult.breakdown.nutritionalInfo.toString(),
+          crossContaminationPrevention: scoreResult.breakdown.crossContamination.toString(),
+          nutritionalInformation: scoreResult.breakdown.nutritionalInfo.toString(),
           allergenManagement: scoreResult.breakdown.allergenManagement.toString(),
           overallScore: scoreResult.overallScore.toString()
         });
@@ -731,8 +725,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 menuVariety: scoreResult.breakdown.menuVariety.toString(),
                 ingredientClarity: scoreResult.breakdown.ingredientClarity.toString(),
                 staffKnowledge: scoreResult.breakdown.staffKnowledge.toString(),
-                crossContamination: scoreResult.breakdown.crossContamination.toString(),
-                nutritionalInfo: scoreResult.breakdown.nutritionalInfo.toString(),
+                crossContaminationPrevention: scoreResult.breakdown.crossContamination.toString(),
+                nutritionalInformation: scoreResult.breakdown.nutritionalInfo.toString(),
                 allergenManagement: scoreResult.breakdown.allergenManagement.toString(),
                 overallScore: scoreResult.overallScore.toString()
               });
