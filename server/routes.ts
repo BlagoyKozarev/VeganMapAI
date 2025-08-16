@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { Router, type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -25,6 +25,9 @@ import { ttsHandler } from "./api/tts";
 import { insertUserProfileSchema, insertUserFavoriteSchema, insertUserVisitSchema } from "@shared/schema";
 import { z } from "zod";
 import { searchRestaurantsWithAI } from "./services/aiSearch";
+
+// Create API router
+export const router = Router();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -130,8 +133,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OPTIMIZED PUBLIC endpoint for map data with viewport-based loading
-  app.get('/api/restaurants/public/map-data', async (req, res) => {
+  // Map data endpoint on router
+  router.get('/restaurants/public/map-data', async (req, res) => {
+    res.type("application/json");
     try {
       console.log('=== PUBLIC MAP DATA REQUEST ===');
       console.log('Query params:', req.query);
@@ -260,8 +264,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Simple health check endpoint with auto-loading
-  app.get('/api/health', async (req, res) => {
+  // Health check endpoint on router
+  router.get('/health', async (req, res) => {
+    res.type("application/json");
     try {
       const dbResult = await db.select({ count: sql<number>`count(*)` }).from(restaurants);
       let count = dbResult[0]?.count || 0;
@@ -432,6 +437,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: error.message,
         stack: error.stack
       });
+    }
+  });
+
+  // Recommend endpoint on router
+  router.get('/recommend', async (req, res) => {
+    res.type("application/json");
+    try {
+      const { lat, lng, radiusKm = '5', minScore = '7', limit = '3' } = req.query;
+      
+      if (!lat || !lng) {
+        return res.status(400).json({ error: "Invalid coordinates - lat and lng required" });
+      }
+      
+      const restaurants = await storage.getRestaurantsNearby({
+        lat: parseFloat(lat as string),
+        lng: parseFloat(lng as string),
+        radiusKm: parseFloat(radiusKm as string),
+        minScore: parseFloat(minScore as string),
+        limit: parseInt(limit as string)
+      });
+      
+      res.json({
+        success: true,
+        restaurants,
+        count: restaurants.length,
+        params: { lat, lng, radiusKm, minScore, limit }
+      });
+    } catch (error) {
+      console.error('Recommend error:', error);
+      res.status(500).json({ error: "internal" });
+    }
+  });
+
+  // Feedback endpoint on router
+  router.post('/feedback', async (req, res) => {
+    res.type("application/json");
+    try {
+      const { uid, place_id, score_details, comment } = req.body || {};
+      if (!uid || !place_id) {
+        return res.status(400).json({ error: 'uid and place_id required' });
+      }
+      console.log('Feedback received:', { uid, place_id, score_details, comment });
+      res.json({ ok: true, queued: true });
+    } catch (e) {
+      console.error('Feedback error:', e);
+      res.status(500).json({ error: 'failed' });
     }
   });
 
@@ -1035,7 +1086,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/tts', isAuthenticated, ttsHandler);
 
   // Load sample data endpoint for production deployment (both GET and POST)
-  app.get('/api/load-sample-data', async (req, res) => {
+  // Load sample data endpoint on router  
+  router.get('/load-sample-data', async (req, res) => {
+    res.type("application/json");
     try {
       console.log('🔄 [GET] Loading sample Sofia restaurants for production...');
       
@@ -1319,8 +1372,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Emergency production data loading endpoint
-  app.get('/api/emergency-load', async (req, res) => {
+  // Emergency load endpoint on router
+  router.get('/emergency-load', async (req, res) => {
+    res.type("application/json");
     try {
       console.log('🚨 Emergency loading Sofia restaurants...');
       

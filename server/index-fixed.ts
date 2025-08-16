@@ -34,11 +34,6 @@ import compression from "compression";
 import { registerRoutes, router as apiRouter } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app = express();
 app.set("trust proxy", 1);
@@ -48,8 +43,6 @@ const allowedOrigins = [
   "https://www.veganmapai.ai",
   "https://vegan-map-ai-bkozarev.replit.app",
   "http://localhost:5173",
-  "http://localhost:5000",
-  "http://127.0.0.1:5000",
   process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : undefined
 ].filter(Boolean);
 
@@ -88,16 +81,13 @@ app.get("/service-worker.js", (_req, res) => {
   res.sendFile(path.join(__dirname, "../dist/service-worker.js"));
 });
 
-// Static files AFTER API (only for production build)
-const distPublicPath = path.join(__dirname, "../dist/public");
-if (fs.existsSync(distPublicPath)) {
-  app.use(express.static(distPublicPath, { maxAge: "1h" }));
-  
-  // SPA fallback LAST (non-API only)
-  app.get(/^\/(?!api\/).*/, (_req, res) => {
-    res.sendFile(path.join(distPublicPath, "index.html"));
-  });
-}
+// Static files AFTER API
+app.use(express.static(path.join(__dirname, "../dist"), { maxAge: "1h" }));
+
+// SPA fallback LAST (non-API only)
+app.get(/^\/(?!api\/).*/, (_req, res) => {
+  res.sendFile(path.join(__dirname, "../dist/index.html"));
+});
 
 // API 404 JSON (catch unmatched /api/*)
 app.use("/api", (_req, res) => {
@@ -121,7 +111,6 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   // Setup Vite in development or serve static files in production
-  // Important: setupVite must come AFTER API routes are registered
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {

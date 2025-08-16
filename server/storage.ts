@@ -53,6 +53,7 @@ export interface IStorage {
   updateRestaurant(id: string, restaurant: Partial<InsertRestaurant>): Promise<Restaurant>;
   getAllRestaurantsWithScores(): Promise<Restaurant[]>;
   getRestaurantsInRadius(lat: number, lng: number, radiusKm: number): Promise<Restaurant[]>;
+  getRestaurantsNearby(params: { lat: number, lng: number, radiusKm: number, minScore: number, limit: number }): Promise<Restaurant[]>;
   getRestaurantsInBounds(bounds: { north: number, south: number, east: number, west: number }, limit?: number): Promise<Restaurant[]>;
   searchRestaurants(query: string, lat?: number, lng?: number, filters?: any): Promise<Restaurant[]>;
   getAllRestaurants(): Promise<Restaurant[]>;
@@ -315,6 +316,31 @@ export class DatabaseStorage implements IStorage {
       return filteredRestaurants;
     } catch (error) {
       console.error(`Storage: Error getting restaurants in radius:`, error);
+      throw error;
+    }
+  }
+
+  async getRestaurantsNearby(params: { lat: number, lng: number, radiusKm: number, minScore: number, limit: number }): Promise<Restaurant[]> {
+    console.log(`Storage: Getting restaurants nearby with params:`, params);
+    try {
+      // Get restaurants in radius first
+      const nearbyRestaurants = await this.getRestaurantsInRadius(params.lat, params.lng, params.radiusKm);
+      
+      // Filter by minimum vegan score
+      const filteredRestaurants = nearbyRestaurants.filter(restaurant => {
+        const score = parseFloat(restaurant.veganScore || '0');
+        return score >= params.minScore;
+      });
+      
+      // Sort by vegan score (highest first) and limit results
+      const sortedRestaurants = filteredRestaurants
+        .sort((a, b) => parseFloat(b.veganScore || '0') - parseFloat(a.veganScore || '0'))
+        .slice(0, params.limit);
+      
+      console.log(`Storage: Returning ${sortedRestaurants.length} nearby restaurants with min score ${params.minScore}`);
+      return sortedRestaurants;
+    } catch (error) {
+      console.error(`Storage: Error getting nearby restaurants:`, error);
       throw error;
     }
   }

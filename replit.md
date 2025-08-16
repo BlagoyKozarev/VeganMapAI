@@ -63,14 +63,15 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 16, 2025)
-- **GitHub Actions Workflows**: Fixed failing CI/Deploy workflows by updating TypeScript configuration
-- **Database Validation**: Confirmed 407 restaurants with complete geographic data and vegan scoring
+- **CRITICAL API FIX**: Resolved middleware order issue - API endpoints now return JSON instead of HTML in production
+- **Express Router Implementation**: Created dedicated API router with proper middleware ordering
+- **Production API Validation**: All endpoints (/health, /map-data, /recommend, /feedback) confirmed working with JSON responses
+- **Emergency Data Loading**: Successfully loaded 5 Sofia restaurants in production database 
+- **Database Validation**: Both development (5 restaurants) and production (5 restaurants) databases operational
 - **Build System**: Optimized for production with Vite (1772 modules) + ESBuild server compilation
-- **API Testing**: Validated all public endpoints, confirmed map data delivery and health monitoring
 - **TypeScript Configuration**: Relaxed strict checking to focus on build success while maintaining functionality
 - **Environment Setup**: All production secrets confirmed available and properly configured
-- **Repository Cleanup**: Maintained clean Git structure with proper .gitignore exclusions
-- **Status**: Production-ready deployment with all systems validated and functional
+- **Status**: Production API endpoints fully functional with proper JSON responses
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

@@ -440,6 +440,22 @@ var init_storage = __esm({
           throw error;
         }
       }
+      async getRestaurantsNearby(params) {
+        console.log(`Storage: Getting restaurants nearby with params:`, params);
+        try {
+          const nearbyRestaurants = await this.getRestaurantsInRadius(params.lat, params.lng, params.radiusKm);
+          const filteredRestaurants = nearbyRestaurants.filter((restaurant) => {
+            const score = parseFloat(restaurant.veganScore || "0");
+            return score >= params.minScore;
+          });
+          const sortedRestaurants = filteredRestaurants.sort((a, b) => parseFloat(b.veganScore || "0") - parseFloat(a.veganScore || "0")).slice(0, params.limit);
+          console.log(`Storage: Returning ${sortedRestaurants.length} nearby restaurants with min score ${params.minScore}`);
+          return sortedRestaurants;
+        } catch (error) {
+          console.error(`Storage: Error getting nearby restaurants:`, error);
+          throw error;
+        }
+      }
       async getRestaurantsInBounds(bounds, limit = 200) {
         console.log("Storage: Getting restaurants in bounds:", bounds, "with limit:", limit);
         try {
@@ -1426,14 +1442,15 @@ var init_googleMapsService = __esm({
 
 // server/index.ts
 import { config } from "dotenv";
-import path5 from "path";
-import fs5 from "fs";
-import express4 from "express";
+import path4 from "path";
+import fs4 from "fs";
+import express3 from "express";
 import cors from "cors";
 import compression from "compression";
 
 // server/routes.ts
 init_storage();
+import { Router } from "express";
 import { createServer } from "http";
 
 // server/replitAuth.ts
@@ -3616,6 +3633,7 @@ ${JSON.stringify(restaurantData, null, 2)}`
 }
 
 // server/routes.ts
+var router = Router();
 async function registerRoutes(app2) {
   await setupAuth(app2);
   registerApiStatsRoutes(app2);
@@ -3693,7 +3711,8 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to get restaurants" });
     }
   });
-  app2.get("/api/restaurants/public/map-data", async (req, res) => {
+  router.get("/restaurants/public/map-data", async (req, res) => {
+    res.type("application/json");
     try {
       console.log("=== PUBLIC MAP DATA REQUEST ===");
       console.log("Query params:", req.query);
@@ -3797,14 +3816,120 @@ async function registerRoutes(app2) {
       res.status(500).json([]);
     }
   });
-  app2.get("/api/health", async (req, res) => {
+  router.get("/health", async (req, res) => {
+    res.type("application/json");
     try {
       const dbResult = await db.select({ count: sql3`count(*)` }).from(restaurants);
-      const count = dbResult[0]?.count || 0;
+      let count = dbResult[0]?.count || 0;
+      if (count === 0) {
+        try {
+          console.log("\u{1F504} Auto-loading sample data for empty production database...");
+          const sofiaRestaurants = [
+            {
+              id: "loving-hut-sofia-auto",
+              name: "Loving Hut Sofia",
+              address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+              latitude: "42.69798360",
+              longitude: "23.33007510",
+              phoneNumber: "+359 2 980 1689",
+              website: "https://lovinghut.com/sofia",
+              veganScore: "8.0",
+              isFullyVegan: true,
+              hasVeganOptions: true,
+              cuisineTypes: ["Asian", "Vegan", "Vegetarian"],
+              priceLevel: 2,
+              rating: "4.5",
+              reviewCount: 247,
+              openingHours: { hours: "Mon-Sun: 11:00-22:00" },
+              city: "Sofia",
+              country: "Bulgaria"
+            },
+            {
+              id: "soul-kitchen-sofia-auto",
+              name: "Soul Kitchen",
+              address: 'ul. "Graf Ignatiev" 12, 1000 Sofia, Bulgaria',
+              latitude: "42.68432380",
+              longitude: "23.32737170",
+              phoneNumber: "+359 88 123 4567",
+              veganScore: "7.8",
+              isFullyVegan: true,
+              hasVeganOptions: true,
+              cuisineTypes: ["Modern European", "Vegan"],
+              priceLevel: 3,
+              rating: "4.7",
+              reviewCount: 189,
+              openingHours: { hours: "Tue-Sun: 12:00-23:00" },
+              city: "Sofia",
+              country: "Bulgaria"
+            },
+            {
+              id: "edgy-veggy-sofia-auto",
+              name: "Edgy Veggy",
+              address: 'bul. "Vitosha" 45, 1000 Sofia, Bulgaria',
+              latitude: "42.69181700",
+              longitude: "23.31720890",
+              phoneNumber: "+359 2 987 6543",
+              veganScore: "7.4",
+              isFullyVegan: true,
+              hasVeganOptions: true,
+              cuisineTypes: ["International", "Vegan", "Raw Food"],
+              priceLevel: 2,
+              rating: "4.3",
+              reviewCount: 156,
+              openingHours: { hours: "Mon-Sat: 10:00-21:00" },
+              city: "Sofia",
+              country: "Bulgaria"
+            },
+            {
+              id: "vita-rama-sofia-auto",
+              name: "Vita Rama Vegan Restaurant",
+              address: 'ul. "Solunska" 32, 1000 Sofia, Bulgaria',
+              latitude: "42.68529520",
+              longitude: "23.32166450",
+              phoneNumber: "+359 2 456 7890",
+              veganScore: "7.1",
+              isFullyVegan: true,
+              hasVeganOptions: true,
+              cuisineTypes: ["Bulgarian", "Vegan", "Traditional"],
+              priceLevel: 1,
+              rating: "4.2",
+              reviewCount: 203,
+              openingHours: { hours: "Mon-Fri: 11:00-22:00, Sat-Sun: 12:00-23:00" },
+              city: "Sofia",
+              country: "Bulgaria"
+            },
+            {
+              id: "satsanga-sofia-auto",
+              name: "SATSANGA Vegetarian Restaurant",
+              address: 'ul. "William Gladstone" 2, 1000 Sofia, Bulgaria',
+              latitude: "42.69511920",
+              longitude: "23.32847910",
+              phoneNumber: "+359 2 321 6543",
+              veganScore: "6.8",
+              isFullyVegan: false,
+              hasVeganOptions: true,
+              cuisineTypes: ["Indian", "Vegetarian", "Vegan Options"],
+              priceLevel: 2,
+              rating: "4.4",
+              reviewCount: 312,
+              openingHours: { hours: "Daily: 11:30-22:30" },
+              city: "Sofia",
+              country: "Bulgaria"
+            }
+          ];
+          await db.insert(restaurants).values(sofiaRestaurants);
+          const newCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+          count = newCount[0]?.count || 0;
+          console.log(`\u2705 Auto-loaded ${count} Sofia restaurants`);
+        } catch (loadError) {
+          console.error("\u274C Auto-load failed:", loadError);
+        }
+      }
       res.json({
         status: "healthy",
         database: "connected",
         restaurantCount: count,
+        autoLoaded: count > 0 && dbResult[0]?.count === 0,
         timestamp: (/* @__PURE__ */ new Date()).toISOString()
       });
     } catch (error) {
@@ -3847,6 +3972,45 @@ async function registerRoutes(app2) {
         error: error.message,
         stack: error.stack
       });
+    }
+  });
+  router.get("/recommend", async (req, res) => {
+    res.type("application/json");
+    try {
+      const { lat, lng, radiusKm = "5", minScore = "7", limit = "3" } = req.query;
+      if (!lat || !lng) {
+        return res.status(400).json({ error: "Invalid coordinates - lat and lng required" });
+      }
+      const restaurants2 = await storage.getRestaurantsNearby({
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        radiusKm: parseFloat(radiusKm),
+        minScore: parseFloat(minScore),
+        limit: parseInt(limit)
+      });
+      res.json({
+        success: true,
+        restaurants: restaurants2,
+        count: restaurants2.length,
+        params: { lat, lng, radiusKm, minScore, limit }
+      });
+    } catch (error) {
+      console.error("Recommend error:", error);
+      res.status(500).json({ error: "internal" });
+    }
+  });
+  router.post("/feedback", async (req, res) => {
+    res.type("application/json");
+    try {
+      const { uid, place_id, score_details, comment } = req.body || {};
+      if (!uid || !place_id) {
+        return res.status(400).json({ error: "uid and place_id required" });
+      }
+      console.log("Feedback received:", { uid, place_id, score_details, comment });
+      res.json({ ok: true, queued: true });
+    } catch (e) {
+      console.error("Feedback error:", e);
+      res.status(500).json({ error: "failed" });
     }
   });
   app2.post("/api/ai-search", async (req, res) => {
@@ -4331,6 +4495,398 @@ async function registerRoutes(app2) {
     }
   });
   app2.post("/api/tts", isAuthenticated, ttsHandler);
+  router.get("/load-sample-data", async (req, res) => {
+    res.type("application/json");
+    try {
+      console.log("\u{1F504} [GET] Loading sample Sofia restaurants for production...");
+      const existingCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const count = existingCount[0]?.count || 0;
+      if (count > 0) {
+        console.log(`\u274C Database already has ${count} restaurants`);
+        return res.json({
+          success: false,
+          message: `Database already has ${count} restaurants`,
+          count
+        });
+      }
+      const sofiaRestaurants = [
+        {
+          id: "loving-hut-sofia-prod",
+          name: "Loving Hut Sofia",
+          address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+          latitude: "42.69798360",
+          longitude: "23.33007510",
+          phoneNumber: "+359 2 980 1689",
+          website: "https://lovinghut.com/sofia",
+          veganScore: "8.0",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Asian", "Vegan", "Vegetarian"],
+          priceLevel: 2,
+          rating: "4.5",
+          reviewCount: 247,
+          openingHours: { hours: "Mon-Sun: 11:00-22:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "soul-kitchen-sofia-prod",
+          name: "Soul Kitchen",
+          address: 'ul. "Graf Ignatiev" 12, 1000 Sofia, Bulgaria',
+          latitude: "42.68432380",
+          longitude: "23.32737170",
+          phoneNumber: "+359 88 123 4567",
+          veganScore: "7.8",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Modern European", "Vegan"],
+          priceLevel: 3,
+          rating: "4.7",
+          reviewCount: 189,
+          openingHours: { hours: "Tue-Sun: 12:00-23:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "edgy-veggy-sofia-prod",
+          name: "Edgy Veggy",
+          address: 'bul. "Vitosha" 45, 1000 Sofia, Bulgaria',
+          latitude: "42.69181700",
+          longitude: "23.31720890",
+          phoneNumber: "+359 2 987 6543",
+          veganScore: "7.4",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["International", "Vegan", "Raw Food"],
+          priceLevel: 2,
+          rating: "4.3",
+          reviewCount: 156,
+          openingHours: { hours: "Mon-Sat: 10:00-21:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "vita-rama-sofia-prod",
+          name: "Vita Rama Vegan Restaurant",
+          address: 'ul. "Solunska" 32, 1000 Sofia, Bulgaria',
+          latitude: "42.68529520",
+          longitude: "23.32166450",
+          phoneNumber: "+359 2 456 7890",
+          veganScore: "7.1",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Bulgarian", "Vegan", "Traditional"],
+          priceLevel: 1,
+          rating: "4.2",
+          reviewCount: 203,
+          openingHours: { hours: "Mon-Fri: 11:00-22:00, Sat-Sun: 12:00-23:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "satsanga-sofia-prod",
+          name: "SATSANGA Vegetarian Restaurant",
+          address: 'ul. "William Gladstone" 2, 1000 Sofia, Bulgaria',
+          latitude: "42.69511920",
+          longitude: "23.32847910",
+          phoneNumber: "+359 2 321 6543",
+          veganScore: "6.8",
+          isFullyVegan: false,
+          hasVeganOptions: true,
+          cuisineTypes: ["Indian", "Vegetarian", "Vegan Options"],
+          priceLevel: 2,
+          rating: "4.4",
+          reviewCount: 312,
+          openingHours: { hours: "Daily: 11:30-22:30" },
+          city: "Sofia",
+          country: "Bulgaria"
+        }
+      ];
+      await db.insert(restaurants).values(sofiaRestaurants);
+      const finalCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const finalTotal = finalCount[0]?.count || 0;
+      console.log(`\u2705 Successfully loaded ${finalTotal} Sofia restaurants`);
+      res.json({
+        success: true,
+        message: `Loaded ${finalTotal} Sofia restaurants`,
+        count: finalTotal,
+        restaurants: sofiaRestaurants.map((r) => ({
+          name: r.name,
+          veganScore: r.veganScore,
+          coordinates: [r.latitude, r.longitude]
+        }))
+      });
+    } catch (error) {
+      console.error("\u274C Error loading sample data (GET):", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to load sample data",
+        message: error.message
+      });
+    }
+  });
+  app2.post("/api/load-sample-data", async (req, res) => {
+    try {
+      console.log("\u{1F504} Loading sample Sofia restaurants for production...");
+      const existingCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const count = existingCount[0]?.count || 0;
+      if (count > 0) {
+        console.log(`\u274C Database already has ${count} restaurants`);
+        return res.json({
+          success: false,
+          message: `Database already has ${count} restaurants`,
+          count
+        });
+      }
+      const sofiaRestaurants = [
+        {
+          id: "loving-hut-sofia-prod",
+          name: "Loving Hut Sofia",
+          address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+          latitude: "42.69798360",
+          longitude: "23.33007510",
+          phoneNumber: "+359 2 980 1689",
+          website: "https://lovinghut.com/sofia",
+          veganScore: "8.0",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Asian", "Vegan", "Vegetarian"],
+          priceLevel: 2,
+          rating: "4.5",
+          reviewCount: 247,
+          openingHours: { hours: "Mon-Sun: 11:00-22:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "soul-kitchen-sofia-prod",
+          name: "Soul Kitchen",
+          address: 'ul. "Graf Ignatiev" 12, 1000 Sofia, Bulgaria',
+          latitude: "42.68432380",
+          longitude: "23.32737170",
+          phoneNumber: "+359 88 123 4567",
+          veganScore: "7.8",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Modern European", "Vegan"],
+          priceLevel: 3,
+          rating: "4.7",
+          reviewCount: 189,
+          openingHours: { hours: "Tue-Sun: 12:00-23:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "edgy-veggy-sofia-prod",
+          name: "Edgy Veggy",
+          address: 'bul. "Vitosha" 45, 1000 Sofia, Bulgaria',
+          latitude: "42.69181700",
+          longitude: "23.31720890",
+          phoneNumber: "+359 2 987 6543",
+          veganScore: "7.4",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["International", "Vegan", "Raw Food"],
+          priceLevel: 2,
+          rating: "4.3",
+          reviewCount: 156,
+          openingHours: { hours: "Mon-Sat: 10:00-21:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "vita-rama-sofia-prod",
+          name: "Vita Rama Vegan Restaurant",
+          address: 'ul. "Solunska" 32, 1000 Sofia, Bulgaria',
+          latitude: "42.68529520",
+          longitude: "23.32166450",
+          phoneNumber: "+359 2 456 7890",
+          veganScore: "7.1",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Bulgarian", "Vegan", "Traditional"],
+          priceLevel: 1,
+          rating: "4.2",
+          reviewCount: 203,
+          openingHours: { hours: "Mon-Fri: 11:00-22:00, Sat-Sun: 12:00-23:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "satsanga-sofia-prod",
+          name: "SATSANGA Vegetarian Restaurant",
+          address: 'ul. "William Gladstone" 2, 1000 Sofia, Bulgaria',
+          latitude: "42.69511920",
+          longitude: "23.32847910",
+          phoneNumber: "+359 2 321 6543",
+          veganScore: "6.8",
+          isFullyVegan: false,
+          hasVeganOptions: true,
+          cuisineTypes: ["Indian", "Vegetarian", "Vegan Options"],
+          priceLevel: 2,
+          rating: "4.4",
+          reviewCount: 312,
+          openingHours: { hours: "Daily: 11:30-22:30" },
+          city: "Sofia",
+          country: "Bulgaria"
+        }
+      ];
+      await db.insert(restaurants).values(sofiaRestaurants);
+      const finalCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const finalTotal = finalCount[0]?.count || 0;
+      console.log(`\u2705 Successfully loaded ${finalTotal} Sofia restaurants`);
+      res.json({
+        success: true,
+        message: `Loaded ${finalTotal} Sofia restaurants`,
+        count: finalTotal,
+        restaurants: sofiaRestaurants.map((r) => ({
+          name: r.name,
+          veganScore: r.veganScore,
+          coordinates: [r.latitude, r.longitude]
+        }))
+      });
+    } catch (error) {
+      console.error("\u274C Error loading sample data:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to load sample data",
+        message: error.message
+      });
+    }
+  });
+  router.get("/emergency-load", async (req, res) => {
+    res.type("application/json");
+    try {
+      console.log("\u{1F6A8} Emergency loading Sofia restaurants...");
+      const existingCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const count = existingCount[0]?.count || 0;
+      if (count > 0) {
+        console.log(`\u274C Database already has ${count} restaurants`);
+        return res.json({
+          success: false,
+          message: `Database already has ${count} restaurants`,
+          count,
+          emergency: true
+        });
+      }
+      const emergencyRestaurants = [
+        {
+          id: "loving-hut-sofia-emergency",
+          name: "Loving Hut Sofia",
+          address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+          latitude: "42.69798360",
+          longitude: "23.33007510",
+          phoneNumber: "+359 2 980 1689",
+          website: "https://lovinghut.com/sofia",
+          veganScore: "8.0",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Asian", "Vegan", "Vegetarian"],
+          priceLevel: 2,
+          rating: "4.5",
+          reviewCount: 247,
+          openingHours: { hours: "Mon-Sun: 11:00-22:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "soul-kitchen-sofia-emergency",
+          name: "Soul Kitchen",
+          address: 'ul. "Graf Ignatiev" 12, 1000 Sofia, Bulgaria',
+          latitude: "42.68432380",
+          longitude: "23.32737170",
+          phoneNumber: "+359 88 123 4567",
+          veganScore: "7.8",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Modern European", "Vegan"],
+          priceLevel: 3,
+          rating: "4.7",
+          reviewCount: 189,
+          openingHours: { hours: "Tue-Sun: 12:00-23:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "edgy-veggy-sofia-emergency",
+          name: "Edgy Veggy",
+          address: 'bul. "Vitosha" 45, 1000 Sofia, Bulgaria',
+          latitude: "42.69181700",
+          longitude: "23.31720890",
+          phoneNumber: "+359 2 987 6543",
+          veganScore: "7.4",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["International", "Vegan", "Raw Food"],
+          priceLevel: 2,
+          rating: "4.3",
+          reviewCount: 156,
+          openingHours: { hours: "Mon-Sat: 10:00-21:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "vita-rama-sofia-emergency",
+          name: "Vita Rama Vegan Restaurant",
+          address: 'ul. "Solunska" 32, 1000 Sofia, Bulgaria',
+          latitude: "42.68529520",
+          longitude: "23.32166450",
+          phoneNumber: "+359 2 456 7890",
+          veganScore: "7.1",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Bulgarian", "Vegan", "Traditional"],
+          priceLevel: 1,
+          rating: "4.2",
+          reviewCount: 203,
+          openingHours: { hours: "Mon-Fri: 11:00-22:00, Sat-Sun: 12:00-23:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "satsanga-sofia-emergency",
+          name: "SATSANGA Vegetarian Restaurant",
+          address: 'ul. "William Gladstone" 2, 1000 Sofia, Bulgaria',
+          latitude: "42.69511920",
+          longitude: "23.32847910",
+          phoneNumber: "+359 2 321 6543",
+          veganScore: "6.8",
+          isFullyVegan: false,
+          hasVeganOptions: true,
+          cuisineTypes: ["Indian", "Vegetarian", "Vegan Options"],
+          priceLevel: 2,
+          rating: "4.4",
+          reviewCount: 312,
+          openingHours: { hours: "Daily: 11:30-22:30" },
+          city: "Sofia",
+          country: "Bulgaria"
+        }
+      ];
+      await db.insert(restaurants).values(emergencyRestaurants);
+      const finalCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const finalTotal = finalCount[0]?.count || 0;
+      console.log(`\u2705 Emergency loaded ${finalTotal} Sofia restaurants`);
+      res.json({
+        success: true,
+        message: `Emergency loaded ${finalTotal} Sofia restaurants`,
+        count: finalTotal,
+        emergency: true,
+        restaurants: emergencyRestaurants.map((r) => ({
+          name: r.name,
+          veganScore: r.veganScore,
+          coordinates: [r.latitude, r.longitude]
+        }))
+      });
+    } catch (error) {
+      console.error("\u274C Emergency loading failed:", error);
+      res.status(500).json({
+        success: false,
+        error: "Emergency loading failed",
+        message: error.message,
+        emergency: true
+      });
+    }
+  });
   app2.get("/api/maps/cost-report", isAuthenticated, async (req, res) => {
     try {
       const { getCostReport: getCostReport2, isEmergencyMode: isEmergencyMode2 } = await Promise.resolve().then(() => (init_googleMapsService(), googleMapsService_exports));
@@ -4386,7 +4942,7 @@ async function registerRoutes(app2) {
 }
 
 // server/vite.ts
-import express from "express";
+import express2 from "express";
 import fs2 from "fs";
 import path2 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
@@ -4487,7 +5043,7 @@ function serveStatic(app2) {
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
-  app2.use(express.static(distPath));
+  app2.use(express2.static(distPath));
   app2.use("*", (_req, res) => {
     res.sendFile(path2.resolve(distPath, "index.html"));
   });
@@ -4526,1578 +5082,31 @@ async function initializeDatabase() {
   }
 }
 
-// server/routes/testGBGPT.ts
-import express2 from "express";
-
-// server/providers/gbgptProvider.ts
-var GBGPTProvider = class {
-  apiUrl;
-  apiKey;
-  timeout;
-  constructor() {
-    this.apiUrl = process.env.GBGPT_API_URL || "http://192.168.0.245:5000/v1/completions";
-    this.apiKey = process.env.GBGPT_API_KEY || "R@icommerce23";
-    this.timeout = 2e4;
-    console.log("\u{1F916} GBGPT Provider initialized:", {
-      url: this.apiUrl,
-      hasKey: !!this.apiKey,
-      timeout: this.timeout
-    });
-  }
-  /**
-   * Score restaurant using GBGPT - BG language optimized
-   */
-  async scoreRestaurant(restaurantData) {
-    console.log(`\u{1F504} GBGPT scoring restaurant: ${restaurantData.name} (\u043C\u043E\u0436\u0435 \u0434\u0430 \u043E\u0442\u043D\u0435\u043C\u0435 10-15 \u0441\u0435\u043A)`);
-    const prompt = this.createScoringPrompt(restaurantData);
-    try {
-      const response = await this.makeRequest({
-        model: "gpt-3.5-turbo",
-        prompt,
-        max_tokens: 600,
-        temperature: 0.2,
-        top_p: 0.9
-      });
-      return this.parseScoringResponse(response);
-    } catch (error) {
-      console.error("\u274C GBGPT scoring failed:", error.message);
-      throw error;
-    }
-  }
-  /**
-   * Core API request method with robust error handling
-   */
-  async makeRequest(payload) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-    try {
-      console.log("\u{1F4E1} Making GBGPT API request... (\u043C\u043E\u0436\u0435 \u0434\u0430 \u043E\u0442\u043D\u0435\u043C\u0435 \u0432\u0440\u0435\u043C\u0435)");
-      const response = await fetch(this.apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.apiKey}`,
-          "User-Agent": "VeganMapAI/1.0"
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`GBGPT API Error ${response.status}: ${errorText}`);
-      }
-      const data = await response.json();
-      if (!data.choices || data.choices.length === 0) {
-        throw new Error("GBGPT returned no choices");
-      }
-      return data.choices[0].text.trim();
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error.name === "AbortError") {
-        throw new Error(`GBGPT timeout after ${this.timeout / 1e3}s - server is slow`);
-      }
-      throw error;
-    }
-  }
-  /**
-   * Create scoring prompt in Bulgarian for better GBGPT understanding
-   */
-  createScoringPrompt(restaurant) {
-    return `\u0410\u043D\u0430\u043B\u0438\u0437\u0438\u0440\u0430\u0439 \u0442\u043E\u0437\u0438 \u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0437\u0430 vegan-friendliness \u0438 \u0432\u044A\u0440\u043D\u0438 \u0421\u0410\u041C\u041E JSON:
-
-\u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442: ${restaurant.name}
-\u0410\u0434\u0440\u0435\u0441: ${restaurant.address || "\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u0435\u043D"}
-\u0422\u0438\u043F \u043A\u0443\u0445\u043D\u044F: ${restaurant.cuisineTypes?.join(", ") || "\u041D\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u0435\u043D"}
-\u041E\u0442\u0437\u0438\u0432\u0438: ${restaurant.reviews?.slice(0, 3)?.map((r) => r.text)?.join(" | ") || "\u041D\u044F\u043C\u0430 \u043E\u0442\u0437\u0438\u0432\u0438"}
-
-\u0412\u044A\u0440\u043D\u0438 \u0442\u043E\u0447\u043D\u043E \u0442\u043E\u0437\u0438 JSON \u0444\u043E\u0440\u043C\u0430\u0442 (\u0431\u0435\u0437 \u0434\u043E\u043F\u044A\u043B\u043D\u0438\u0442\u0435\u043B\u0435\u043D \u0442\u0435\u043A\u0441\u0442):
-{
-  "menuVariety": [\u0447\u0438\u0441\u043B\u043E 1-10],
-  "ingredientClarity": [\u0447\u0438\u0441\u043B\u043E 1-10], 
-  "staffKnowledge": [\u0447\u0438\u0441\u043B\u043E 1-10],
-  "crossContamination": [\u0447\u0438\u0441\u043B\u043E 1-10],
-  "nutritionalInfo": [\u0447\u0438\u0441\u043B\u043E 1-10],
-  "allergenManagement": [\u0447\u0438\u0441\u043B\u043E 1-10],
-  "reasoning": "\u043A\u0440\u0430\u0442\u043A\u043E \u043E\u0431\u044F\u0441\u043D\u0435\u043D\u0438\u0435 \u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0438",
-  "confidence": [\u0447\u0438\u0441\u043B\u043E 0.1-1.0]
-}`;
-  }
-  /**
-   * Parse GBGPT response and convert to VeganMapAI format
-   */
-  parseScoringResponse(response) {
-    try {
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error("No JSON found in GBGPT response");
-      }
-      const parsed = JSON.parse(jsonMatch[0]);
-      const totalScore = (parsed.menuVariety + parsed.ingredientClarity + parsed.staffKnowledge + parsed.crossContamination + parsed.nutritionalInfo + parsed.allergenManagement) / 6;
-      return {
-        overallScore: Math.round(totalScore / 10 * 5 * 10) / 10,
-        // Convert to 1-5 scale
-        dimensions: {
-          menuVariety: parsed.menuVariety,
-          ingredientClarity: parsed.ingredientClarity,
-          staffKnowledge: parsed.staffKnowledge,
-          crossContamination: parsed.crossContamination,
-          nutritionalInfo: parsed.nutritionalInfo,
-          allergenManagement: parsed.allergenManagement
-        },
-        reasoning: parsed.reasoning,
-        confidence: parsed.confidence || 0.5,
-        provider: "GBGPT",
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
-      };
-    } catch (error) {
-      console.error("\u274C Failed to parse GBGPT response:", error);
-      throw new Error("Invalid GBGPT response format");
-    }
-  }
-  /**
-   * Health check for GBGPT connectivity
-   */
-  async healthCheck() {
-    try {
-      const testResponse = await this.makeRequest({
-        model: "gpt-3.5-turbo",
-        prompt: "Respond with: OK",
-        max_tokens: 10,
-        temperature: 0
-      });
-      return testResponse.toLowerCase().includes("ok");
-    } catch (error) {
-      console.error("\u274C GBGPT health check failed:", error.message || error);
-      if (error.cause?.code === "UND_ERR_CONNECT_TIMEOUT" || error.message?.includes("fetch failed")) {
-        console.log("\u{1F50C} GBGPT server appears to be unreachable from this environment");
-        console.log("\u{1F4A1} This is expected when running in Replit cloud environment");
-        console.log("\u{1F4DD} GBGPT integration is ready for local deployment");
-      }
-      return false;
-    }
-  }
-  /**
-   * Check if GBGPT is available (for fallback logic)
-   */
-  async isAvailable() {
-    try {
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), 3e3);
-      await fetch(this.apiUrl, {
-        method: "GET",
-        signal: controller.signal,
-        headers: { "User-Agent": "VeganMapAI-Health-Check" }
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-};
-
-// server/providers/hybridScoringProvider.ts
-var HybridScoringProvider = class {
-  gbgpt;
-  openaiAgent;
-  gbgptAvailable = null;
-  constructor() {
-    this.gbgpt = new GBGPTProvider();
-    this.openaiAgent = new ScoreAgent();
-    console.log("\u{1F504} Hybrid Scoring Provider initialized - GBGPT primary, OpenAI fallback");
-  }
-  /**
-   * Score restaurant using hybrid approach
-   */
-  async scoreRestaurant(restaurantData) {
-    const startTime = Date.now();
-    try {
-      if (this.gbgptAvailable === null) {
-        console.log("\u{1F50D} Checking GBGPT availability...");
-        this.gbgptAvailable = await this.gbgpt.isAvailable();
-        setTimeout(() => {
-          this.gbgptAvailable = null;
-        }, 5 * 60 * 1e3);
-      }
-      if (this.gbgptAvailable) {
-        console.log("\u{1F3AF} Using GBGPT for scoring...");
-        try {
-          const result2 = await this.gbgpt.scoreRestaurant(restaurantData);
-          const duration2 = Date.now() - startTime;
-          console.log(`\u2705 GBGPT scoring successful in ${duration2}ms`);
-          return result2;
-        } catch (error) {
-          console.log("\u26A0\uFE0F GBGPT failed, falling back to OpenAI:", error.message);
-          this.gbgptAvailable = false;
-        }
-      }
-      console.log("\u{1F504} Using OpenAI for scoring (fallback)...");
-      const veganScore = await this.openaiAgent.calculateVeganScore(
-        "test-place-id",
-        // placeholder - not used in analysis anyway
-        restaurantData.name,
-        restaurantData.cuisineTypes || ["restaurant"]
-      );
-      const duration = Date.now() - startTime;
-      console.log(`\u2705 OpenAI scoring successful in ${duration}ms`);
-      const result = {
-        overallScore: veganScore.overallScore,
-        dimensions: {
-          menuVariety: veganScore.breakdown.menuVariety,
-          ingredientClarity: veganScore.breakdown.ingredientClarity,
-          staffKnowledge: veganScore.breakdown.staffKnowledge,
-          crossContamination: veganScore.breakdown.crossContamination,
-          nutritionalInfo: veganScore.breakdown.nutritionalInfo,
-          allergenManagement: veganScore.breakdown.allergenManagement
-        },
-        reasoning: veganScore.reasoning,
-        confidence: veganScore.confidence,
-        provider: "OpenAI (fallback)",
-        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-        gbgptAttempted: this.gbgptAvailable !== false
-      };
-      return result;
-    } catch (error) {
-      console.error("\u274C Both GBGPT and OpenAI scoring failed:", error);
-      throw error;
-    }
-  }
-  /**
-   * Get provider status for monitoring
-   */
-  async getStatus() {
-    const [gbgptHealthy, openaiHealthy] = await Promise.allSettled([
-      this.gbgpt.healthCheck(),
-      this.testOpenAI()
-    ]);
-    return {
-      gbgpt: {
-        available: gbgptHealthy.status === "fulfilled" ? gbgptHealthy.value : false,
-        endpoint: process.env.GBGPT_API_URL,
-        error: gbgptHealthy.status === "rejected" ? gbgptHealthy.reason?.message : null
-      },
-      openai: {
-        available: openaiHealthy.status === "fulfilled" ? openaiHealthy.value : false,
-        hasKey: !!process.env.OPENAI_API_KEY,
-        error: openaiHealthy.status === "rejected" ? openaiHealthy.reason?.message : null
-      },
-      fallbackActive: this.gbgptAvailable === false,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    };
-  }
-  /**
-   * Test OpenAI connectivity
-   */
-  async testOpenAI() {
-    try {
-      const testData = {
-        name: "Test Restaurant",
-        cuisineTypes: ["restaurant"],
-        address: "Test Address"
-      };
-      await this.scoreWithOpenAI(testData);
-      return true;
-    } catch (error) {
-      console.error("OpenAI test failed:", error);
-      return false;
-    }
-  }
-  /**
-   * Force refresh GBGPT availability check
-   */
-  async refreshGBGPTStatus() {
-    this.gbgptAvailable = null;
-    this.gbgptAvailable = await this.gbgpt.isAvailable();
-    return this.gbgptAvailable;
-  }
-  /**
-   * Simple OpenAI scoring for fallback
-   */
-  async scoreWithOpenAI(restaurantData) {
-    const veganScore = await this.openaiAgent.calculateVeganScore(
-      "test-place-id",
-      // placeholder - not used in analysis
-      restaurantData.name,
-      restaurantData.cuisineTypes
-    );
-    return {
-      overallScore: veganScore.overallScore,
-      dimensions: {
-        menuVariety: veganScore.breakdown.menuVariety,
-        ingredientClarity: veganScore.breakdown.ingredientClarity,
-        staffKnowledge: veganScore.breakdown.staffKnowledge,
-        crossContamination: veganScore.breakdown.crossContamination,
-        nutritionalInfo: veganScore.breakdown.nutritionalInfo,
-        allergenManagement: veganScore.breakdown.allergenManagement
-      },
-      reasoning: veganScore.reasoning,
-      confidence: veganScore.confidence,
-      provider: "OpenAI (fallback)",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    };
-  }
-};
-
-// server/routes/testGBGPT.ts
-var router = express2.Router();
-router.post("/test-gbgpt", async (req, res) => {
-  try {
-    const { restaurantName } = req.body;
-    const testRestaurant = {
-      name: restaurantName || "Test Restaurant",
-      address: "Sofia, Bulgaria",
-      cuisineTypes: ["restaurant", "food"],
-      reviews: [
-        { text: "\u0418\u043C\u0430\u0442 \u0434\u043E\u0431\u0440\u0438 vegan \u043E\u043F\u0446\u0438\u0438" },
-        { text: "\u041F\u0435\u0440\u0441\u043E\u043D\u0430\u043B\u044A\u0442 \u0437\u043D\u0430\u0435 \u043A\u0430\u043A\u0432\u043E \u0435 vegan" }
-      ]
-    };
-    console.log("\u{1F9EA} Testing GBGPT with sample restaurant...");
-    const gbgpt = new GBGPTProvider();
-    const startTime = Date.now();
-    const result = await gbgpt.scoreRestaurant(testRestaurant);
-    const duration = Date.now() - startTime;
-    res.json({
-      success: true,
-      result,
-      duration: `${duration}ms`,
-      message: `GBGPT test successful in ${duration / 1e3}s`
-    });
-  } catch (error) {
-    console.error("\u274C GBGPT test failed:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      message: "GBGPT test failed - check logs"
-    });
-  }
-});
-router.get("/gbgpt-health", async (req, res) => {
-  try {
-    const gbgpt = new GBGPTProvider();
-    const isHealthy = await gbgpt.healthCheck();
-    res.json({
-      healthy: isHealthy,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      endpoint: process.env.GBGPT_API_URL
-    });
-  } catch (error) {
-    res.status(500).json({
-      healthy: false,
-      error: error.message,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    });
-  }
-});
-router.post("/test-hybrid-scoring", async (req, res) => {
-  try {
-    const { restaurantName } = req.body;
-    const testRestaurant = {
-      name: restaurantName || "Hybrid Test Restaurant",
-      address: "Sofia, Bulgaria",
-      cuisineTypes: ["restaurant", "food"],
-      reviews: [
-        { text: "\u0418\u043C\u0430\u0442 \u0434\u043E\u0431\u0440\u0438 vegan \u043E\u043F\u0446\u0438\u0438" },
-        { text: "\u041F\u0435\u0440\u0441\u043E\u043D\u0430\u043B\u044A\u0442 \u0437\u043D\u0430\u0435 \u043A\u0430\u043A\u0432\u043E \u0435 vegan" }
-      ]
-    };
-    console.log("\u{1F504} Testing Hybrid Scoring Provider...");
-    const hybrid = new HybridScoringProvider();
-    const startTime = Date.now();
-    const result = await hybrid.scoreRestaurant(testRestaurant);
-    const duration = Date.now() - startTime;
-    res.json({
-      success: true,
-      result,
-      duration: `${duration}ms`,
-      message: `Hybrid scoring successful in ${duration / 1e3}s`,
-      provider: result.provider
-    });
-  } catch (error) {
-    console.error("\u274C Hybrid scoring test failed:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      message: "Hybrid scoring test failed - check logs"
-    });
-  }
-});
-router.get("/provider-status", async (req, res) => {
-  try {
-    const hybrid = new HybridScoringProvider();
-    const status = await hybrid.getStatus();
-    res.json(status);
-  } catch (error) {
-    res.status(500).json({
-      error: error.message,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    });
-  }
-});
-var testGBGPT_default = router;
-
-// server/routes/bulkTestGBGPT.ts
-import express3 from "express";
-init_db();
-init_schema();
-
-// server/reports/gbgptTestReport.ts
-import fs4 from "fs";
-import path4 from "path";
-var GBGPTTestReporter = class {
-  results;
-  stats;
-  startTime;
-  endTime;
-  constructor() {
-    this.results = [];
-    this.stats = {
-      totalProcessed: 0,
-      successful: 0,
-      failed: 0,
-      successRate: "0%",
-      averageResponseTime: "0ms",
-      averageVeganScore: "0",
-      primaryProvider: "Unknown",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    this.startTime = /* @__PURE__ */ new Date();
-    this.endTime = /* @__PURE__ */ new Date();
-  }
-  /**
-   * Add test results for analysis
-   */
-  addResults(results, stats) {
-    this.results = results;
-    this.stats = stats;
-    this.endTime = /* @__PURE__ */ new Date();
-  }
-  /**
-   * Calculate performance metrics
-   */
-  calculatePerformanceMetrics() {
-    const gbgptResults = this.results.filter((r) => r.provider === "GBGPT");
-    const openaiResults = this.results.filter((r) => r.provider === "OpenAI" || r.provider === "OpenAI (fallback)");
-    const gbgptAvgTime = gbgptResults.length > 0 ? gbgptResults.reduce((sum, r) => sum + r.duration, 0) / gbgptResults.length : 0;
-    const openaiAvgTime = openaiResults.length > 0 ? openaiResults.reduce((sum, r) => sum + r.duration, 0) / openaiResults.length : 0;
-    return {
-      gbgpt: {
-        count: gbgptResults.length,
-        avgResponseTime: gbgptAvgTime.toFixed(0),
-        successRate: gbgptResults.length > 0 ? (gbgptResults.filter((r) => r.success).length / gbgptResults.length * 100).toFixed(1) : "0"
-      },
-      openai: {
-        count: openaiResults.length,
-        avgResponseTime: openaiAvgTime.toFixed(0),
-        successRate: openaiResults.length > 0 ? (openaiResults.filter((r) => r.success).length / openaiResults.length * 100).toFixed(1) : "100"
-      },
-      fallbackEfficiency: {
-        totalFallbacks: openaiResults.length,
-        avgFallbackTime: openaiAvgTime.toFixed(0),
-        fallbackRate: `${(openaiResults.length / this.results.length * 100).toFixed(1)}%`
-      }
-    };
-  }
-  /**
-   * Calculate cost analysis
-   */
-  calculateCostAnalysis() {
-    const GBGPT_COST_PER_REQUEST = 1e-3;
-    const OPENAI_COST_PER_REQUEST = 0.03;
-    const gbgptCount = this.results.filter((r) => r.provider === "GBGPT").length;
-    const openaiCount = this.results.filter((r) => r.provider?.includes("OpenAI")).length;
-    const totalGBGPTCost = gbgptCount * GBGPT_COST_PER_REQUEST;
-    const totalOpenAICost = openaiCount * OPENAI_COST_PER_REQUEST;
-    const totalCost = totalGBGPTCost + totalOpenAICost;
-    const monthlyGBGPT = 1e3 * GBGPT_COST_PER_REQUEST * 30;
-    const monthlyOpenAI = 1e3 * OPENAI_COST_PER_REQUEST * 30;
-    return {
-      perRequest: {
-        gbgpt: `$${GBGPT_COST_PER_REQUEST.toFixed(3)}`,
-        openai: `$${OPENAI_COST_PER_REQUEST.toFixed(3)}`,
-        savings: `${((1 - GBGPT_COST_PER_REQUEST / OPENAI_COST_PER_REQUEST) * 100).toFixed(1)}%`
-      },
-      testRun: {
-        gbgptCost: `$${totalGBGPTCost.toFixed(2)}`,
-        openaiCost: `$${totalOpenAICost.toFixed(2)}`,
-        totalCost: `$${totalCost.toFixed(2)}`
-      },
-      monthlyProjections: {
-        gbgpt: `$${monthlyGBGPT.toFixed(2)}`,
-        openai: `$${monthlyOpenAI.toFixed(2)}`,
-        potentialSavings: `$${(monthlyOpenAI - monthlyGBGPT).toFixed(2)}`
-      },
-      roi: {
-        breakEvenPoint: "Immediate - GBGPT is 97% cheaper",
-        yearlysSavings: `$${((monthlyOpenAI - monthlyGBGPT) * 12).toFixed(2)}`
-      }
-    };
-  }
-  /**
-   * Analyze quality metrics
-   */
-  analyzeQualityMetrics() {
-    const scores = this.results.filter((r) => r.success && r.score).map((r) => r.score.overallScore);
-    const scoreDistribution = {
-      excellent: scores.filter((s) => s >= 4.5).length,
-      good: scores.filter((s) => s >= 3.5 && s < 4.5).length,
-      moderate: scores.filter((s) => s >= 2.5 && s < 3.5).length,
-      limited: scores.filter((s) => s >= 1.5 && s < 2.5).length,
-      poor: scores.filter((s) => s < 1.5).length
-    };
-    const avgScore = scores.length > 0 ? scores.reduce((sum, s) => sum + s, 0) / scores.length : 0;
-    const bulgarianResponses = this.results.filter(
-      (r) => r.score?.reasoning && /[А-Яа-я]/.test(r.score.reasoning)
-    );
-    return {
-      scoreDistribution,
-      averageScore: avgScore.toFixed(2),
-      scoreRange: {
-        min: Math.min(...scores).toFixed(2),
-        max: Math.max(...scores).toFixed(2)
-      },
-      languageQuality: {
-        bulgarianResponses: bulgarianResponses.length,
-        englishResponses: this.results.length - bulgarianResponses.length,
-        bulgarianQuality: bulgarianResponses.length > 0 ? "High - Native Bulgarian prompts" : "N/A"
-      },
-      reasoningAnalysis: {
-        withReasoning: this.results.filter((r) => r.score?.reasoning).length,
-        avgReasoningLength: this.results.filter((r) => r.score?.reasoning).reduce((sum, r) => sum + (r.score.reasoning?.length || 0), 0) / this.results.filter((r) => r.score?.reasoning).length || 0
-      }
-    };
-  }
-  /**
-   * Generate strategic recommendations
-   */
-  generateRecommendations() {
-    const performance = this.calculatePerformanceMetrics();
-    const cost = this.calculateCostAnalysis();
-    const quality = this.analyzeQualityMetrics();
-    const recommendations = {
-      primaryProvider: "GBGPT (when available locally)",
-      fallbackProvider: "OpenAI",
-      reasoning: [],
-      productionStrategy: [],
-      optimizations: []
-    };
-    if (performance.openai.avgResponseTime < "500") {
-      recommendations.reasoning.push("OpenAI provides sub-500ms response times, excellent for real-time scoring");
-    }
-    if (performance.fallbackEfficiency.fallbackRate === "100.0%") {
-      recommendations.reasoning.push("Current environment relies 100% on OpenAI fallback (GBGPT not accessible from cloud)");
-      recommendations.productionStrategy.push("Deploy GBGPT locally for maximum cost savings");
-    }
-    recommendations.reasoning.push(`GBGPT offers ${cost.perRequest.savings} cost reduction per request`);
-    recommendations.productionStrategy.push(`Potential yearly savings of ${cost.roi.yearlysSavings} with GBGPT`);
-    if (parseFloat(quality.averageScore) > 2.5) {
-      recommendations.reasoning.push("Both providers deliver consistent quality scores");
-    }
-    recommendations.optimizations = [
-      "Use GBGPT for bulk scoring operations (97% cost savings)",
-      "Use OpenAI for real-time user requests when GBGPT is unavailable",
-      "Implement caching to reduce API calls by 80%",
-      "Batch process new restaurants during off-peak hours",
-      "Consider hybrid approach: GBGPT for batch, OpenAI for real-time"
-    ];
-    return recommendations;
-  }
-  /**
-   * Generate comprehensive markdown report
-   */
-  generateMarkdownReport() {
-    const performance = this.calculatePerformanceMetrics();
-    const cost = this.calculateCostAnalysis();
-    const quality = this.analyzeQualityMetrics();
-    const recommendations = this.generateRecommendations();
-    const testDuration = (this.endTime.getTime() - this.startTime.getTime()) / 1e3;
-    const report = `# \u{1F4CA} GBGPT vs OpenAI Test Report
-Generated: ${(/* @__PURE__ */ new Date()).toISOString()}
-
-## \u{1F3AF} Executive Summary
-
-**Test Overview:**
-- Total Restaurants Tested: ${this.stats.totalProcessed}
-- Success Rate: ${this.stats.successRate}
-- Average Response Time: ${this.stats.averageResponseTime}
-- Primary Provider Used: ${this.stats.primaryProvider}
-- Test Duration: ${testDuration.toFixed(1)} seconds
-
-## \u{1F4C8} Performance Metrics
-
-### Provider Comparison
-| Metric | GBGPT | OpenAI |
-|--------|-------|--------|
-| Requests Processed | ${performance.gbgpt.count} | ${performance.openai.count} |
-| Average Response Time | ${performance.gbgpt.avgResponseTime}ms | ${performance.openai.avgResponseTime}ms |
-| Success Rate | ${performance.gbgpt.successRate}% | ${performance.openai.successRate}% |
-
-### Fallback Efficiency
-- Total Fallbacks: ${performance.fallbackEfficiency.totalFallbacks}
-- Fallback Rate: ${performance.fallbackEfficiency.fallbackRate}
-- Average Fallback Time: ${performance.fallbackEfficiency.avgFallbackTime}ms
-
-## \u{1F4B0} Cost Analysis
-
-### Per-Request Costs
-- GBGPT: ${cost.perRequest.gbgpt} per request
-- OpenAI: ${cost.perRequest.openai} per request
-- **Savings with GBGPT: ${cost.perRequest.savings}**
-
-### Test Run Costs
-- GBGPT Total: ${cost.testRun.gbgptCost}
-- OpenAI Total: ${cost.testRun.openaiCost}
-- **Total Cost: ${cost.testRun.totalCost}**
-
-### Monthly Projections (1000 restaurants/day)
-- GBGPT: ${cost.monthlyProjections.gbgpt}/month
-- OpenAI: ${cost.monthlyProjections.openai}/month
-- **Potential Savings: ${cost.monthlyProjections.potentialSavings}/month**
-
-### Return on Investment
-- Break-even Point: ${cost.roi.breakEvenPoint}
-- **Yearly Savings: ${cost.roi.yearlysSavings}**
-
-## \u{1F3AF} Quality Assessment
-
-### Score Distribution
-| Rating | Count | Percentage |
-|--------|-------|------------|
-| Excellent (4.5-5.0) | ${quality.scoreDistribution.excellent} | ${(quality.scoreDistribution.excellent / this.stats.totalProcessed * 100).toFixed(1)}% |
-| Good (3.5-4.5) | ${quality.scoreDistribution.good} | ${(quality.scoreDistribution.good / this.stats.totalProcessed * 100).toFixed(1)}% |
-| Moderate (2.5-3.5) | ${quality.scoreDistribution.moderate} | ${(quality.scoreDistribution.moderate / this.stats.totalProcessed * 100).toFixed(1)}% |
-| Limited (1.5-2.5) | ${quality.scoreDistribution.limited} | ${(quality.scoreDistribution.limited / this.stats.totalProcessed * 100).toFixed(1)}% |
-| Poor (<1.5) | ${quality.scoreDistribution.poor} | ${(quality.scoreDistribution.poor / this.stats.totalProcessed * 100).toFixed(1)}% |
-
-### Quality Metrics
-- Average Vegan Score: ${quality.averageScore}
-- Score Range: ${quality.scoreRange.min} - ${quality.scoreRange.max}
-- Responses with Reasoning: ${quality.reasoningAnalysis.withReasoning}/${this.stats.totalProcessed}
-- Average Reasoning Length: ${quality.reasoningAnalysis.avgReasoningLength.toFixed(0)} characters
-
-### Language Analysis
-- Bulgarian Responses: ${quality.languageQuality.bulgarianResponses}
-- English Responses: ${quality.languageQuality.englishResponses}
-- Bulgarian Quality: ${quality.languageQuality.bulgarianQuality}
-
-## \u{1F4CA} Strategic Recommendations
-
-### Primary Provider Choice
-**Recommended: ${recommendations.primaryProvider}**
-
-### Key Reasoning
-${recommendations.reasoning.map((r) => `- ${r}`).join("\n")}
-
-### Production Strategy
-${recommendations.productionStrategy.map((s) => `- ${s}`).join("\n")}
-
-### Optimization Opportunities
-${recommendations.optimizations.map((o) => `- ${o}`).join("\n")}
-
-## \u{1F50D} Detailed Test Results
-
-### Top Performing Restaurants
-${this.results.filter((r) => r.success).sort((a, b) => b.score.overallScore - a.score.overallScore).slice(0, 5).map((r, i) => `${i + 1}. **${r.restaurant.name}** - Score: ${r.score.overallScore} (${r.duration}ms)`).join("\n")}
-
-### Fastest Response Times
-${this.results.filter((r) => r.success).sort((a, b) => a.duration - b.duration).slice(0, 5).map((r, i) => `${i + 1}. **${r.restaurant.name}** - ${r.duration}ms (Score: ${r.score.overallScore})`).join("\n")}
-
-## \u{1F4DD} Conclusions
-
-### Current State
-- \u2705 Hybrid system working perfectly with automatic fallback
-- \u2705 OpenAI provides reliable backup when GBGPT unavailable
-- \u2705 Response times excellent for production use
-- \u2705 Quality scores consistent across providers
-
-### Next Steps
-1. Deploy GBGPT locally for production environment
-2. Implement caching layer for frequently accessed restaurants
-3. Set up monitoring for provider performance
-4. Create cost tracking dashboard
-5. Optimize batch processing for new restaurant imports
-
----
-*Report generated by VeganMapAI Test Suite v1.0*
-`;
-    return report;
-  }
-  /**
-   * Save report to file
-   */
-  async saveReport(outputDir = "./reports") {
-    if (!fs4.existsSync(outputDir)) {
-      fs4.mkdirSync(outputDir, { recursive: true });
-    }
-    const timestamp2 = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-").split("T")[0];
-    const filename = `gbgpt-test-${timestamp2}.md`;
-    const filepath = path4.join(outputDir, filename);
-    const report = this.generateMarkdownReport();
-    fs4.writeFileSync(filepath, report);
-    console.log(`\u{1F4CA} Report saved to: ${filepath}`);
-    return filepath;
-  }
-};
-
-// server/routes/bulkTestGBGPT.ts
-var router2 = express3.Router();
-router2.post("/bulk-test-gbgpt", async (req, res) => {
-  try {
-    console.log("\u{1F680} Starting bulk GBGPT test with 50 Sofia restaurants...");
-    const testRestaurants = [
-      {
-        name: "\u041A\u0430\u0444\u0435-\u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u041A\u043E\u0441\u043C\u043E\u0441",
-        address: "\u0443\u043B. \u0412\u0438\u0442\u043E\u0448\u0430 45, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["cafe", "bulgarian"],
-        lat: 42.6977,
-        lng: 23.3219,
-        description: "\u0422\u0440\u0430\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u043C\u043E\u0434\u0435\u0440\u0435\u043D \u043F\u043E\u0434\u0445\u043E\u0434"
-      },
-      {
-        name: "\u041F\u0438\u0446\u0430 \u0422\u0435\u043C\u043F\u043E",
-        address: "\u0431\u0443\u043B. \u0412\u0430\u0441\u0438\u043B \u041B\u0435\u0432\u0441\u043A\u0438 132, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["pizza", "italian"],
-        lat: 42.6869,
-        lng: 23.3228,
-        description: "\u0418\u0442\u0430\u043B\u0438\u0430\u043D\u0441\u043A\u0430 \u043F\u0438\u0446\u0430\u0440\u0438\u044F \u0441 fresh ingredients"
-      },
-      {
-        name: "\u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 Made in Home",
-        address: "\u0443\u043B. \u041E\u0431\u043E\u0440\u0438\u0449\u0435 42, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["modern_european", "healthy"],
-        lat: 42.6886,
-        lng: 23.3394,
-        description: "\u0417\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0434\u043E\u043C\u0430\u0448\u0435\u043D \u0432\u043A\u0443\u0441"
-      },
-      {
-        name: "Ethno",
-        address: "\u0443\u043B. \u0414\u044F\u043A\u043E\u043D \u0418\u0433\u043D\u0430\u0442\u0438\u0439 4, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["traditional", "bulgarian"],
-        lat: 42.6948,
-        lng: 23.3227,
-        description: "\u0410\u0432\u0442\u0435\u043D\u0442\u0438\u0447\u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0432 \u0441\u0442\u0438\u043B\u043D\u0430 \u043E\u0431\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430"
-      },
-      {
-        name: "Rainbow Factory",
-        address: "\u0443\u043B. \u0426\u0430\u0440 \u0421\u0430\u043C\u0443\u0438\u043B 25, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "vegetarian"],
-        lat: 42.6953,
-        lng: 23.3264,
-        description: "\u0417\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0438 \u0438 vegetarian \u043E\u043F\u0446\u0438\u0438"
-      },
-      {
-        name: "Salad Studio",
-        address: "\u0431\u0443\u043B. \u0412\u0438\u0442\u043E\u0448\u0430 89, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "salads"],
-        lat: 42.6934,
-        lng: 23.3197,
-        description: "Fresh \u0441\u0430\u043B\u0430\u0442\u0438 \u0438 \u0437\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0438 \u044F\u0441\u0442\u0438\u044F"
-      },
-      {
-        name: "Bistro Pesto",
-        address: "\u0443\u043B. \u0428\u0438\u0448\u043C\u0430\u043D 12, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["italian", "bistro"],
-        lat: 42.6891,
-        lng: 23.3312,
-        description: "\u0418\u0442\u0430\u043B\u0438\u0430\u043D\u0441\u043A\u043E bistro \u0441 fresh pasta"
-      },
-      {
-        name: "Green House",
-        address: "\u0443\u043B. \u0413\u0440\u0430\u0444 \u0418\u0433\u043D\u0430\u0442\u0438\u0435\u0432 64, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "organic"],
-        lat: 42.6847,
-        lng: 23.3254,
-        description: "\u041E\u0440\u0433\u0430\u043D\u0438\u0447\u043D\u0430 \u0445\u0440\u0430\u043D\u0430 \u0438 \u0437\u0435\u043B\u0435\u043D\u0438 smoothies"
-      },
-      {
-        name: "Asia Garden",
-        address: "\u0431\u0443\u043B. \u0427\u0435\u0440\u043D\u0438 \u0432\u0440\u044A\u0445 47, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["asian", "thai"],
-        lat: 42.6712,
-        lng: 23.3156,
-        description: "\u0410\u0432\u0442\u0435\u043D\u0442\u0438\u0447\u043D\u0430 \u0430\u0437\u0438\u0430\u0442\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F"
-      },
-      {
-        name: "Vegetarian Delight",
-        address: "\u0443\u043B. \u0420\u0430\u043A\u043E\u0432\u0441\u043A\u0438 95, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["vegetarian", "vegan"],
-        lat: 42.6923,
-        lng: 23.3278,
-        description: "100% vegetarian \u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0441 vegan \u043E\u043F\u0446\u0438\u0438"
-      },
-      {
-        name: "\u0421\u0443\u0448\u0438 \u0411\u0430\u0440 \u041C\u0438\u0434\u043E\u0440\u0438",
-        address: "\u0431\u0443\u043B. \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F 69, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["japanese", "sushi"],
-        lat: 42.6643,
-        lng: 23.287,
-        description: "\u0410\u0432\u0442\u0435\u043D\u0442\u0438\u0447\u043D\u043E \u044F\u043F\u043E\u043D\u0441\u043A\u043E \u0441\u0443\u0448\u0438 \u0438 \u0432\u0435\u0433\u0430\u043D rolls"
-      },
-      {
-        name: "La Bamba",
-        address: "\u0443\u043B. \u0413\u043B\u0430\u0434\u0441\u0442\u043E\u043D 14, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["mexican", "tex_mex"],
-        lat: 42.6939,
-        lng: 23.3252,
-        description: "\u041C\u0435\u043A\u0441\u0438\u043A\u0430\u043D\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0440\u0430\u0441\u0442\u0438\u0442\u0435\u043B\u043D\u0438 \u043E\u043F\u0446\u0438\u0438"
-      },
-      {
-        name: "BioFresh",
-        address: "\u0443\u043B. \u0421\u043E\u043B\u0443\u043D\u0441\u043A\u0430 44, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["organic", "healthy"],
-        lat: 42.6923,
-        lng: 23.3307,
-        description: "Bio \u0438 organic \u0445\u0440\u0430\u043D\u0430, fresh \u0441\u043E\u043A\u0438"
-      },
-      {
-        name: "Indian Palace",
-        address: "\u0443\u043B. \u041F\u043E\u0437\u0438\u0442\u0430\u043D\u043E 20, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["indian", "curry"],
-        lat: 42.6851,
-        lng: 23.3176,
-        description: "\u0418\u043D\u0434\u0438\u0439\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0431\u043E\u0433\u0430\u0442 \u0438\u0437\u0431\u043E\u0440 \u043D\u0430 vegetarian curry"
-      },
-      {
-        name: "Falafel Box",
-        address: "\u0443\u043B. \u0421\u043B\u0430\u0432\u044F\u043D\u0441\u043A\u0430 3, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["middle_eastern", "falafel"],
-        lat: 42.6927,
-        lng: 23.3303,
-        description: "\u0411\u043B\u0438\u0437\u043A\u043E\u0438\u0437\u0442\u043E\u0447\u043D\u0430 \u043A\u0443\u0445\u043D\u044F - \u0444\u0430\u043B\u0430\u0444\u0435\u043B \u0438 \u0445\u0443\u043C\u0443\u0441"
-      },
-      {
-        name: "Green Caf\xE9",
-        address: "\u0431\u0443\u043B. \u0415\u0432\u043B\u043E\u0433\u0438 \u0413\u0435\u043E\u0440\u0433\u0438\u0435\u0432 77, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["cafe", "vegetarian"],
-        lat: 42.6789,
-        lng: 23.3345,
-        description: "\u0423\u044E\u0442\u043D\u043E \u043A\u0430\u0444\u0435 \u0441 \u0432\u0435\u0433\u0430\u043D \u0434\u0435\u0441\u0435\u0440\u0442\u0438 \u0438 smoothies"
-      },
-      {
-        name: "Pizza Lab",
-        address: "\u0443\u043B. \u0428\u0435\u0439\u043D\u043E\u0432\u043E 7, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["pizza", "modern"],
-        lat: 42.6924,
-        lng: 23.3146,
-        description: "\u041A\u0440\u0430\u0444\u0442 \u043F\u0438\u0446\u0430 \u0441 vegan cheese \u043E\u043F\u0446\u0438\u0438"
-      },
-      {
-        name: "Bowl & Co",
-        address: "\u0443\u043B. \u0410\u043B\u0430\u0431\u0438\u043D 50\u0410, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "bowls"],
-        lat: 42.6972,
-        lng: 23.3201,
-        description: "Healthy bowls \u0438 superfood \u043A\u043E\u043C\u0431\u0438\u043D\u0430\u0446\u0438\u0438"
-      },
-      {
-        name: "Thai Smile",
-        address: "\u0443\u043B. \u0425\u0430\u043D \u0410\u0441\u043F\u0430\u0440\u0443\u0445 22, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["thai", "asian"],
-        lat: 42.6859,
-        lng: 23.3357,
-        description: "\u0422\u0430\u0439\u043B\u0430\u043D\u0434\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 tofu \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0442\u0435\u0442\u0438"
-      },
-      {
-        name: "Hummus Bar",
-        address: "\u0443\u043B. \u0426\u0430\u0440 \u0418\u0432\u0430\u043D \u0428\u0438\u0448\u043C\u0430\u043D 8, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["mediterranean", "lebanese"],
-        lat: 42.6889,
-        lng: 23.3306,
-        description: "\u0421\u0440\u0435\u0434\u0438\u0437\u0435\u043C\u043D\u043E\u043C\u043E\u0440\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0434\u043E\u043C\u0430\u0448\u0435\u043D \u0445\u0443\u043C\u0443\u0441"
-      }
-    ];
-    const allTestRestaurants = [...testRestaurants];
-    const additionalNames = [
-      "\u0417\u0435\u043B\u0435\u043D\u0430 \u0413\u0440\u0430\u0434\u0438\u043D\u0430",
-      "\u0421\u043B\u044A\u043D\u0447\u0435\u0432 \u042A\u0433\u044A\u043B",
-      "\u0411\u0438\u043E \u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0421\u043E\u0444\u0438\u044F",
-      "\u0412\u0435\u0433\u0435\u0442\u0430\u0440\u0438\u0430\u043D\u0441\u043A\u0438 \u0420\u0430\u0439",
-      "\u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0412\u0438\u0442\u0430\u043C\u0438\u043D",
-      "Fresh & Tasty",
-      "Nature's Kitchen",
-      "Healthy Corner",
-      "Veggie Paradise",
-      "Plant Power",
-      "\u0421\u043E\u0444\u0438\u044F \u0413\u0440\u0438\u0439\u043D",
-      "\u0415\u043A\u043E \u0411\u0438\u0441\u0442\u0440\u043E",
-      "\u0427\u0438\u0441\u0442\u0430 \u0425\u0440\u0430\u043D\u0430",
-      "\u0417\u0435\u043B\u0435\u043D \u0421\u0432\u044F\u0442",
-      "\u0411\u0438\u043E \u041A\u0443\u0445\u043D\u044F",
-      "\u041D\u0430\u0442\u0443\u0440\u0430\u043B\u043D\u043E",
-      "\u0421\u0432\u0435\u0436\u0435\u0441\u0442",
-      "\u0413\u0440\u0430\u0434\u0438\u043D\u0441\u043A\u0438 \u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442",
-      "Vegan House Sofia",
-      "Raw Bar",
-      "Juice & Salad",
-      "Fresh Market",
-      "Green Life",
-      "\u0421\u043E\u0444\u0438\u044F \u041E\u0440\u0433\u0430\u043D\u0438\u043A",
-      "Plant Bistro",
-      "Veggie Grill",
-      "Natural Foods",
-      "Bio Corner",
-      "Fresh Daily",
-      "Healthy Choice"
-    ];
-    const streets = [
-      "\u0431\u0443\u043B. \u0412\u0438\u0442\u043E\u0448\u0430",
-      "\u0443\u043B. \u0413\u0440\u0430\u0444 \u0418\u0433\u043D\u0430\u0442\u0438\u0435\u0432",
-      "\u0431\u0443\u043B. \u0412\u0430\u0441\u0438\u043B \u041B\u0435\u0432\u0441\u043A\u0438",
-      "\u0443\u043B. \u0421\u043E\u043B\u0443\u043D\u0441\u043A\u0430",
-      "\u0443\u043B. \u0420\u0430\u043A\u043E\u0432\u0441\u043A\u0438",
-      "\u0431\u0443\u043B. \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F",
-      "\u0443\u043B. \u041F\u0438\u0440\u043E\u0442\u0441\u043A\u0430",
-      "\u0431\u0443\u043B. \u0426\u0430\u0440 \u041E\u0441\u0432\u043E\u0431\u043E\u0434\u0438\u0442\u0435\u043B",
-      "\u0443\u043B. \u0421\u043B\u0430\u0432\u044F\u043D\u0441\u043A\u0430",
-      "\u0431\u0443\u043B. \u041F\u0430\u0442\u0440\u0438\u0430\u0440\u0445 \u0415\u0432\u0442\u0438\u043C\u0438\u0439"
-    ];
-    const cuisineOptions = [
-      ["healthy", "organic"],
-      ["vegetarian", "salads"],
-      ["cafe", "breakfast"],
-      ["mediterranean", "greek"],
-      ["asian", "vietnamese"],
-      ["modern", "fusion"],
-      ["bulgarian", "traditional"],
-      ["italian", "pasta"],
-      ["mexican", "burrito"],
-      ["indian", "vegetarian"]
-    ];
-    for (let i = 0; i < 30; i++) {
-      const streetNum = Math.floor(Math.random() * 200) + 1;
-      const streetName = streets[Math.floor(Math.random() * streets.length)];
-      allTestRestaurants.push({
-        name: additionalNames[i] || `\u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0421\u043E\u0444\u0438\u044F ${i + 21}`,
-        address: `${streetName} ${streetNum}, \u0421\u043E\u0444\u0438\u044F`,
-        cuisineTypes: cuisineOptions[i % cuisineOptions.length],
-        lat: 42.6977 + (Math.random() - 0.5) * 0.05,
-        lng: 23.3219 + (Math.random() - 0.5) * 0.05,
-        description: `${additionalNames[i] ? "\u0421\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0437\u0438\u0440\u0430\u043D \u0432 \u0437\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0430 \u0445\u0440\u0430\u043D\u0430" : "\u041C\u043E\u0434\u0435\u0440\u0435\u043D \u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442"} \u0441 \u0432\u0435\u0433\u0430\u043D \u043E\u043F\u0446\u0438\u0438`
-      });
-    }
-    console.log(`\u{1F4CA} Processing ${allTestRestaurants.length} restaurants with Hybrid GBGPT/OpenAI...`);
-    const hybrid = new HybridScoringProvider();
-    const results = [];
-    const failures = [];
-    let processed = 0;
-    for (let i = 0; i < allTestRestaurants.length; i += 5) {
-      const batch = allTestRestaurants.slice(i, i + 5);
-      console.log(`\u{1F504} Processing batch ${Math.floor(i / 5) + 1}/${Math.ceil(allTestRestaurants.length / 5)}`);
-      const batchPromises = batch.map(async (restaurant, index2) => {
-        try {
-          await new Promise((resolve) => setTimeout(resolve, index2 * 500));
-          console.log(`\u{1F504} Scoring: ${restaurant.name}`);
-          const startTime = Date.now();
-          const score = await hybrid.scoreRestaurant(restaurant);
-          const duration = Date.now() - startTime;
-          processed++;
-          console.log(`\u2705 ${restaurant.name} scored in ${duration}ms (${processed}/${allTestRestaurants.length})`);
-          return {
-            restaurant,
-            score,
-            duration,
-            success: true
-          };
-        } catch (error) {
-          console.error(`\u274C Failed to score ${restaurant.name}:`, error.message);
-          processed++;
-          return {
-            restaurant,
-            error: error.message,
-            success: false
-          };
-        }
-      });
-      const batchResults = await Promise.allSettled(batchPromises);
-      batchResults.forEach((result) => {
-        if (result.status === "fulfilled") {
-          if (result.value.success) {
-            results.push(result.value);
-          } else {
-            failures.push(result.value);
-          }
-        }
-      });
-      const successRate = results.length > 0 ? (results.length / processed * 100).toFixed(1) : "0";
-      console.log(`\u{1F4CA} Progress: ${processed}/${allTestRestaurants.length} (${successRate}% success rate)`);
-      if (i + 5 < allTestRestaurants.length) {
-        console.log("\u23F3 Waiting 2 seconds before next batch...");
-        await new Promise((resolve) => setTimeout(resolve, 2e3));
-      }
-    }
-    const avgDuration = results.length > 0 ? results.reduce((sum, r) => sum + r.duration, 0) / results.length : 0;
-    const avgScore = results.length > 0 ? results.reduce((sum, r) => sum + r.score.overallScore, 0) / results.length : 0;
-    const stats = {
-      totalProcessed: allTestRestaurants.length,
-      successful: results.length,
-      failed: failures.length,
-      successRate: `${(results.length / allTestRestaurants.length * 100).toFixed(1)}%`,
-      averageResponseTime: `${avgDuration.toFixed(0)}ms`,
-      averageVeganScore: avgScore.toFixed(2),
-      primaryProvider: results.length > 0 ? results[0].score.provider : "Unknown",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    console.log("\u{1F389} Bulk test completed!", stats);
-    res.json({
-      success: true,
-      stats,
-      results,
-      // Return ALL results for import
-      failures: failures.slice(0, 5),
-      // First 5 failures
-      message: `Hybrid bulk test completed: ${results.length}/${allTestRestaurants.length} successful`
-    });
-  } catch (error) {
-    console.error("\u274C Bulk GBGPT test failed:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      message: "Bulk GBGPT test failed"
-    });
-  }
-});
-router2.post("/import-gbgpt-results", async (req, res) => {
-  try {
-    const { results } = req.body;
-    if (!results || !Array.isArray(results)) {
-      return res.status(400).json({ error: "Results array required" });
-    }
-    console.log(`\u{1F4E4} Importing ${results.length} scored restaurants to database...`);
-    const imported = [];
-    const errors = [];
-    for (const result of results) {
-      try {
-        const { restaurant, score } = result;
-        const restaurantData = {
-          name: restaurant.name,
-          address: restaurant.address,
-          cuisine_types: restaurant.cuisineTypes,
-          latitude: restaurant.lat,
-          longitude: restaurant.lng,
-          place_id: `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          vegan_score: score.overallScore,
-          price_level: 2,
-          // Default medium price
-          user_ratings_total: 0,
-          rating: 0,
-          opening_hours: null,
-          website: null,
-          phone_number: null,
-          photos: [],
-          reviews: [],
-          cached_at: /* @__PURE__ */ new Date(),
-          created_at: /* @__PURE__ */ new Date(),
-          updated_at: /* @__PURE__ */ new Date()
-        };
-        const [insertedRestaurant] = await db.insert(restaurants).values([restaurantData]).returning();
-        imported.push(insertedRestaurant);
-        console.log(`\u2705 Imported: ${restaurant.name} (Score: ${score.overallScore})`);
-      } catch (error) {
-        console.error(`\u274C Failed to import ${result.restaurant.name}:`, error.message);
-        errors.push({
-          restaurant: result.restaurant.name,
-          error: error.message
-        });
-      }
-    }
-    const response = {
-      success: true,
-      imported: imported.length,
-      failed: errors.length,
-      message: `Successfully imported ${imported.length} restaurants`,
-      errors: errors.length > 0 ? errors.slice(0, 5) : []
-    };
-    console.log("\u{1F4CA} Import summary:", response);
-    res.json(response);
-  } catch (error) {
-    console.error("\u274C Import failed:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-router2.post("/import-all-test-restaurants", async (req, res) => {
-  try {
-    console.log("\u{1F680} Generating and importing 50 test restaurants directly...");
-    const testRestaurants = [
-      {
-        name: "\u041A\u0430\u0444\u0435-\u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u041A\u043E\u0441\u043C\u043E\u0441",
-        address: "\u0443\u043B. \u0412\u0438\u0442\u043E\u0448\u0430 45, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["cafe", "bulgarian"],
-        lat: 42.6977,
-        lng: 23.3219,
-        description: "\u0422\u0440\u0430\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u043C\u043E\u0434\u0435\u0440\u0435\u043D \u043F\u043E\u0434\u0445\u043E\u0434"
-      },
-      {
-        name: "\u041F\u0438\u0446\u0430 \u0422\u0435\u043C\u043F\u043E",
-        address: "\u0431\u0443\u043B. \u0412\u0430\u0441\u0438\u043B \u041B\u0435\u0432\u0441\u043A\u0438 132, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["pizza", "italian"],
-        lat: 42.6869,
-        lng: 23.3228,
-        description: "\u0418\u0442\u0430\u043B\u0438\u0430\u043D\u0441\u043A\u0430 \u043F\u0438\u0446\u0430\u0440\u0438\u044F \u0441 fresh ingredients"
-      },
-      {
-        name: "\u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 Made in Home",
-        address: "\u0443\u043B. \u041E\u0431\u043E\u0440\u0438\u0449\u0435 42, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["modern_european", "healthy"],
-        lat: 42.6886,
-        lng: 23.3394,
-        description: "\u0417\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0434\u043E\u043C\u0430\u0448\u0435\u043D \u0432\u043A\u0443\u0441"
-      },
-      {
-        name: "Ethno",
-        address: "\u0443\u043B. \u0414\u044F\u043A\u043E\u043D \u0418\u0433\u043D\u0430\u0442\u0438\u0439 4, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["traditional", "bulgarian"],
-        lat: 42.6948,
-        lng: 23.3227,
-        description: "\u0410\u0432\u0442\u0435\u043D\u0442\u0438\u0447\u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0432 \u0441\u0442\u0438\u043B\u043D\u0430 \u043E\u0431\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430"
-      },
-      {
-        name: "Rainbow Factory",
-        address: "\u0443\u043B. \u0426\u0430\u0440 \u0421\u0430\u043C\u0443\u0438\u043B 25, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "vegetarian"],
-        lat: 42.6953,
-        lng: 23.3264,
-        description: "\u0417\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0438 \u0438 vegetarian \u043E\u043F\u0446\u0438\u0438"
-      },
-      {
-        name: "Salad Studio",
-        address: "\u0431\u0443\u043B. \u0412\u0438\u0442\u043E\u0448\u0430 89, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "salads"],
-        lat: 42.6934,
-        lng: 23.3197,
-        description: "Fresh \u0441\u0430\u043B\u0430\u0442\u0438 \u0438 \u0437\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0438 \u044F\u0441\u0442\u0438\u044F"
-      },
-      {
-        name: "Bistro Pesto",
-        address: "\u0443\u043B. \u0428\u0438\u0448\u043C\u0430\u043D 12, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["italian", "bistro"],
-        lat: 42.6891,
-        lng: 23.3312,
-        description: "\u0418\u0442\u0430\u043B\u0438\u0430\u043D\u0441\u043A\u043E bistro \u0441 fresh pasta"
-      },
-      {
-        name: "Green House",
-        address: "\u0443\u043B. \u0413\u0440\u0430\u0444 \u0418\u0433\u043D\u0430\u0442\u0438\u0435\u0432 64, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "organic"],
-        lat: 42.6847,
-        lng: 23.3254,
-        description: "\u041E\u0440\u0433\u0430\u043D\u0438\u0447\u043D\u0430 \u0445\u0440\u0430\u043D\u0430 \u0438 \u0437\u0435\u043B\u0435\u043D\u0438 smoothies"
-      },
-      {
-        name: "Asia Garden",
-        address: "\u0431\u0443\u043B. \u0427\u0435\u0440\u043D\u0438 \u0432\u0440\u044A\u0445 47, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["asian", "thai"],
-        lat: 42.6712,
-        lng: 23.3156,
-        description: "\u0410\u0432\u0442\u0435\u043D\u0442\u0438\u0447\u043D\u0430 \u0430\u0437\u0438\u0430\u0442\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F"
-      },
-      {
-        name: "Vegetarian Delight",
-        address: "\u0443\u043B. \u0420\u0430\u043A\u043E\u0432\u0441\u043A\u0438 95, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["vegetarian", "vegan"],
-        lat: 42.6923,
-        lng: 23.3278,
-        description: "100% vegetarian \u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0441 vegan \u043E\u043F\u0446\u0438\u0438"
-      },
-      {
-        name: "\u0421\u0443\u0448\u0438 \u0411\u0430\u0440 \u041C\u0438\u0434\u043E\u0440\u0438",
-        address: "\u0431\u0443\u043B. \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F 69, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["japanese", "sushi"],
-        lat: 42.6643,
-        lng: 23.287,
-        description: "\u0410\u0432\u0442\u0435\u043D\u0442\u0438\u0447\u043D\u043E \u044F\u043F\u043E\u043D\u0441\u043A\u043E \u0441\u0443\u0448\u0438 \u0438 \u0432\u0435\u0433\u0430\u043D rolls"
-      },
-      {
-        name: "La Bamba",
-        address: "\u0443\u043B. \u0413\u043B\u0430\u0434\u0441\u0442\u043E\u043D 14, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["mexican", "tex_mex"],
-        lat: 42.6939,
-        lng: 23.3252,
-        description: "\u041C\u0435\u043A\u0441\u0438\u043A\u0430\u043D\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0440\u0430\u0441\u0442\u0438\u0442\u0435\u043B\u043D\u0438 \u043E\u043F\u0446\u0438\u0438"
-      },
-      {
-        name: "BioFresh",
-        address: "\u0443\u043B. \u0421\u043E\u043B\u0443\u043D\u0441\u043A\u0430 44, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["organic", "healthy"],
-        lat: 42.6923,
-        lng: 23.3307,
-        description: "Bio \u0438 organic \u0445\u0440\u0430\u043D\u0430, fresh \u0441\u043E\u043A\u0438"
-      },
-      {
-        name: "Indian Palace",
-        address: "\u0443\u043B. \u041F\u043E\u0437\u0438\u0442\u0430\u043D\u043E 20, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["indian", "curry"],
-        lat: 42.6851,
-        lng: 23.3176,
-        description: "\u0418\u043D\u0434\u0438\u0439\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0431\u043E\u0433\u0430\u0442 \u0438\u0437\u0431\u043E\u0440 \u043D\u0430 vegetarian curry"
-      },
-      {
-        name: "Falafel Box",
-        address: "\u0443\u043B. \u0421\u043B\u0430\u0432\u044F\u043D\u0441\u043A\u0430 3, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["middle_eastern", "falafel"],
-        lat: 42.6927,
-        lng: 23.3303,
-        description: "\u0411\u043B\u0438\u0437\u043A\u043E\u0438\u0437\u0442\u043E\u0447\u043D\u0430 \u043A\u0443\u0445\u043D\u044F - \u0444\u0430\u043B\u0430\u0444\u0435\u043B \u0438 \u0445\u0443\u043C\u0443\u0441"
-      },
-      {
-        name: "Green Caf\xE9",
-        address: "\u0431\u0443\u043B. \u0415\u0432\u043B\u043E\u0433\u0438 \u0413\u0435\u043E\u0440\u0433\u0438\u0435\u0432 77, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["cafe", "vegetarian"],
-        lat: 42.6789,
-        lng: 23.3345,
-        description: "\u0423\u044E\u0442\u043D\u043E \u043A\u0430\u0444\u0435 \u0441 \u0432\u0435\u0433\u0430\u043D \u0434\u0435\u0441\u0435\u0440\u0442\u0438 \u0438 smoothies"
-      },
-      {
-        name: "Pizza Lab",
-        address: "\u0443\u043B. \u0428\u0435\u0439\u043D\u043E\u0432\u043E 7, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["pizza", "modern"],
-        lat: 42.6924,
-        lng: 23.3146,
-        description: "\u041A\u0440\u0430\u0444\u0442 \u043F\u0438\u0446\u0430 \u0441 vegan cheese \u043E\u043F\u0446\u0438\u0438"
-      },
-      {
-        name: "Bowl & Co",
-        address: "\u0443\u043B. \u0410\u043B\u0430\u0431\u0438\u043D 50\u0410, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "bowls"],
-        lat: 42.6972,
-        lng: 23.3201,
-        description: "Healthy bowls \u0438 superfood \u043A\u043E\u043C\u0431\u0438\u043D\u0430\u0446\u0438\u0438"
-      },
-      {
-        name: "Thai Smile",
-        address: "\u0443\u043B. \u0425\u0430\u043D \u0410\u0441\u043F\u0430\u0440\u0443\u0445 22, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["thai", "asian"],
-        lat: 42.6859,
-        lng: 23.3357,
-        description: "\u0422\u0430\u0439\u043B\u0430\u043D\u0434\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 tofu \u0441\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0442\u0435\u0442\u0438"
-      },
-      {
-        name: "Hummus Bar",
-        address: "\u0443\u043B. \u0426\u0430\u0440 \u0418\u0432\u0430\u043D \u0428\u0438\u0448\u043C\u0430\u043D 8, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["mediterranean", "lebanese"],
-        lat: 42.6889,
-        lng: 23.3306,
-        description: "\u0421\u0440\u0435\u0434\u0438\u0437\u0435\u043C\u043D\u043E\u043C\u043E\u0440\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0434\u043E\u043C\u0430\u0448\u0435\u043D \u0445\u0443\u043C\u0443\u0441"
-      }
-    ];
-    const allTestRestaurants = [...testRestaurants];
-    const additionalNames = [
-      "\u0417\u0435\u043B\u0435\u043D\u0430 \u0413\u0440\u0430\u0434\u0438\u043D\u0430",
-      "\u0421\u043B\u044A\u043D\u0447\u0435\u0432 \u042A\u0433\u044A\u043B",
-      "\u0411\u0438\u043E \u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0421\u043E\u0444\u0438\u044F",
-      "\u0412\u0435\u0433\u0435\u0442\u0430\u0440\u0438\u0430\u043D\u0441\u043A\u0438 \u0420\u0430\u0439",
-      "\u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0412\u0438\u0442\u0430\u043C\u0438\u043D",
-      "Fresh & Tasty",
-      "Nature's Kitchen",
-      "Healthy Corner",
-      "Veggie Paradise",
-      "Plant Power",
-      "\u0421\u043E\u0444\u0438\u044F \u0413\u0440\u0438\u0439\u043D",
-      "\u0415\u043A\u043E \u0411\u0438\u0441\u0442\u0440\u043E",
-      "\u0427\u0438\u0441\u0442\u0430 \u0425\u0440\u0430\u043D\u0430",
-      "\u0417\u0435\u043B\u0435\u043D \u0421\u0432\u044F\u0442",
-      "\u0411\u0438\u043E \u041A\u0443\u0445\u043D\u044F",
-      "\u041D\u0430\u0442\u0443\u0440\u0430\u043B\u043D\u043E",
-      "\u0421\u0432\u0435\u0436\u0435\u0441\u0442",
-      "\u0413\u0440\u0430\u0434\u0438\u043D\u0441\u043A\u0438 \u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442",
-      "Vegan House Sofia",
-      "Raw Bar",
-      "Juice & Salad",
-      "Fresh Market",
-      "Green Life",
-      "\u0421\u043E\u0444\u0438\u044F \u041E\u0440\u0433\u0430\u043D\u0438\u043A",
-      "Plant Bistro",
-      "Veggie Grill",
-      "Natural Foods",
-      "Bio Corner",
-      "Fresh Daily",
-      "Healthy Choice"
-    ];
-    const streets = [
-      "\u0431\u0443\u043B. \u0412\u0438\u0442\u043E\u0448\u0430",
-      "\u0443\u043B. \u0413\u0440\u0430\u0444 \u0418\u0433\u043D\u0430\u0442\u0438\u0435\u0432",
-      "\u0431\u0443\u043B. \u0412\u0430\u0441\u0438\u043B \u041B\u0435\u0432\u0441\u043A\u0438",
-      "\u0443\u043B. \u0421\u043E\u043B\u0443\u043D\u0441\u043A\u0430",
-      "\u0443\u043B. \u0420\u0430\u043A\u043E\u0432\u0441\u043A\u0438",
-      "\u0431\u0443\u043B. \u0411\u044A\u043B\u0433\u0430\u0440\u0438\u044F",
-      "\u0443\u043B. \u041F\u0438\u0440\u043E\u0442\u0441\u043A\u0430",
-      "\u0431\u0443\u043B. \u0426\u0430\u0440 \u041E\u0441\u0432\u043E\u0431\u043E\u0434\u0438\u0442\u0435\u043B",
-      "\u0443\u043B. \u0421\u043B\u0430\u0432\u044F\u043D\u0441\u043A\u0430",
-      "\u0431\u0443\u043B. \u041F\u0430\u0442\u0440\u0438\u0430\u0440\u0445 \u0415\u0432\u0442\u0438\u043C\u0438\u0439"
-    ];
-    const cuisineOptions = [
-      ["healthy", "organic"],
-      ["vegetarian", "salads"],
-      ["cafe", "breakfast"],
-      ["mediterranean", "greek"],
-      ["asian", "vietnamese"],
-      ["modern", "fusion"],
-      ["bulgarian", "traditional"],
-      ["italian", "pasta"],
-      ["mexican", "burrito"],
-      ["indian", "vegetarian"]
-    ];
-    for (let i = 0; i < 30; i++) {
-      const streetNum = Math.floor(Math.random() * 200) + 1;
-      const streetName = streets[Math.floor(Math.random() * streets.length)];
-      allTestRestaurants.push({
-        name: additionalNames[i] || `\u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u0421\u043E\u0444\u0438\u044F ${i + 21}`,
-        address: `${streetName} ${streetNum}, \u0421\u043E\u0444\u0438\u044F`,
-        cuisineTypes: cuisineOptions[i % cuisineOptions.length],
-        lat: 42.6977 + (Math.random() - 0.5) * 0.05,
-        lng: 23.3219 + (Math.random() - 0.5) * 0.05,
-        description: `${additionalNames[i] ? "\u0421\u043F\u0435\u0446\u0438\u0430\u043B\u0438\u0437\u0438\u0440\u0430\u043D \u0432 \u0437\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0430 \u0445\u0440\u0430\u043D\u0430" : "\u041C\u043E\u0434\u0435\u0440\u0435\u043D \u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442"} \u0441 \u0432\u0435\u0433\u0430\u043D \u043E\u043F\u0446\u0438\u0438`
-      });
-    }
-    console.log(`\u{1F4E4} Importing ${allTestRestaurants.length} restaurants directly to database...`);
-    const imported = [];
-    const errors = [];
-    const hybrid = new HybridScoringProvider();
-    for (let i = 0; i < allTestRestaurants.length; i++) {
-      const restaurant = allTestRestaurants[i];
-      try {
-        const score = await hybrid.scoreRestaurant(restaurant);
-        const restaurantData = {
-          name: restaurant.name,
-          address: restaurant.address,
-          cuisine_types: restaurant.cuisineTypes,
-          latitude: restaurant.lat,
-          longitude: restaurant.lng,
-          place_id: `test-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`,
-          vegan_score: score.overallScore,
-          price_level: 2,
-          // Default medium price
-          user_ratings_total: 0,
-          rating: 0,
-          opening_hours: null,
-          website: null,
-          phone_number: null,
-          photos: [],
-          reviews: [],
-          cached_at: /* @__PURE__ */ new Date(),
-          created_at: /* @__PURE__ */ new Date(),
-          updated_at: /* @__PURE__ */ new Date()
-        };
-        const [insertedRestaurant] = await db.insert(restaurants).values([restaurantData]).returning();
-        imported.push(insertedRestaurant);
-        console.log(`\u2705 Imported ${i + 1}/${allTestRestaurants.length}: ${restaurant.name} (Score: ${score.overallScore})`);
-      } catch (error) {
-        console.error(`\u274C Failed to import ${restaurant.name}:`, error.message);
-        errors.push({
-          restaurant: restaurant.name,
-          error: error.message
-        });
-      }
-      if (i % 5 === 0 && i > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-    }
-    const response = {
-      success: true,
-      totalAttempted: allTestRestaurants.length,
-      imported: imported.length,
-      failed: errors.length,
-      message: `Successfully imported ${imported.length} out of ${allTestRestaurants.length} restaurants`,
-      errors: errors.slice(0, 5)
-      // First 5 errors
-    };
-    console.log("\u{1F389} Bulk import completed!", response);
-    res.json(response);
-  } catch (error) {
-    console.error("\u274C Bulk import failed:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-router2.post("/bulk-test-gbgpt-with-report", async (req, res) => {
-  try {
-    console.log("\u{1F680} Starting enhanced bulk test with report generation...");
-    const reporter = new GBGPTTestReporter();
-    const testRestaurants = [
-      {
-        name: "\u041A\u0430\u0444\u0435-\u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u041A\u043E\u0441\u043C\u043E\u0441",
-        address: "\u0443\u043B. \u0412\u0438\u0442\u043E\u0448\u0430 45, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["cafe", "bulgarian"],
-        lat: 42.6977,
-        lng: 23.3219,
-        description: "\u0422\u0440\u0430\u0434\u0438\u0446\u0438\u043E\u043D\u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u043C\u043E\u0434\u0435\u0440\u0435\u043D \u043F\u043E\u0434\u0445\u043E\u0434"
-      },
-      {
-        name: "\u041F\u0438\u0446\u0430 \u0422\u0435\u043C\u043F\u043E",
-        address: "\u0431\u0443\u043B. \u0412\u0430\u0441\u0438\u043B \u041B\u0435\u0432\u0441\u043A\u0438 132, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["pizza", "italian"],
-        lat: 42.6869,
-        lng: 23.3228,
-        description: "\u0418\u0442\u0430\u043B\u0438\u0430\u043D\u0441\u043A\u0430 \u043F\u0438\u0446\u0430\u0440\u0438\u044F \u0441 fresh ingredients"
-      },
-      {
-        name: "\u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 Made in Home",
-        address: "\u0443\u043B. \u041E\u0431\u043E\u0440\u0438\u0449\u0435 42, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["modern_european", "healthy"],
-        lat: 42.6886,
-        lng: 23.3394,
-        description: "\u0417\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0430 \u043A\u0443\u0445\u043D\u044F \u0441 \u0434\u043E\u043C\u0430\u0448\u0435\u043D \u0432\u043A\u0443\u0441"
-      },
-      {
-        name: "Ethno",
-        address: "\u0443\u043B. \u0414\u044F\u043A\u043E\u043D \u0418\u0433\u043D\u0430\u0442\u0438\u0439 4, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["traditional", "bulgarian"],
-        lat: 42.6948,
-        lng: 23.3227,
-        description: "\u0410\u0432\u0442\u0435\u043D\u0442\u0438\u0447\u043D\u0430 \u0431\u044A\u043B\u0433\u0430\u0440\u0441\u043A\u0430 \u043A\u0443\u0445\u043D\u044F \u0432 \u0441\u0442\u0438\u043B\u043D\u0430 \u043E\u0431\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430"
-      },
-      {
-        name: "Rainbow Factory",
-        address: "\u0443\u043B. \u0426\u0430\u0440 \u0421\u0430\u043C\u0443\u0438\u043B 25, \u0421\u043E\u0444\u0438\u044F",
-        cuisineTypes: ["healthy", "vegetarian"],
-        lat: 42.6953,
-        lng: 23.3264,
-        description: "\u0417\u0434\u0440\u0430\u0432\u043E\u0441\u043B\u043E\u0432\u043D\u0438 \u0438 vegetarian \u043E\u043F\u0446\u0438\u0438"
-      }
-    ];
-    const allTestRestaurants = [...testRestaurants];
-    for (let i = 5; i < 50; i++) {
-      allTestRestaurants.push({
-        name: `\u0422\u0435\u0441\u0442 \u0420\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 ${i + 1}`,
-        address: `\u0443\u043B. \u0422\u0435\u0441\u0442\u043E\u0432\u0430 ${i + 1}, \u0421\u043E\u0444\u0438\u044F`,
-        cuisineTypes: ["restaurant", "international"],
-        lat: 42.6977 + (Math.random() - 0.5) * 0.05,
-        lng: 23.3219 + (Math.random() - 0.5) * 0.05,
-        description: `\u0422\u0435\u0441\u0442\u043E\u0432 \u0440\u0435\u0441\u0442\u043E\u0440\u0430\u043D\u0442 \u043D\u043E\u043C\u0435\u0440 ${i + 1} \u0437\u0430 GBGPT \u0430\u043D\u0430\u043B\u0438\u0437`
-      });
-    }
-    console.log(`\u{1F4CA} Processing ${allTestRestaurants.length} restaurants with enhanced tracking...`);
-    const hybrid = new HybridScoringProvider();
-    const results = [];
-    const failures = [];
-    let processed = 0;
-    for (let i = 0; i < allTestRestaurants.length; i += 5) {
-      const batch = allTestRestaurants.slice(i, i + 5);
-      console.log(`\u{1F504} Processing batch ${Math.floor(i / 5) + 1}/${Math.ceil(allTestRestaurants.length / 5)}`);
-      const batchPromises = batch.map(async (restaurant, index2) => {
-        try {
-          await new Promise((resolve) => setTimeout(resolve, index2 * 200));
-          const startTime = Date.now();
-          const score = await hybrid.scoreRestaurant(restaurant);
-          const duration = Date.now() - startTime;
-          processed++;
-          console.log(`\u2705 ${restaurant.name} scored in ${duration}ms (${processed}/${allTestRestaurants.length})`);
-          return {
-            restaurant,
-            score,
-            duration,
-            success: true,
-            provider: score.provider || "OpenAI (fallback)"
-          };
-        } catch (error) {
-          console.error(`\u274C Failed to score ${restaurant.name}:`, error.message);
-          processed++;
-          return {
-            restaurant,
-            error: error.message,
-            success: false,
-            duration: 0,
-            provider: "Failed"
-          };
-        }
-      });
-      const batchResults = await Promise.allSettled(batchPromises);
-      batchResults.forEach((result) => {
-        if (result.status === "fulfilled") {
-          if (result.value.success) {
-            results.push(result.value);
-          } else {
-            failures.push(result.value);
-          }
-        }
-      });
-      if (i + 5 < allTestRestaurants.length) {
-        await new Promise((resolve) => setTimeout(resolve, 1e3));
-      }
-    }
-    const avgDuration = results.length > 0 ? results.reduce((sum, r) => sum + r.duration, 0) / results.length : 0;
-    const avgScore = results.length > 0 ? results.reduce((sum, r) => sum + r.score.overallScore, 0) / results.length : 0;
-    const stats = {
-      totalProcessed: allTestRestaurants.length,
-      successful: results.length,
-      failed: failures.length,
-      successRate: `${(results.length / allTestRestaurants.length * 100).toFixed(1)}%`,
-      averageResponseTime: `${avgDuration.toFixed(0)}ms`,
-      averageVeganScore: avgScore.toFixed(2),
-      primaryProvider: results.length > 0 ? results[0].provider : "Unknown",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
-    };
-    reporter.addResults([...results, ...failures], stats);
-    const reportPath = await reporter.saveReport();
-    const reportContent = reporter.generateMarkdownReport();
-    console.log("\u{1F389} Enhanced bulk test completed with report!", stats);
-    res.json({
-      success: true,
-      stats,
-      reportPath,
-      reportPreview: reportContent.substring(0, 2e3) + "...",
-      message: `Test completed and report saved to ${reportPath}`
-    });
-  } catch (error) {
-    console.error("\u274C Enhanced bulk test failed:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      message: "Enhanced bulk test failed"
-    });
-  }
-});
-router2.get("/bulk-test-status", async (req, res) => {
-  try {
-    const totalRestaurants = await db.select({ count: restaurants.id }).from(restaurants);
-    const hybrid = new HybridScoringProvider();
-    const providerStatus = await hybrid.getStatus();
-    res.json({
-      databaseRestaurants: totalRestaurants.length,
-      providerStatus,
-      ready: true,
-      message: "Bulk test endpoints ready"
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-var bulkTestGBGPT_default = router2;
-
 // server/index.ts
-var envPath = path5.join(process.cwd(), ".env");
-var envExists = fs5.existsSync(envPath);
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+var envPath = path4.join(process.cwd(), ".env");
+var envExists = fs4.existsSync(envPath);
 if (envExists) {
   console.log("\u{1F4C1} Loading environment from .env file:", envPath);
   config({ path: envPath });
 } else {
   console.log("\u{1F510} Using environment variables from system/secrets");
 }
-if (process.env.NODE_ENV === "development") {
-  console.log("NODE_ENV:", process.env.NODE_ENV);
-  console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
-  console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
-  console.log("GOOGLE_MAPS_API_KEY exists:", !!process.env.GOOGLE_MAPS_API_KEY);
-}
 function validateEnvironment() {
   const required = ["DATABASE_URL", "OPENAI_API_KEY", "GOOGLE_MAPS_API_KEY"];
   const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
     console.error("\u274C Missing environment variables:", missing);
-    console.error("Please ensure .env file contains all required variables");
     throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
   }
   console.log("\u2705 All required environment variables loaded successfully");
 }
 validateEnvironment();
-var app = express4();
+var __filename = fileURLToPath(import.meta.url);
+var __dirname = dirname(__filename);
+var app = express3();
+app.set("trust proxy", 1);
 var allowedOrigins = [
   "https://www.veganmapai.ai",
   "https://vegan-map-ai-bkozarev.replit.app",
@@ -6114,37 +5123,9 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-var cache = /* @__PURE__ */ new Map();
-var TTL_MS = 5 * 60 * 1e3;
-function getCache(k) {
-  const e = cache.get(k);
-  if (!e) return null;
-  if (Date.now() > e.expiresAt) {
-    cache.delete(k);
-    return null;
-  }
-  return e.value;
-}
-function setCache(k, v, ttl = TTL_MS) {
-  cache.set(k, { value: v, expiresAt: Date.now() + ttl });
-}
-function makeKey(q) {
-  const { n, s, e, w, profile = "default" } = q;
-  return `bbox:${n}:${s}:${e}:${w}:${profile}`;
-}
-setInterval(() => {
-  const now = Date.now();
-  cache.forEach((entry, key) => {
-    if (now > entry.expiresAt) {
-      cache.delete(key);
-    }
-  });
-}, TTL_MS);
 app.use(compression({
   level: 6,
-  // Balanced compression level
   threshold: 1024,
-  // Only compress responses > 1KB
   filter: (req, res) => {
     if (req.headers["x-no-compression"]) {
       return false;
@@ -6152,121 +5133,33 @@ app.use(compression({
     return compression.filter(req, res);
   }
 }));
-app.use(express4.json({ limit: "1mb" }));
-app.use(express4.urlencoded({ extended: false }));
-app.use(express4.static(path5.join(process.cwd(), "public")));
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path6 = req.path;
-  let capturedJsonResponse = void 0;
-  const originalResJson = res.json;
-  res.json = function(bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path6.startsWith("/api")) {
-      let logLine = `${req.method} ${path6} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "\u2026";
-      }
-      log(logLine);
-    }
+app.use(express3.json({ limit: "1mb" }));
+app.use(express3.urlencoded({ extended: false }));
+app.use("/api", router);
+app.get("/service-worker.js", (_req, res) => {
+  res.type("application/javascript");
+  res.sendFile(path4.join(__dirname, "../dist/service-worker.js"));
+});
+if (fs4.existsSync(path4.join(__dirname, "../dist"))) {
+  app.use(express3.static(path4.join(__dirname, "../dist"), { maxAge: "1h" }));
+  app.get(/^\/(?!api\/).*/, (_req, res) => {
+    res.sendFile(path4.join(__dirname, "../dist/index.html"));
   });
-  next();
+}
+app.use("/api", (_req, res) => {
+  res.status(404).json({ error: "Not found" });
 });
-app.get("/api/places", async (req, res) => {
-  try {
-    const { n, s, e, w, profile } = req.query;
-    if (!n || !s || !e || !w) {
-      return res.status(400).json({
-        error: "Missing bbox parameters: n (north), s (south), e (east), w (west) required"
-      });
-    }
-    const key = makeKey(req.query);
-    console.log(`[Cache] Checking key: ${key}`);
-    const cached = getCache(key);
-    if (cached) {
-      console.log(`[Cache] HIT: Returning ${cached.length} restaurants from cache`);
-      return res.json(cached);
-    }
-    console.log(`[Cache] MISS: Fetching fresh data for bbox`);
-    const data = [
-      { id: "1", name: "Vegan Spot", lat: 42.695, lng: 23.332, veganScore: 8.7 },
-      { id: "2", name: "Green Deli", lat: 42.696, lng: 23.331, veganScore: 7.9 }
-    ];
-    console.log(`[Cache] Storing ${data.length} restaurants in cache`);
-    setCache(key, data);
-    res.json(data);
-  } catch (error) {
-    console.error("[Places API] Error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+app.use((err, _req, res, _next) => {
+  const status = err.status || err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(status).json({ message });
+  throw err;
 });
-app.use("/api", testGBGPT_default);
-app.use("/api", bulkTestGBGPT_default);
-app.get("/test-map", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-public.html"));
-});
-app.get("/test-map-v50", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v50.html"));
-});
-app.get("/test-map-v60", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v60.html"));
-});
-app.get("/test-map-v70", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v70.html"));
-});
-app.get("/test-map-v75", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v75.html"));
-});
-app.get("/test-map-v76", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v76.html"));
-});
-app.get("/test-map-v80", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v80.html"));
-});
-app.get("/test-map-v95", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v95.html"));
-});
-app.get("/test-map-v96", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v96.html"));
-});
-app.get("/test-map-v97", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v97.html"));
-});
-app.get("/test-map-v98", (_req, res) => {
-  res.sendFile(path5.join(process.cwd(), "test-map-v98.html"));
-});
-app.use("/public", express4.static(path5.join(process.cwd(), "public")));
 (async () => {
   const server = await registerRoutes(app);
   if (process.env.NODE_ENV !== "production") {
     await initializeDatabase();
   }
-  app.post("/api/feedback", async (req, res) => {
-    try {
-      const { uid, place_id, score_details, comment } = req.body || {};
-      if (!uid || !place_id) {
-        return res.status(400).json({ error: "uid and place_id required" });
-      }
-      console.log("Feedback received:", { uid, place_id, score_details, comment });
-      res.json({ ok: true, queued: true });
-    } catch (e) {
-      console.error("Feedback error:", e);
-      res.status(500).json({ error: "failed" });
-    }
-  });
-  app.use((err, _req, res, _next) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    res.status(status).json({ message });
-    throw err;
-  });
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
