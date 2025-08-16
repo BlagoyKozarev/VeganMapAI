@@ -60,36 +60,25 @@ apiRouter.get('/restaurants/public/map-data', async (req, res) => {
 
 // GET /api/recommend?lat&lng&radiusKm=5&minScore=0&limit=10 → { count:number, restaurants:[{ id,name,score,lat,lng }] }
 apiRouter.get('/recommend', async (req, res) => {
-  try {
-    const { lat, lng, radiusKm = 5, minScore = 0, limit = 10 } = req.query as any;
-    const nearbyRestaurants = await storage.getRestaurantsNearby({ 
-      lat: +lat, 
-      lng: +lng, 
-      radiusKm: +radiusKm, 
-      minScore: +minScore, 
-      limit: +limit 
-    });
-    
-    // Нормализирани полета според спецификацията
-    const normalizedRestaurants = nearbyRestaurants.map(r => ({
-      id: r.id,
-      name: r.name,
-      score: r.veganScore,
-      lat: r.latitude,
-      lng: r.longitude
-    }));
-    
-    res.type('application/json').json({
-      count: normalizedRestaurants.length,
-      restaurants: normalizedRestaurants
-    });
-  } catch (error) {
-    res.type('application/json').status(500).json({ 
-      count: 0,
-      restaurants: [],
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
-  }
+  const { lat, lng, radiusKm = 5, minScore = 0, limit = 10 } = req.query as any;
+  const nearbyRestaurants = await storage.getRestaurantsNearby({ 
+    lat: +lat, 
+    lng: +lng, 
+    radiusKm: +radiusKm, 
+    minScore: +minScore, 
+    limit: +limit 
+  });
+  
+  // Опростена структура според спецификацията
+  const items = nearbyRestaurants.map(r => ({
+    id: r.id,
+    name: r.name,
+    score: r.veganScore,
+    lat: r.latitude,
+    lng: r.longitude
+  }));
+  
+  res.type('application/json').json({ count: items.length, restaurants: items });
 });
 
 // POST /api/feedback → { ok:true }

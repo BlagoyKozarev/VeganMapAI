@@ -3703,33 +3703,22 @@ apiRouter.get("/restaurants/public/map-data", async (req, res) => {
   }
 });
 apiRouter.get("/recommend", async (req, res) => {
-  try {
-    const { lat, lng, radiusKm = 5, minScore = 0, limit = 10 } = req.query;
-    const nearbyRestaurants = await storage.getRestaurantsNearby({
-      lat: +lat,
-      lng: +lng,
-      radiusKm: +radiusKm,
-      minScore: +minScore,
-      limit: +limit
-    });
-    const normalizedRestaurants = nearbyRestaurants.map((r) => ({
-      id: r.id,
-      name: r.name,
-      score: r.veganScore,
-      lat: r.latitude,
-      lng: r.longitude
-    }));
-    res.type("application/json").json({
-      count: normalizedRestaurants.length,
-      restaurants: normalizedRestaurants
-    });
-  } catch (error) {
-    res.type("application/json").status(500).json({
-      count: 0,
-      restaurants: [],
-      error: error instanceof Error ? error.message : "Unknown error"
-    });
-  }
+  const { lat, lng, radiusKm = 5, minScore = 0, limit = 10 } = req.query;
+  const nearbyRestaurants = await storage.getRestaurantsNearby({
+    lat: +lat,
+    lng: +lng,
+    radiusKm: +radiusKm,
+    minScore: +minScore,
+    limit: +limit
+  });
+  const items = nearbyRestaurants.map((r) => ({
+    id: r.id,
+    name: r.name,
+    score: r.veganScore,
+    lat: r.latitude,
+    lng: r.longitude
+  }));
+  res.type("application/json").json({ count: items.length, restaurants: items });
 });
 apiRouter.post("/feedback", async (req, res) => {
   try {
@@ -5249,10 +5238,7 @@ if (fs4.existsSync(distDir)) {
   app.use("/assets", express3.static(path4.join(distDir, "assets"), { maxAge: "7d", immutable: true }));
   app.get("/manifest.json", (_, res) => res.sendFile(path4.join(distDir, "manifest.json")));
   app.get("/service-worker.js", (_, res) => res.sendFile(path4.join(distDir, "service-worker.js")));
-  app.get("*", (req, res, next) => {
-    if (req.path.startsWith("/api/")) return next();
-    res.sendFile(path4.join(distDir, "index.html"));
-  });
+  app.get("*", (req, res, next) => req.path.startsWith("/api/") ? next() : res.sendFile(path4.join(distDir, "index.html")));
 }
 app.use((err, _req, res, _next) => {
   const status = err.status || err.statusCode || 500;

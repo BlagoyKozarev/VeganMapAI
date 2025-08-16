@@ -58,7 +58,7 @@ app.use(cors({
   credentials: false
 }));
 
-// 3) API РУТЕР – ПРЕДИ Vite/статиката
+// 3) API РУТЕР – ПРЕДИ Vite/статиката и всеки catch-all
 app.use('/api', apiRouter);
 
 // 4) static/PWA
@@ -69,10 +69,7 @@ if (fs.existsSync(distDir)) {
   app.get('/service-worker.js', (_, res) => res.sendFile(path.join(distDir, 'service-worker.js')));
   
   // 5) SPA fallback (само за НЕ-API)
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api/')) return next();
-    res.sendFile(path.join(distDir, 'index.html'));
-  });
+  app.get('*', (req, res, next) => req.path.startsWith('/api/') ? next() : res.sendFile(path.join(distDir, 'index.html')));
 }
 
 // Error handler
