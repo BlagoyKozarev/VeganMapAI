@@ -50,7 +50,6 @@ export class ExplainabilityAgent {
 
   private async findRestaurant(info: RestaurantInfo): Promise<any> {
     let query: string;
-    let params: any[];
     
     if (info.id) {
       query = `
@@ -70,7 +69,7 @@ export class ExplainabilityAgent {
     }
     
     const results = await db.execute(sql.raw(query));
-    const restaurants = results || [];
+    const restaurants = (results as any)?.rows || results || [];
     
     return restaurants.length > 0 ? restaurants[0] : null;
   }
@@ -188,7 +187,7 @@ export class ExplainabilityAgent {
       `;
       
       const results = await db.execute(sql.raw(query));
-      const restaurants = results || [];
+      const restaurants = (results as any)?.rows || results || [];
       
       for (const restaurant of restaurants) {
         const explanation = this.generateExplanation(restaurant);

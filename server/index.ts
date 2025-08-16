@@ -46,6 +46,7 @@ import compression from "compression";
 import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
+import { health } from "./health.js";
 import { initializeDatabase } from "./init-database.js";
 import testGBGPTRouter from './routes/testGBGPT.js';
 import bulkTestGBGPTRouter from './routes/bulkTestGBGPT.js';
@@ -138,6 +139,9 @@ const limiter = rateLimit({
 
 // Apply rate limiting to API routes only
 app.use('/api', limiter);
+
+// Health check endpoints (both /health and /healthz)
+app.use(health);
 
 app.use(express.json({ limit: '1mb' })); // Limit JSON payload size
 app.use(express.urlencoded({ extended: false }));

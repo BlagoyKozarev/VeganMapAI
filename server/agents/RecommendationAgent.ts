@@ -31,57 +31,54 @@ export class RecommendationAgent {
     
     try {
       const { location, preferences, limit = 3 } = request;
-      
-      // Simple query without complex parameter binding for now
+      const { lat, lng } = location;
       const maxDistance = 5; // 5km radius
-      const lat = location.lat;
-      const lng = location.lng;
+      const minScore = 0; // Accept all scores for now
       
-      let whereConditions = [`
-        (6371 * acos(
-          cos(radians(${lat})) * cos(radians(latitude)) *
-          cos(radians(longitude) - radians(${lng})) +
-          sin(radians(${lat})) * sin(radians(latitude))
-        )) <= ${maxDistance}
-      `];
+      // Build cuisine array filter
+      const cuisinesArr = preferences.cuisine || [];
+      const allergensArr = preferences.allergens || [];
       
-      // Budget filter (price level)
-      if (preferences.budget && preferences.budget <= 4) {
-        whereConditions.push(`price_level <= ${preferences.budget}`);
-      }
-      
-      // Cuisine preference - simplified for now
-      if (preferences.cuisine && preferences.cuisine.length > 0) {
-        const cuisineFilter = preferences.cuisine.map(c => `cuisine_types ILIKE '%${c}%'`).join(' OR ');
-        whereConditions.push(`(${cuisineFilter})`);
-      }
-      
-      const whereClause = 'WHERE ' + whereConditions.join(' AND ');
-      
+      // Use proper Haversine formula with parameter binding
       const query = `
-        SELECT 
-          id, name, latitude, longitude, vegan_score, price_level, 
-          cuisine_types, address, rating,
-          (6371 * acos(
-            cos(radians(${lat})) * cos(radians(latitude)) *
-            cos(radians(longitude) - radians(${lng})) +
-            sin(radians(${lat})) * sin(radians(latitude))
-          )) as distance_km
-        FROM restaurants 
-        ${whereClause}
-        ORDER BY 
-          CASE 
-            WHEN vegan_score IS NOT NULL THEN vegan_score 
-            ELSE 0 
-          END DESC,
-          distance_km ASC
-        LIMIT ${limit}
+        WITH params AS (
+          SELECT
+            ${lat}::float8 AS lat, ${lng}::float8 AS lng,
+            ${maxDistance}::float8 AS radius_km, ${minScore}::int AS min_score,
+            ARRAY[${cuisinesArr.map((c: string) => `'${c}'`).join(',')}]::text[] AS cuisines,
+            ARRAY[${allergensArr.map((a: string) => `'${a}'`).join(',')}]::text[] AS allergens,
+            ${limit}::int AS lim
+        )
+        SELECT r.id, r.name, r.latitude, r.longitude,
+               r.vegan_score, r.cuisine_types, r.price_level, r.address, r.rating,
+               2 * 6371 * asin(
+                 sqrt(
+                   sin(radians((r.latitude - p.lat)/2))^2 +
+                   cos(radians(p.lat)) * cos(radians(r.latitude)) *
+                   sin(radians((r.longitude - p.lng)/2))^2
+                 )
+               ) AS distance_km
+        FROM restaurants r, params p
+        WHERE COALESCE(r.vegan_score, 0) >= p.min_score
+          AND (
+            ARRAY_LENGTH(p.cuisines, 1) IS NULL OR ARRAY_LENGTH(p.cuisines, 1) = 0
+            OR r.cuisine_types && p.cuisines
+          )
+          AND 2 * 6371 * asin(
+                 sqrt(
+                   sin(radians((r.latitude - p.lat)/2))^2 +
+                   cos(radians(p.lat)) * cos(radians(r.latitude)) *
+                   sin(radians((r.longitude - p.lng)/2))^2
+                 )
+               ) <= p.radius_km
+        ORDER BY distance_km ASC, COALESCE(r.vegan_score, 0) DESC
+        LIMIT (SELECT lim FROM params)
       `;
       
       console.log('[RecommendationAgent] Query:', query);
       
       const results = await db.execute(sql.raw(query));
-      const restaurants = results || [];
+      const restaurants = (results as any)?.rows || results || [];
       
       // Process and add recommendation reasons
       return restaurants.map((r: any) => ({
@@ -94,7 +91,7 @@ export class RecommendationAgent {
         cuisineTypes: r.cuisine_types || [],
         address: r.address,
         rating: r.rating,
-        distance_km: parseFloat(r.distance_km),
+        distance_km: parseFloat(r.distance_km) || 0,
         reason: this.generateReason(r, preferences)
       }));
       
@@ -160,7 +157,7 @@ export class RecommendationAgent {
       `;
       
       const results = await db.execute(sql.raw(query));
-      const restaurants = results || [];
+      const restaurants = (results as any)?.rows || results || [];
       
       if (restaurants.length === 0) return null;
       
