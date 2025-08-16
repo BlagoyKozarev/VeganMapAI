@@ -756,6 +756,50 @@ var init_storage = __esm({
           throw error;
         }
       }
+      // Required API methods implementation
+      async count() {
+        const result = await db.select({ count: sql2`count(*)` }).from(restaurants);
+        return result[0]?.count || 0;
+      }
+      async getRestaurantsInBox(query) {
+        const allRestaurants = await this.getAllRestaurantsWithScores();
+        return allRestaurants.map((r) => ({
+          id: r.id,
+          name: r.name,
+          lat: r.latitude,
+          lng: r.longitude,
+          score: r.veganScore
+        }));
+      }
+      async saveFeedback(body) {
+        console.log("Feedback received:", body);
+      }
+      async loadSampleData() {
+        const existing = await this.getAllRestaurants();
+        if (existing.length > 0) {
+          return existing.length;
+        }
+        const sampleRestaurants = [
+          {
+            id: "loving-hut-sofia-emergency",
+            name: "Loving Hut Sofia",
+            address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+            latitude: "42.69798360",
+            longitude: "23.33007510",
+            cuisineTypes: ["Asian", "Vegan", "Vegetarian"],
+            openingHours: "Mon-Sun: 11:00-22:00",
+            rating: "4.50",
+            reviewCount: 247,
+            veganScore: "8.00",
+            priceLevel: 2,
+            website: "https://lovinghut.com/sofia"
+          }
+        ];
+        for (const restaurant of sampleRestaurants) {
+          await db.insert(restaurants).values(restaurant).onConflictDoNothing();
+        }
+        return sampleRestaurants.length;
+      }
     };
     storage = new DatabaseStorage();
   }
@@ -1446,7 +1490,6 @@ import path4 from "path";
 import fs4 from "fs";
 import express3 from "express";
 import cors from "cors";
-import compression from "compression";
 
 // server/routes.ts
 init_storage();
@@ -3633,7 +3676,89 @@ ${JSON.stringify(restaurantData, null, 2)}`
 }
 
 // server/routes.ts
-var router = Router();
+var apiRouter = Router();
+apiRouter.get("/health", async (req, res) => {
+  try {
+    const restaurantCount = await storage.count();
+    res.type("application/json").json({
+      ok: true,
+      ts: Date.now(),
+      counts: { restaurants: restaurantCount }
+    });
+  } catch (error) {
+    res.type("application/json").status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+apiRouter.get("/restaurants/public/map-data", async (req, res) => {
+  try {
+    const items = await storage.getRestaurantsInBox(req.query);
+    res.type("application/json").json(items);
+  } catch (error) {
+    res.type("application/json").status(500).json({
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+apiRouter.get("/recommend", async (req, res) => {
+  try {
+    const { lat, lng, radiusKm = 5, minScore = 0, limit = 10 } = req.query;
+    const nearbyRestaurants = await storage.getRestaurantsNearby({
+      lat: +lat,
+      lng: +lng,
+      radiusKm: +radiusKm,
+      minScore: +minScore,
+      limit: +limit
+    });
+    const normalizedRestaurants = nearbyRestaurants.map((r) => ({
+      id: r.id,
+      name: r.name,
+      score: r.veganScore,
+      lat: r.latitude,
+      lng: r.longitude
+    }));
+    res.type("application/json").json({
+      count: normalizedRestaurants.length,
+      restaurants: normalizedRestaurants
+    });
+  } catch (error) {
+    res.type("application/json").status(500).json({
+      count: 0,
+      restaurants: [],
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+apiRouter.post("/feedback", async (req, res) => {
+  try {
+    await storage.saveFeedback(req.body);
+    res.type("application/json").json({ ok: true });
+  } catch (error) {
+    res.type("application/json").status(500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+apiRouter.post("/emergency-load", async (req, res) => {
+  try {
+    const inserted = await storage.loadSampleData();
+    res.type("application/json").json({
+      ok: true,
+      inserted
+    });
+  } catch (error) {
+    res.type("application/json").status(500).json({
+      ok: false,
+      inserted: 0,
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+apiRouter.use((req, res) => res.status(404).type("application/json").json({ ok: false, error: "Not Found" }));
+var router = apiRouter;
 async function registerRoutes(app2) {
   await setupAuth(app2);
   registerApiStatsRoutes(app2);
@@ -5107,48 +5232,28 @@ var __filename = fileURLToPath(import.meta.url);
 var __dirname = dirname(__filename);
 var app = express3();
 app.set("trust proxy", 1);
-var allowedOrigins = [
-  "https://www.veganmapai.ai",
-  "https://vegan-map-ai-bkozarev.replit.app",
-  "http://localhost:5173",
-  process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : void 0
-].filter(Boolean);
-app.use(cors({
-  origin(origin, cb) {
-    if (!origin) return cb(null, true);
-    if (allowedOrigins.includes(origin)) return cb(null, true);
-    return cb(new Error(`CORS blocked: ${origin}`));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-app.use(compression({
-  level: 6,
-  threshold: 1024,
-  filter: (req, res) => {
-    if (req.headers["x-no-compression"]) {
-      return false;
-    }
-    return compression.filter(req, res);
-  }
-}));
+app.disable("x-powered-by");
 app.use(express3.json({ limit: "1mb" }));
-app.use(express3.urlencoded({ extended: false }));
-app.use("/api", router);
-app.get("/service-worker.js", (_req, res) => {
-  res.type("application/javascript");
-  res.sendFile(path4.join(__dirname, "../dist/service-worker.js"));
-});
-if (fs4.existsSync(path4.join(__dirname, "../dist"))) {
-  app.use(express3.static(path4.join(__dirname, "../dist"), { maxAge: "1h" }));
-  app.get(/^\/(?!api\/).*/, (_req, res) => {
-    res.sendFile(path4.join(__dirname, "../dist/index.html"));
+var allow = [
+  "https://vegan-map-ai-bkozarev.replit.app",
+  "http://localhost:5000",
+  "http://127.0.0.1:5000"
+];
+app.use(cors({
+  origin: (o, cb) => !o || allow.includes(o) ? cb(null, true) : cb(null, false),
+  credentials: false
+}));
+app.use("/api", apiRouter);
+var distDir = path4.join(__dirname, "../dist/public");
+if (fs4.existsSync(distDir)) {
+  app.use("/assets", express3.static(path4.join(distDir, "assets"), { maxAge: "7d", immutable: true }));
+  app.get("/manifest.json", (_, res) => res.sendFile(path4.join(distDir, "manifest.json")));
+  app.get("/service-worker.js", (_, res) => res.sendFile(path4.join(distDir, "service-worker.js")));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) return next();
+    res.sendFile(path4.join(distDir, "index.html"));
   });
 }
-app.use("/api", (_req, res) => {
-  res.status(404).json({ error: "Not found" });
-});
 app.use((err, _req, res, _next) => {
   const status = err.status || err.statusCode || 500;
   const message = err.message || "Internal Server Error";

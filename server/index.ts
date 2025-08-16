@@ -45,21 +45,18 @@ app.set("trust proxy", 1);
 
 // 1) security + json
 app.disable('x-powered-by');
+app.use(express.json({ limit: '1mb' }));
 
 // 2) CORS (ограничи по origin)
 const allow = [
   'https://vegan-map-ai-bkozarev.replit.app',
-  'http://127.0.0.1:5000',
-  'http://localhost:5000'
+  'http://localhost:5000',
+  'http://127.0.0.1:5000'
 ];
 app.use(cors({
   origin: (o, cb) => !o || allow.includes(o) ? cb(null, true) : cb(null, false),
   credentials: false
 }));
-
-// 3) Compression and JSON parsing
-app.use(compression({ level: 6, threshold: 1024 }));
-app.use(express.json({ limit: '1mb' }));
 
 // 3) API РУТЕР – ПРЕДИ Vite/статиката
 app.use('/api', apiRouter);
@@ -69,7 +66,7 @@ const distDir = path.join(__dirname, "../dist/public");
 if (fs.existsSync(distDir)) {
   app.use('/assets', express.static(path.join(distDir, 'assets'), { maxAge: '7d', immutable: true }));
   app.get('/manifest.json', (_, res) => res.sendFile(path.join(distDir, 'manifest.json')));
-  app.get('/service-worker.js', (_, res) => res.sendFile(path.join(distDir, 'sw.js')));
+  app.get('/service-worker.js', (_, res) => res.sendFile(path.join(distDir, 'service-worker.js')));
   
   // 5) SPA fallback (само за НЕ-API)
   app.get('*', (req, res, next) => {

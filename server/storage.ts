@@ -87,6 +87,12 @@ export interface IStorage {
   createVoiceSession(session: InsertVoiceSession): Promise<VoiceSession>;
   updateVoiceSession(id: string, session: Partial<InsertVoiceSession>): Promise<VoiceSession>;
   getActiveVoiceSession(userId: string): Promise<VoiceSession | undefined>;
+
+  // Required API methods
+  count(): Promise<number>;
+  getRestaurantsInBox(query: any): Promise<Array<{id: string, name: string, lat: string, lng: string, score?: string}>>;
+  saveFeedback(body: any): Promise<void>;
+  loadSampleData(): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -752,6 +758,60 @@ export class DatabaseStorage implements IStorage {
       console.error(`Storage: Error getting active voice session for user ${userId}:`, error);
       throw error;
     }
+  }
+
+  // Required API methods implementation
+  async count(): Promise<number> {
+    const result = await db.select({count: sql<number>`count(*)`}).from(restaurants);
+    return result[0]?.count || 0;
+  }
+
+  async getRestaurantsInBox(query: any): Promise<Array<{id: string, name: string, lat: string, lng: string, score?: string}>> {
+    const allRestaurants = await this.getAllRestaurantsWithScores();
+    return allRestaurants.map(r => ({
+      id: r.id,
+      name: r.name,
+      lat: r.latitude,
+      lng: r.longitude,
+      score: r.veganScore
+    }));
+  }
+
+  async saveFeedback(body: any): Promise<void> {
+    console.log('Feedback received:', body);
+    // Simple logging for now - feedback table can be added later
+  }
+
+  async loadSampleData(): Promise<number> {
+    // Check if data already exists
+    const existing = await this.getAllRestaurants();
+    if (existing.length > 0) {
+      return existing.length;
+    }
+
+    // Sample Sofia restaurants data
+    const sampleRestaurants = [
+      {
+        id: 'loving-hut-sofia-emergency',
+        name: 'Loving Hut Sofia',
+        address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+        latitude: '42.69798360',
+        longitude: '23.33007510',
+        cuisineTypes: ['Asian', 'Vegan', 'Vegetarian'],
+        openingHours: 'Mon-Sun: 11:00-22:00',
+        rating: '4.50',
+        reviewCount: 247,
+        veganScore: '8.00',
+        priceLevel: 2,
+        website: 'https://lovinghut.com/sofia'
+      }
+    ];
+
+    for (const restaurant of sampleRestaurants) {
+      await db.insert(restaurants).values(restaurant).onConflictDoNothing();
+    }
+
+    return sampleRestaurants.length;
   }
 }
 
