@@ -922,6 +922,291 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // OpenAI TTS endpoint
   app.post('/api/tts', isAuthenticated, ttsHandler);
 
+  // Load sample data endpoint for production deployment (both GET and POST)
+  app.get('/api/load-sample-data', async (req, res) => {
+    try {
+      console.log('🔄 [GET] Loading sample Sofia restaurants for production...');
+      
+      // Check if data already exists
+      const existingCount = await db.select({ count: sql<number>`count(*)` }).from(restaurants);
+      const count = existingCount[0]?.count || 0;
+      
+      if (count > 0) {
+        console.log(`❌ Database already has ${count} restaurants`);
+        return res.json({ 
+          success: false, 
+          message: `Database already has ${count} restaurants`,
+          count 
+        });
+      }
+
+      // Same restaurant data as POST endpoint
+      const sofiaRestaurants = [
+        {
+          id: 'loving-hut-sofia-prod',
+          name: 'Loving Hut Sofia',
+          address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+          latitude: '42.69798360',
+          longitude: '23.33007510',
+          phoneNumber: '+359 2 980 1689',
+          website: 'https://lovinghut.com/sofia',
+          veganScore: '8.0',
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ['Asian', 'Vegan', 'Vegetarian'],
+          priceLevel: 2,
+          rating: '4.5',
+          reviewCount: 247,
+          openingHours: { hours: 'Mon-Sun: 11:00-22:00' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        },
+        {
+          id: 'soul-kitchen-sofia-prod',
+          name: 'Soul Kitchen',
+          address: 'ul. "Graf Ignatiev" 12, 1000 Sofia, Bulgaria',
+          latitude: '42.68432380',
+          longitude: '23.32737170',
+          phoneNumber: '+359 88 123 4567',
+          veganScore: '7.8',
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ['Modern European', 'Vegan'],
+          priceLevel: 3,
+          rating: '4.7',
+          reviewCount: 189,
+          openingHours: { hours: 'Tue-Sun: 12:00-23:00' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        },
+        {
+          id: 'edgy-veggy-sofia-prod',
+          name: 'Edgy Veggy',
+          address: 'bul. "Vitosha" 45, 1000 Sofia, Bulgaria',
+          latitude: '42.69181700',
+          longitude: '23.31720890',
+          phoneNumber: '+359 2 987 6543',
+          veganScore: '7.4',
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ['International', 'Vegan', 'Raw Food'],
+          priceLevel: 2,
+          rating: '4.3',
+          reviewCount: 156,
+          openingHours: { hours: 'Mon-Sat: 10:00-21:00' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        },
+        {
+          id: 'vita-rama-sofia-prod',
+          name: 'Vita Rama Vegan Restaurant',
+          address: 'ul. "Solunska" 32, 1000 Sofia, Bulgaria',
+          latitude: '42.68529520',
+          longitude: '23.32166450',
+          phoneNumber: '+359 2 456 7890',
+          veganScore: '7.1',
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ['Bulgarian', 'Vegan', 'Traditional'],
+          priceLevel: 1,
+          rating: '4.2',
+          reviewCount: 203,
+          openingHours: { hours: 'Mon-Fri: 11:00-22:00, Sat-Sun: 12:00-23:00' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        },
+        {
+          id: 'satsanga-sofia-prod',
+          name: 'SATSANGA Vegetarian Restaurant',
+          address: 'ul. "William Gladstone" 2, 1000 Sofia, Bulgaria',
+          latitude: '42.69511920',
+          longitude: '23.32847910',
+          phoneNumber: '+359 2 321 6543',
+          veganScore: '6.8',
+          isFullyVegan: false,
+          hasVeganOptions: true,
+          cuisineTypes: ['Indian', 'Vegetarian', 'Vegan Options'],
+          priceLevel: 2,
+          rating: '4.4',
+          reviewCount: 312,
+          openingHours: { hours: 'Daily: 11:30-22:30' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        }
+      ];
+
+      // Insert restaurants
+      await db.insert(restaurants).values(sofiaRestaurants);
+      
+      // Verify insertion
+      const finalCount = await db.select({ count: sql<number>`count(*)` }).from(restaurants);
+      const finalTotal = finalCount[0]?.count || 0;
+      
+      console.log(`✅ Successfully loaded ${finalTotal} Sofia restaurants`);
+      
+      res.json({
+        success: true,
+        message: `Loaded ${finalTotal} Sofia restaurants`,
+        count: finalTotal,
+        restaurants: sofiaRestaurants.map(r => ({ 
+          name: r.name, 
+          veganScore: r.veganScore,
+          coordinates: [r.latitude, r.longitude]
+        }))
+      });
+      
+    } catch (error) {
+      console.error('❌ Error loading sample data (GET):', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to load sample data',
+        message: error.message
+      });
+    }
+  });
+
+  app.post('/api/load-sample-data', async (req, res) => {
+    try {
+      console.log('🔄 Loading sample Sofia restaurants for production...');
+      
+      // Check if data already exists
+      const existingCount = await db.select({ count: sql<number>`count(*)` }).from(restaurants);
+      const count = existingCount[0]?.count || 0;
+      
+      if (count > 0) {
+        console.log(`❌ Database already has ${count} restaurants`);
+        return res.json({ 
+          success: false, 
+          message: `Database already has ${count} restaurants`,
+          count 
+        });
+      }
+
+      // Sofia restaurant sample data with proper types
+      const sofiaRestaurants = [
+        {
+          id: 'loving-hut-sofia-prod',
+          name: 'Loving Hut Sofia',
+          address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+          latitude: '42.69798360',
+          longitude: '23.33007510',
+          phoneNumber: '+359 2 980 1689',
+          website: 'https://lovinghut.com/sofia',
+          veganScore: '8.0',
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ['Asian', 'Vegan', 'Vegetarian'],
+          priceLevel: 2,
+          rating: '4.5',
+          reviewCount: 247,
+          openingHours: { hours: 'Mon-Sun: 11:00-22:00' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        },
+        {
+          id: 'soul-kitchen-sofia-prod',
+          name: 'Soul Kitchen',
+          address: 'ul. "Graf Ignatiev" 12, 1000 Sofia, Bulgaria',
+          latitude: '42.68432380',
+          longitude: '23.32737170',
+          phoneNumber: '+359 88 123 4567',
+          veganScore: '7.8',
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ['Modern European', 'Vegan'],
+          priceLevel: 3,
+          rating: '4.7',
+          reviewCount: 189,
+          openingHours: { hours: 'Tue-Sun: 12:00-23:00' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        },
+        {
+          id: 'edgy-veggy-sofia-prod',
+          name: 'Edgy Veggy',
+          address: 'bul. "Vitosha" 45, 1000 Sofia, Bulgaria',
+          latitude: '42.69181700',
+          longitude: '23.31720890',
+          phoneNumber: '+359 2 987 6543',
+          veganScore: '7.4',
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ['International', 'Vegan', 'Raw Food'],
+          priceLevel: 2,
+          rating: '4.3',
+          reviewCount: 156,
+          openingHours: { hours: 'Mon-Sat: 10:00-21:00' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        },
+        {
+          id: 'vita-rama-sofia-prod',
+          name: 'Vita Rama Vegan Restaurant',
+          address: 'ul. "Solunska" 32, 1000 Sofia, Bulgaria',
+          latitude: '42.68529520',
+          longitude: '23.32166450',
+          phoneNumber: '+359 2 456 7890',
+          veganScore: '7.1',
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ['Bulgarian', 'Vegan', 'Traditional'],
+          priceLevel: 1,
+          rating: '4.2',
+          reviewCount: 203,
+          openingHours: { hours: 'Mon-Fri: 11:00-22:00, Sat-Sun: 12:00-23:00' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        },
+        {
+          id: 'satsanga-sofia-prod',
+          name: 'SATSANGA Vegetarian Restaurant',
+          address: 'ul. "William Gladstone" 2, 1000 Sofia, Bulgaria',
+          latitude: '42.69511920',
+          longitude: '23.32847910',
+          phoneNumber: '+359 2 321 6543',
+          veganScore: '6.8',
+          isFullyVegan: false,
+          hasVeganOptions: true,
+          cuisineTypes: ['Indian', 'Vegetarian', 'Vegan Options'],
+          priceLevel: 2,
+          rating: '4.4',
+          reviewCount: 312,
+          openingHours: { hours: 'Daily: 11:30-22:30' },
+          city: 'Sofia',
+          country: 'Bulgaria'
+        }
+      ];
+
+      // Insert restaurants
+      await db.insert(restaurants).values(sofiaRestaurants);
+      
+      // Verify insertion
+      const finalCount = await db.select({ count: sql<number>`count(*)` }).from(restaurants);
+      const finalTotal = finalCount[0]?.count || 0;
+      
+      console.log(`✅ Successfully loaded ${finalTotal} Sofia restaurants`);
+      
+      res.json({
+        success: true,
+        message: `Loaded ${finalTotal} Sofia restaurants`,
+        count: finalTotal,
+        restaurants: sofiaRestaurants.map(r => ({ 
+          name: r.name, 
+          veganScore: r.veganScore,
+          coordinates: [r.latitude, r.longitude]
+        }))
+      });
+      
+    } catch (error) {
+      console.error('❌ Error loading sample data:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to load sample data',
+        message: error.message
+      });
+    }
+  });
+
   // Google Maps Optimization Routes
   app.get('/api/maps/cost-report', isAuthenticated, async (req: any, res) => {
     try {
