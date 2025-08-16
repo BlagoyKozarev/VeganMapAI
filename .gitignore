@@ -53,3 +53,5 @@ GIT-*.sh
 replit_secrets/*
 .replit_secrets/
 
+.local/
+.cache/
