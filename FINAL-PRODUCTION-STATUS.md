@@ -68,4 +68,31 @@ After deployment completes:
 - **Data loading:** Immediate after deployment
 - **Full functionality:** Within 5 minutes of deployment
 
-## Status: DEPLOYMENT PENDING - READY TO ACTIVATE ⏳
+## Status: MAJOR DISCOVERY - DIFFERENT DATABASES 🔍
+
+### Critical Finding (August 16, 2025 - 13:30)
+**ROOT CAUSE IDENTIFIED:** Development and Production use completely separate databases!
+
+- **Development DB:** 5 Sofia restaurants ✅ (ep-shiny-frog)
+- **Production DB:** 0 restaurants ❌ (ep-fragrant-glade) 
+- **SQL Access:** Works on development DB only
+- **Deployment Issue:** Code updates but uses different database instance
+
+### Technical Analysis
+1. **Different Neon instances:** ep-shiny-frog vs ep-fragrant-glade
+2. **Separate schemas:** Development has extended schema with isFullyVegan, hasVeganOptions
+3. **Production isolation:** Production database is completely separate environment
+4. **API mismatch:** Production API can't access development database data
+
+### Resolution Strategy
+Production needs its own data loading mechanism since:
+- SQL tool only accesses development database
+- Production uses different DATABASE_URL environment
+- Deployment updates code but not database connection
+
+### Next Steps
+1. Wait for deployment to complete with new endpoints
+2. Use production API endpoints to load data
+3. Verify production database gets populated through application layer
+
+## Status: ARCHITECTURE UNDERSTANDING COMPLETE - AWAITING DEPLOYMENT ⏳
