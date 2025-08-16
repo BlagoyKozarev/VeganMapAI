@@ -81,7 +81,7 @@ export class RecommendationAgent {
       console.log('[RecommendationAgent] Query:', query);
       
       const results = await db.execute(sql.raw(query));
-      const restaurants = (results as any)?.rows || [];
+      const restaurants = results || [];
       
       // Process and add recommendation reasons
       return restaurants.map((r: any) => ({
@@ -156,11 +156,11 @@ export class RecommendationAgent {
         SELECT id, name, latitude, longitude, vegan_score, price_level, 
                cuisine_types, address, rating
         FROM restaurants 
-        WHERE id = $1
+        WHERE id = '${id}'
       `;
       
-      const results = await db.execute(sql.raw(query, [id]));
-      const restaurants = (results as any)?.rows || [];
+      const results = await db.execute(sql.raw(query));
+      const restaurants = results || [];
       
       if (restaurants.length === 0) return null;
       

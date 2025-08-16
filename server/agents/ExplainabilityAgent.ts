@@ -57,22 +57,20 @@ export class ExplainabilityAgent {
         SELECT id, name, vegan_score, price_level, cuisine_types, 
                address, rating, phone_number, website
         FROM restaurants 
-        WHERE id = $1
+        WHERE id = '${info.id}'
       `;
-      params = [info.id];
     } else {
       query = `
         SELECT id, name, vegan_score, price_level, cuisine_types, 
                address, rating, phone_number, website
         FROM restaurants 
-        WHERE name ILIKE $1
+        WHERE name ILIKE '%${info.name}%'
         LIMIT 1
       `;
-      params = [`%${info.name}%`];
     }
     
-    const results = await db.execute(sql.raw(query, params));
-    const restaurants = (results as any)?.rows || [];
+    const results = await db.execute(sql.raw(query));
+    const restaurants = results || [];
     
     return restaurants.length > 0 ? restaurants[0] : null;
   }
@@ -181,15 +179,16 @@ export class ExplainabilityAgent {
     const explanations = new Map<string, ScoreExplanation>();
     
     try {
+      const idList = restaurantIds.map(id => `'${id}'`).join(',');
       const query = `
         SELECT id, name, vegan_score, price_level, cuisine_types, 
                address, rating, phone_number, website
         FROM restaurants 
-        WHERE id = ANY($1)
+        WHERE id IN (${idList})
       `;
       
-      const results = await db.execute(sql.raw(query, [restaurantIds]));
-      const restaurants = (results as any)?.rows || [];
+      const results = await db.execute(sql.raw(query));
+      const restaurants = results || [];
       
       for (const restaurant of restaurants) {
         const explanation = this.generateExplanation(restaurant);
