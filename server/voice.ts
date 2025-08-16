@@ -20,7 +20,7 @@ export async function stt(req: Request, res: Response) {
     console.log(`[STT] Processing audio file: ${file.originalname}, size: ${file.size} bytes`);
 
     const transcript = await openai.audio.transcriptions.create({
-      file: file,
+      file: file as any, // Type assertion for multer File compatibility
       model: "whisper-1",
       response_format: "json"
     });
@@ -40,20 +40,27 @@ export async function tts(req: Request, res: Response) {
     const qp = TTSSchema.parse(req.body);
     console.log(`[TTS] Converting text to speech: "${qp.text.substring(0, 50)}..."`);
 
-    const audio = await el.textToSpeech.convert({
-      voice_id: process.env.ELEVENLABS_VOICE_ID!,
-      text: qp.text,
-      model_id: "eleven_monolingual_v1",
-      voice_settings: { 
-        stability: 0.5, 
-        similarity_boost: 0.75 
+    const audio = await el.textToSpeech.convert(
+      process.env.ELEVENLABS_VOICE_ID!,
+      {
+        text: qp.text,
+        model_id: "eleven_monolingual_v1",
+        voice_settings: { 
+          stability: 0.5, 
+          similarity_boost: 0.75 
+        }
       }
-    });
+    );
 
     res.setHeader("Content-Type", "audio/mpeg");
     res.setHeader("Content-Disposition", "attachment; filename=speech.mp3");
     
-    const buffer = Buffer.from(await audio.arrayBuffer());
+    // Handle the audio stream response
+    const chunks: Buffer[] = [];
+    for await (const chunk of audio as any) {
+      chunks.push(chunk);
+    }
+    const buffer = Buffer.concat(chunks);
     console.log(`[TTS] Generated audio: ${buffer.length} bytes`);
     
     res.send(buffer);

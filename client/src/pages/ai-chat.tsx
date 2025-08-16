@@ -3,8 +3,11 @@ import { useLocation } from 'wouter';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Mic, MicOff, Send, Trash2, ArrowLeft } from 'lucide-react';
+import { Mic, MicOff, Send, Trash2, ArrowLeft, Volume2 } from 'lucide-react';
+import { VoiceChat } from '@/components/voice/VoiceChat';
+import { VoiceState } from '@/lib/voice';
 // import { requestGPTHelp } from '../../../agent-gpt-helper';
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -23,6 +26,7 @@ export default function AiChat() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
+  const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -542,64 +546,51 @@ export default function AiChat() {
         )}
         <div ref={messagesEndRef} />
       </div>
-      {/* Input Area */}
-      <div className="border-t border-gray-200 p-4 bg-white">
-        {/* Voice Controls - Available on all devices, restricted for iOS Safari only */}
-        <div className="mb-4 flex justify-center space-x-3">
-          <button
-            onTouchStart={(e) => {
-            }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toggleVoiceConversation();
-            }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toggleVoiceConversation();
-            }}
-            onPointerDown={(e) => {
-            }}
-            disabled={voiceButtonState.disabled}
-            className={`
-              flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-colors
-              ${voiceButtonState.variant === 'destructive' 
-                ? 'bg-red-500 hover:bg-red-600 text-white' 
-                : voiceButtonState.variant === 'secondary'
-                ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-              }
-              ${voiceButtonState.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95'}
-            `}
-            type="button"
-          >
-            {conversationActive ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            <span>{voiceButtonState.text}</span>
-          </button>
-        </div>
-        {/* Text Input */}
-        <form onSubmit={handleTextSubmit} className="flex space-x-2">
-          <Textarea
-            value={currentMessage}
-            onChange={(e) => setCurrentMessage(e.target.value)}
-            placeholder={isMobile ? "Напишете съобщение..." : "Напишете съобщение или използвайте гласовия асистент..."}
-            className="flex-1 min-h-[2.5rem] max-h-32 resize-none"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleTextSubmit(e);
-              }
-            }}
-          />
-          <Button
-            type="submit"
-            disabled={!currentMessage.trim() || textChatMutation.isPending}
-            className="px-3"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </form>
+      {/* Input Area with Tabs */}
+      <div className="border-t border-gray-200 bg-white">
+        <Tabs defaultValue="text" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
+            <TabsTrigger value="text" className="flex items-center gap-2">
+              <Send className="w-4 h-4" />
+              Текст
+            </TabsTrigger>
+            <TabsTrigger value="voice" className="flex items-center gap-2">
+              <Volume2 className="w-4 h-4" />
+              Глас
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="text" className="p-4 m-0">
+            <form onSubmit={handleTextSubmit} className="flex space-x-2">
+              <Textarea
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                placeholder={isMobile ? "Напишете съобщение..." : "Напишете съобщение или използвайте гласовия асистент..."}
+                className="flex-1 min-h-[2.5rem] max-h-32 resize-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleTextSubmit(e);
+                  }
+                }}
+              />
+              <Button
+                type="submit"
+                disabled={!currentMessage.trim() || textChatMutation.isPending}
+                className="px-3"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </form>
+          </TabsContent>
+          
+          <TabsContent value="voice" className="p-4 m-0">
+            <VoiceChat 
+              onStateChange={setVoiceState}
+              className="w-full"
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

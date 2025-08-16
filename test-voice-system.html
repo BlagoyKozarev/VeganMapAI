@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice System Test - VeganMapAI</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f9fafb;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      margin: 12px 0;
+      font-weight: 500;
+    }
+    .status.success { background: #d1fae5; color: #065f46; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .status.info { background: #dbeafe; color: #1e40af; }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 8px 4px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    button:hover { background: #2563eb; }
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .recording {
+      background: #dc2626 !important;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    audio {
+      width: 100%;
+      margin: 12px 0;
+    }
+    textarea {
+      width: 100%;
+      height: 60px;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎤 VeganMapAI Voice System Test</h1>
+    <p>Test the complete Voice/STT/TTS functionality with ElevenLabs integration.</p>
+
+    <div id="status" class="status info">
+      Initializing voice system...
+    </div>
+
+    <div class="test-section">
+      <h3>1. Microphone Test</h3>
+      <button id="testMic">Test Microphone Access</button>
+      <button id="recordBtn" disabled>🎤 Start Recording</button>
+      <audio id="recordedAudio" controls style="display: none;"></audio>
+    </div>
+
+    <div class="test-section">
+      <h3>2. Speech-to-Text Test</h3>
+      <div id="transcription" style="margin: 12px 0; padding: 12px; background: #f3f4f6; border-radius: 8px; min-height: 40px;">
+        <em>Transcription will appear here...</em>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h3>3. Text-to-Speech Test</h3>
+      <textarea id="ttsText" placeholder="Enter text to convert to speech...">Hello! I am VeganMapAI, your intelligent vegan restaurant assistant. How can I help you find amazing plant-based dining options today?</textarea>
+      <br>
+      <button id="ttsBtn">🔊 Generate Speech</button>
+      <audio id="ttsAudio" controls style="display: none;"></audio>
+    </div>
+
+    <div class="test-section">
+      <h3>4. Full Voice Conversation Test</h3>
+      <button id="voiceConversationBtn">🗣️ Start Voice Conversation</button>
+      <div id="conversationLog" style="margin: 12px 0; padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; min-height: 100px;">
+        <em>Conversation log will appear here...</em>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+
+    const updateStatus = (message, type = 'info') => {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      statusEl.className = `status ${type}`;
+    };
+
+    const log = (message) => {
+      const logEl = document.getElementById('conversationLog');
+      const timestamp = new Date().toLocaleTimeString();
+      logEl.innerHTML += `<div><strong>[${timestamp}]</strong> ${message}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    };
+
+    // Test microphone access
+    document.getElementById('testMic').addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        updateStatus('✅ Microphone access granted successfully', 'success');
+        document.getElementById('recordBtn').disabled = false;
+        stream.getTracks().forEach(track => track.stop()); // Stop immediately after test
+      } catch (err) {
+        updateStatus(`❌ Microphone access failed: ${err.message}`, 'error');
+        console.error('Microphone test failed:', err);
+      }
+    });
+
+    // Record audio
+    document.getElementById('recordBtn').addEventListener('click', async () => {
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            const audioEl = document.getElementById('recordedAudio');
+            audioEl.src = audioUrl;
+            audioEl.style.display = 'block';
+            
+            // Test STT
+            await testSTT(audioBlob);
+          };
+
+          mediaRecorder.start();
+          isRecording = true;
+          document.getElementById('recordBtn').textContent = '⏹️ Stop Recording';
+          document.getElementById('recordBtn').className = 'recording';
+          updateStatus('🎤 Recording... Speak now!', 'info');
+          
+        } catch (err) {
+          updateStatus(`❌ Recording failed: ${err.message}`, 'error');
+        }
+      } else {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        isRecording = false;
+        document.getElementById('recordBtn').textContent = '🎤 Start Recording';
+        document.getElementById('recordBtn').className = '';
+        updateStatus('Processing audio...', 'info');
+      }
+    });
+
+    // Test Speech-to-Text
+    async function testSTT(audioBlob) {
+      try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
+        
+        const response = await fetch('/voice/stt', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          document.getElementById('transcription').innerHTML = `<strong>Transcription:</strong> ${result.transcript}`;
+          updateStatus('✅ Speech-to-Text successful', 'success');
+          log(`STT Result: "${result.transcript}"`);
+        } else {
+          const error = await response.text();
+          updateStatus(`❌ STT failed: ${response.status}`, 'error');
+          document.getElementById('transcription').innerHTML = `<strong>Error:</strong> ${error}`;
+        }
+      } catch (err) {
+        updateStatus(`❌ STT request failed: ${err.message}`, 'error');
+        console.error('STT test failed:', err);
+      }
+    }
+
+    // Test Text-to-Speech
+    document.getElementById('ttsBtn').addEventListener('click', async () => {
+      const text = document.getElementById('ttsText').value.trim();
+      if (!text) {
+        updateStatus('❌ Please enter text to convert', 'error');
+        return;
+      }
+
+      try {
+        updateStatus('🔄 Generating speech...', 'info');
+        
+        const response = await fetch('/voice/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        
+        if (response.ok) {
+          const audioBlob = await response.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          
+          const audioEl = document.getElementById('ttsAudio');
+          audioEl.src = audioUrl;
+          audioEl.style.display = 'block';
+          audioEl.play();
+          
+          updateStatus('✅ Text-to-Speech successful', 'success');
+          log(`TTS Generated for: "${text.substring(0, 50)}..."`);
+        } else {
+          const error = await response.text();
+          updateStatus(`❌ TTS failed: ${response.status} - ${error}`, 'error');
+        }
+      } catch (err) {
+        updateStatus(`❌ TTS request failed: ${err.message}`, 'error');
+        console.error('TTS test failed:', err);
+      }
+    });
+
+    // Test full voice conversation
+    document.getElementById('voiceConversationBtn').addEventListener('click', async () => {
+      updateStatus('🗣️ Starting voice conversation test...', 'info');
+      log('Starting full voice conversation test...');
+      
+      // This would integrate with the actual AI chat system
+      // For now, we'll just test the STT + TTS pipeline
+      try {
+        // Start recording
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          
+          // Test STT
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'conversation.wav');
+          
+          try {
+            const sttResponse = await fetch('/voice/stt', {
+              method: 'POST',
+              body: formData
+            });
+            
+            if (sttResponse.ok) {
+              const sttResult = await sttResponse.json();
+              log(`User said: "${sttResult.transcript}"`);
+              
+              // Generate AI response (mock for now)
+              const aiResponse = `I heard you say "${sttResult.transcript}". Here's some information about vegan restaurants in Sofia!`;
+              
+              log(`AI Response: "${aiResponse}"`);
+              
+              // Convert AI response to speech
+              const ttsResponse = await fetch('/voice/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: aiResponse })
+              });
+              
+              if (ttsResponse.ok) {
+                const audioBlob = await ttsResponse.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+                
+                updateStatus('✅ Full voice conversation test successful!', 'success');
+                log('✅ Complete voice conversation cycle successful!');
+              }
+            }
+          } catch (err) {
+            updateStatus(`❌ Conversation test failed: ${err.message}`, 'error');
+            log(`❌ Error: ${err.message}`);
+          }
+        };
+
+        mediaRecorder.start();
+        log('🎤 Recording for 5 seconds...');
+        updateStatus('🎤 Recording your message... (5 seconds)', 'info');
+        
+        // Auto-stop after 5 seconds
+        setTimeout(() => {
+          mediaRecorder.stop();
+          mediaRecorder.stream.getTracks().forEach(track => track.stop());
+          updateStatus('🔄 Processing your message...', 'info');
+        }, 5000);
+        
+      } catch (err) {
+        updateStatus(`❌ Voice conversation failed: ${err.message}`, 'error');
+        log(`❌ Error: ${err.message}`);
+      }
+    });
+
+    // Initialize
+    updateStatus('Ready to test voice functionality', 'info');
+    log('Voice system test initialized. Click "Test Microphone Access" to begin.');
+  </script>
+</body>
+</html>

@@ -119,8 +119,10 @@ export const createVoiceSession = (): VoiceSession => ({
 // Check if browser supports voice features
 export const supportsVoice = (): boolean => {
   return !!(
+    typeof navigator !== 'undefined' &&
     navigator.mediaDevices && 
     navigator.mediaDevices.getUserMedia &&
+    typeof window !== 'undefined' &&
     window.MediaRecorder &&
     window.Audio
   );
