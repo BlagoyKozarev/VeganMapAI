@@ -53,7 +53,6 @@ import { createInsertSchema } from "drizzle-zod";
 var sessions, users, dietaryStyleEnum, priceRangeEnum, userProfiles, restaurants, veganScoreBreakdown, userFavorites, userVisits, chatSessions, userAnalytics, scoringWeights, voiceUsage, voiceSessions, insertUserProfileSchema, insertRestaurantSchema, insertVeganScoreBreakdownSchema, insertUserFavoriteSchema, insertUserVisitSchema, insertChatSessionSchema, insertUserAnalyticsSchema, insertScoringWeightsSchema, insertVoiceUsageSchema, insertVoiceSessionSchema;
 var init_schema = __esm({
   "shared/schema.ts"() {
-    "use strict";
     sessions = pgTable(
       "sessions",
       {
@@ -246,7 +245,6 @@ import { drizzle } from "drizzle-orm/node-postgres";
 var pool, db;
 var init_db = __esm({
   "server/db.ts"() {
-    "use strict";
     init_schema();
     if (!process.env.DATABASE_URL) {
       throw new Error(
@@ -266,7 +264,6 @@ import { eq, and, desc, sql as sql2, inArray } from "drizzle-orm";
 var DatabaseStorage, storage;
 var init_storage = __esm({
   "server/storage.ts"() {
-    "use strict";
     init_schema();
     init_db();
     DatabaseStorage = class {
@@ -752,7 +749,6 @@ var init_storage = __esm({
 var VOICE_SESSION_LIMITS, VOICE_CONFIG;
 var init_voice_limits = __esm({
   "shared/voice-limits.ts"() {
-    "use strict";
     VOICE_SESSION_LIMITS = {
       FREE_USERS: {
         sessionMinutes: 10,
@@ -785,7 +781,6 @@ __export(voiceUsageService_exports, {
 var VoiceUsageService, voiceUsageService;
 var init_voiceUsageService = __esm({
   "server/services/voiceUsageService.ts"() {
-    "use strict";
     init_storage();
     init_voice_limits();
     VoiceUsageService = class {
@@ -924,7 +919,6 @@ import memoizee from "memoizee";
 var GoogleMapsOptimizer, getGoogleMapsOptimizer;
 var init_googleMapsOptimizer = __esm({
   "server/services/googleMapsOptimizer.ts"() {
-    "use strict";
     init_storage();
     GoogleMapsOptimizer = class {
       cache;
@@ -1399,7 +1393,6 @@ function isEmergencyMode() {
 var GOOGLE_MAPS_API_KEY, optimizer, getRestaurantsByCity, googleMapsService_default;
 var init_googleMapsService = __esm({
   "server/services/googleMapsService.ts"() {
-    "use strict";
     init_googleMapsOptimizer();
     GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY || "";
     optimizer = getGoogleMapsOptimizer(GOOGLE_MAPS_API_KEY);
@@ -6141,11 +6134,11 @@ function makeKey(q) {
 }
 setInterval(() => {
   const now = Date.now();
-  for (const [key, entry] of cache.entries()) {
+  cache.forEach((entry, key) => {
     if (now > entry.expiresAt) {
       cache.delete(key);
     }
-  }
+  });
 }, TTL_MS);
 app.use(compression({
   level: 6,
@@ -6255,6 +6248,19 @@ app.use("/public", express4.static(path5.join(process.cwd(), "public")));
   if (process.env.NODE_ENV !== "production") {
     await initializeDatabase();
   }
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      const { uid, place_id, score_details, comment } = req.body || {};
+      if (!uid || !place_id) {
+        return res.status(400).json({ error: "uid and place_id required" });
+      }
+      console.log("Feedback received:", { uid, place_id, score_details, comment });
+      res.json({ ok: true, queued: true });
+    } catch (e) {
+      console.error("Feedback error:", e);
+      res.status(500).json({ error: "failed" });
+    }
+  });
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
