@@ -146,8 +146,18 @@ app.use(health);
 app.use(express.json({ limit: '1mb' })); // Limit JSON payload size
 app.use(express.urlencoded({ extended: false }));
 
-// Serve static files from public directory
-app.use(express.static(path.join(process.cwd(), 'public')));
+// Serve static files from public directory with proper MIME types
+app.use(express.static(path.join(process.cwd(), 'public'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    } else if (path.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    } else if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    }
+  }
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();
