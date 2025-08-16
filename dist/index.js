@@ -1438,6 +1438,7 @@ import fs5 from "fs";
 import express4 from "express";
 import cors from "cors";
 import compression from "compression";
+import rateLimit from "express-rate-limit";
 
 // server/routes.ts
 init_storage();
@@ -3748,10 +3749,10 @@ async function registerRoutes(app2) {
         name: restaurant.name,
         latitude: restaurant.latitude,
         longitude: restaurant.longitude,
-        veganScore: restaurant.veganScore || restaurant.vegan_score,
-        cuisineTypes: restaurant.cuisineTypes || restaurant.cuisine_types,
+        veganScore: restaurant.veganScore,
+        cuisineTypes: restaurant.cuisineTypes,
         rating: restaurant.rating,
-        priceLevel: restaurant.priceLevel || restaurant.price_level,
+        priceLevel: restaurant.priceLevel,
         address: restaurant.address
       }));
       console.log(`Returning ${publicData.length} processed restaurants`);
@@ -3783,14 +3784,15 @@ async function registerRoutes(app2) {
         id: r.id,
         name: r.name,
         address: r.address || "No address",
-        lat: parseFloat(r.latitude || r.lat),
-        lng: parseFloat(r.longitude || r.lng),
-        vegan_full: r.isFullyVegan || false,
+        lat: parseFloat(r.latitude),
+        lng: parseFloat(r.longitude),
+        vegan_full: false,
+        // Default value for compatibility
         cuisines: r.cuisineTypes || [],
         price: r.priceLevel || "$",
         score: r.veganScore ? parseFloat(r.veganScore) : null,
         components: r.veganScore ? [
-          { k: "Purity (Fully Vegan)", w: 0.25, v: r.isFullyVegan ? 0.9 : 0.6 },
+          { k: "Purity (Fully Vegan)", w: 0.25, v: 0.6 },
           { k: "Menu Breadth", w: 0.2, v: 0.8 },
           { k: "Ingredient Transparency", w: 0.2, v: 0.85 },
           { k: "User Sentiment", w: 0.2, v: 0.82 },
@@ -3843,7 +3845,7 @@ async function registerRoutes(app2) {
         sampleRestaurants: samples.map((r) => ({
           id: r.id,
           name: r.name,
-          city: r.city
+          address: r.address
         })),
         timestamp: (/* @__PURE__ */ new Date()).toISOString()
       });
@@ -4025,11 +4027,9 @@ async function registerRoutes(app2) {
       const userId = req.user.claims.sub;
       const profile = await storage.getUserProfile(userId);
       res.json({
-        defaultLat: profile?.defaultLat,
-        defaultLng: profile?.defaultLng,
         preferredCuisines: profile?.preferredCuisines || [],
-        minVeganScore: profile?.minVeganScore || 0,
-        searchRadius: profile?.searchRadius || 10
+        maxDistance: profile?.maxDistance || 2e3,
+        priceRange: profile?.priceRange || "$$"
       });
     } catch (error) {
       console.error("Error fetching preferences:", error);
@@ -4039,23 +4039,19 @@ async function registerRoutes(app2) {
   app2.post("/api/user/preferences", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { defaultLat, defaultLng, preferredCuisines, minVeganScore, searchRadius } = req.body;
+      const { preferredCuisines, maxDistance, priceRange } = req.body;
       const updatedProfile = await storage.upsertUserProfile({
         userId,
-        defaultLat,
-        defaultLng,
         preferredCuisines,
-        minVeganScore,
-        searchRadius
+        maxDistance,
+        priceRange
       });
       res.json({
         success: true,
         preferences: {
-          defaultLat: updatedProfile.defaultLat,
-          defaultLng: updatedProfile.defaultLng,
           preferredCuisines: updatedProfile.preferredCuisines,
-          minVeganScore: updatedProfile.minVeganScore,
-          searchRadius: updatedProfile.searchRadius
+          maxDistance: updatedProfile.maxDistance,
+          priceRange: updatedProfile.priceRange
         }
       });
     } catch (error) {
@@ -4109,8 +4105,8 @@ async function registerRoutes(app2) {
           menuVariety: scoreResult.breakdown.menuVariety.toString(),
           ingredientClarity: scoreResult.breakdown.ingredientClarity.toString(),
           staffKnowledge: scoreResult.breakdown.staffKnowledge.toString(),
-          crossContamination: scoreResult.breakdown.crossContamination.toString(),
-          nutritionalInfo: scoreResult.breakdown.nutritionalInfo.toString(),
+          crossContaminationPrevention: scoreResult.breakdown.crossContamination.toString(),
+          nutritionalInformation: scoreResult.breakdown.nutritionalInfo.toString(),
           allergenManagement: scoreResult.breakdown.allergenManagement.toString(),
           overallScore: scoreResult.overallScore.toString()
         });
@@ -4181,8 +4177,8 @@ async function registerRoutes(app2) {
                 menuVariety: scoreResult.breakdown.menuVariety.toString(),
                 ingredientClarity: scoreResult.breakdown.ingredientClarity.toString(),
                 staffKnowledge: scoreResult.breakdown.staffKnowledge.toString(),
-                crossContamination: scoreResult.breakdown.crossContamination.toString(),
-                nutritionalInfo: scoreResult.breakdown.nutritionalInfo.toString(),
+                crossContaminationPrevention: scoreResult.breakdown.crossContamination.toString(),
+                nutritionalInformation: scoreResult.breakdown.nutritionalInfo.toString(),
                 allergenManagement: scoreResult.breakdown.allergenManagement.toString(),
                 overallScore: scoreResult.overallScore.toString()
               });
@@ -6078,6 +6074,125 @@ router2.get("/bulk-test-status", async (req, res) => {
 });
 var bulkTestGBGPT_default = router2;
 
+// server/middleware/geoCache.ts
+var GeoHashCache = class {
+  cache = /* @__PURE__ */ new Map();
+  TTL_MS = 7 * 24 * 60 * 60 * 1e3;
+  // 7 days
+  PRECISION = 6;
+  // ~2km accuracy
+  // Simple geohash implementation for caching
+  geohash(lat, lng) {
+    const chars = "0123456789bcdefghjkmnpqrstuvwxyz";
+    let idx = 0;
+    let bit = 0;
+    let even_bit = true;
+    let geohash = "";
+    let lat_min = -90, lat_max = 90;
+    let lng_min = -180, lng_max = 180;
+    while (geohash.length < this.PRECISION) {
+      if (even_bit) {
+        const mid = (lng_min + lng_max) / 2;
+        if (lng >= mid) {
+          idx = (idx << 1) + 1;
+          lng_min = mid;
+        } else {
+          idx = idx << 1;
+          lng_max = mid;
+        }
+      } else {
+        const mid = (lat_min + lat_max) / 2;
+        if (lat >= mid) {
+          idx = (idx << 1) + 1;
+          lat_min = mid;
+        } else {
+          idx = idx << 1;
+          lat_max = mid;
+        }
+      }
+      even_bit = !even_bit;
+      if (++bit == 5) {
+        geohash += chars[idx];
+        bit = 0;
+        idx = 0;
+      }
+    }
+    return geohash;
+  }
+  set(lat, lng, data, prefix = "places") {
+    const hash = this.geohash(lat, lng);
+    const key = `${prefix}:${hash}`;
+    this.cache.set(key, {
+      data,
+      expiresAt: Date.now() + this.TTL_MS,
+      geohash: hash
+    });
+  }
+  get(lat, lng, prefix = "places") {
+    const hash = this.geohash(lat, lng);
+    const key = `${prefix}:${hash}`;
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
+  // Clean expired entries
+  cleanup() {
+    const now = Date.now();
+    for (const [key, entry] of this.cache.entries()) {
+      if (now > entry.expiresAt) {
+        this.cache.delete(key);
+      }
+    }
+  }
+  // Stats for monitoring
+  getStats() {
+    const now = Date.now();
+    const entries = Array.from(this.cache.values());
+    const expired = entries.filter((e) => now > e.expiresAt).length;
+    return {
+      totalEntries: this.cache.size,
+      expiredEntries: expired,
+      activeEntries: this.cache.size - expired,
+      ttlDays: this.TTL_MS / (24 * 60 * 60 * 1e3),
+      precision: this.PRECISION
+    };
+  }
+};
+var geoCache2 = new GeoHashCache();
+setInterval(() => {
+  geoCache2.cleanup();
+}, 60 * 60 * 1e3);
+var geoCacheMiddleware = (prefix = "places") => {
+  return (req, res, next) => {
+    const { lat, lng } = req.query;
+    if (!lat || !lng) {
+      return next();
+    }
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return next();
+    }
+    const cached = geoCache2.get(latitude, longitude, prefix);
+    if (cached) {
+      console.log(`[GeoCache] HIT: ${prefix} at geohash ${geoCache2["geohash"](latitude, longitude)}`);
+      return res.json(cached);
+    }
+    const originalJson = res.json.bind(res);
+    res.json = function(data) {
+      const cache2 = geoCache2;
+      geoCache2.set(latitude, longitude, data, prefix);
+      console.log(`[GeoCache] STORE: ${prefix} at precision ${cache2.PRECISION}`);
+      return originalJson(data);
+    };
+    next();
+  };
+};
+
 // server/index.ts
 var envPath = path5.join(process.cwd(), ".env");
 var envExists = fs5.existsSync(envPath);
@@ -6141,11 +6256,11 @@ function makeKey(q) {
 }
 setInterval(() => {
   const now = Date.now();
-  for (const [key, entry] of cache.entries()) {
+  cache.forEach((entry, key) => {
     if (now > entry.expiresAt) {
       cache.delete(key);
     }
-  }
+  });
 }, TTL_MS);
 app.use(compression({
   level: 6,
@@ -6159,6 +6274,23 @@ app.use(compression({
     return compression.filter(req, res);
   }
 }));
+var limiter = rateLimit({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: 300,
+  // Limit each IP to 300 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Too many requests from this IP, please try again later.",
+    retryAfter: "15 minutes"
+  },
+  // Standard rate limit handling
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json(options.message);
+  }
+});
+app.use("/api", limiter);
 app.use(express4.json({ limit: "1mb" }));
 app.use(express4.urlencoded({ extended: false }));
 app.use(express4.static(path5.join(process.cwd(), "public")));
@@ -6186,7 +6318,7 @@ app.use((req, res, next) => {
   });
   next();
 });
-app.get("/api/places", async (req, res) => {
+app.get("/api/places", geoCacheMiddleware("places"), async (req, res) => {
   try {
     const { n, s, e, w, profile } = req.query;
     if (!n || !s || !e || !w) {
@@ -6255,6 +6387,19 @@ app.use("/public", express4.static(path5.join(process.cwd(), "public")));
   if (process.env.NODE_ENV !== "production") {
     await initializeDatabase();
   }
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      const { uid, place_id, score_details, comment } = req.body || {};
+      if (!uid || !place_id) {
+        return res.status(400).json({ error: "uid and place_id required" });
+      }
+      console.log("Feedback received:", { uid, place_id, score_details, comment });
+      res.json({ ok: true, queued: true });
+    } catch (e) {
+      console.error("Feedback error:", e);
+      res.status(500).json({ error: "failed" });
+    }
+  });
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";

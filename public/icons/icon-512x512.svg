@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="512" height="512" rx="110" fill="#22c55e"/>
+<circle cx="256" cy="256" r="200" fill="#ffffff" fill-opacity="0.05"/>
+<circle cx="256" cy="256" r="160" fill="#ffffff" fill-opacity="0.1"/>
+<!-- Map pin icon -->
+<path d="M256 120C204.8 120 164 160.8 164 212C164 284 256 392 256 392S348 284 348 212C348 160.8 307.2 120 256 120Z" fill="#ffffff"/>
+<circle cx="256" cy="212" r="40" fill="#22c55e"/>
+<!-- Leaf accent -->
+<path d="M200 320C200 340 220 360 240 360C260 360 280 340 280 320C280 300 260 280 240 280C220 280 200 300 200 320Z" fill="#ffffff" fill-opacity="0.8"/>
+<path d="M240 290C250 300 260 310 270 320C280 330 290 340 300 350" stroke="#22c55e" stroke-width="6" stroke-linecap="round"/>
+</svg>

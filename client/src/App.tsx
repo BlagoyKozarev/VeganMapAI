@@ -21,11 +21,16 @@ import Favorites from "@/pages/favorites";
 import AiChat from "@/pages/ai-chat";
 import VoiceLimitsTest from "@/pages/VoiceLimitsTest";
 import GoogleMapsCost from "@/pages/GoogleMapsCost";
+import MobileMapPage from "@/pages/mobile-map";
+import MobileLoginPage from "@/pages/mobile-login";
+import { MobileTabBar } from "@/components/mobile/MobileTabBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const isMobile = useIsMobile();
   
-  console.log('[ROUTER] Auth state:', { isAuthenticated, isLoading, user: !!user });
+  console.log('[ROUTER] Auth state:', { isAuthenticated, isLoading, user: !!user, isMobile });
 
   if (isLoading) {
     return (
@@ -41,33 +46,38 @@ function Router() {
   }
 
   return (
-    <Switch>
-      {!isAuthenticated ? (
-        <>
-          <Route path="/" component={Landing} />
-          <Route path="/admin-scoring" component={AdminScoring} />
-        </>
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/profile-setup" component={ProfileSetup} />
-          <Route path="/home" component={Home} />
-          <Route path="/search" component={Search} />
+    <div className="relative">
+      <Switch>
+        {!isAuthenticated ? (
+          <>
+            <Route path="/" component={isMobile ? MobileLoginPage : Landing} />
+            <Route path="/admin-scoring" component={AdminScoring} />
+          </>
+        ) : (
+          <>
+            <Route path="/" component={isMobile ? MobileMapPage : Home} />
+            <Route path="/profile-setup" component={ProfileSetup} />
+            <Route path="/home" component={isMobile ? MobileMapPage : Home} />
+            <Route path="/search" component={Search} />
 
-          <Route path="/restaurant/:id" component={RestaurantDetail} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/favorites" component={Favorites} />
-          <Route path="/admin-scoring" component={AdminScoring} />
-          <Route path="/admin-improve" component={AdminImprove} />
-          <Route path="/admin" component={AdminPanel} />
-          <Route path="/api-stats" component={ApiStats} />
-          <Route path="/ai-chat" component={AiChat} />
-          <Route path="/voice-limits-test" component={VoiceLimitsTest} />
-          <Route path="/google-maps-cost" component={GoogleMapsCost} />
-        </>
-      )}
-      <Route component={NotFound} />
-    </Switch>
+            <Route path="/restaurant/:id" component={RestaurantDetail} />
+            <Route path="/profile" component={Profile} />
+            <Route path="/favorites" component={Favorites} />
+            <Route path="/admin-scoring" component={AdminScoring} />
+            <Route path="/admin-improve" component={AdminImprove} />
+            <Route path="/admin" component={AdminPanel} />
+            <Route path="/api-stats" component={ApiStats} />
+            <Route path="/ai-chat" component={AiChat} />
+            <Route path="/voice-limits-test" component={VoiceLimitsTest} />
+            <Route path="/google-maps-cost" component={GoogleMapsCost} />
+          </>
+        )}
+        <Route component={NotFound} />
+      </Switch>
+      
+      {/* Mobile Tab Bar - only show when authenticated and on mobile */}
+      {isMobile && isAuthenticated && <MobileTabBar />}
+    </div>
   );
 }
 
