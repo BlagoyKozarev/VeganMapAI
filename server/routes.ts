@@ -571,6 +571,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CrewAI Agents endpoint
+  app.post("/api/crew", async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+      const { CrewOrchestrator } = await import('./agents/CrewOrchestrator');
+      const orchestrator = new CrewOrchestrator();
+      
+      const { query, location, preferences, isVoice = false, userId } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        res.status(400).json({ message: "Query is required" });
+        return;
+      }
+
+      const userQuery = {
+        text: query,
+        location: location ? { lat: location.lat, lng: location.lng } : undefined,
+        preferences: preferences || {},
+        context: { userId: userId || 'anonymous' }
+      };
+
+      console.log('[Crew API] Processing query:', userQuery);
+      
+      const response = await orchestrator.processQuery(userQuery, isVoice);
+      
+      res.json({
+        ...response,
+        took_ms: Date.now() - startTime
+      });
+      
+    } catch (error) {
+      console.error('[Crew API] Error:', error);
+      res.status(500).json({
+        error: "CrewAI processing failed",
+        message: (error as Error).message,
+        took_ms: Date.now() - startTime
+      });
+    }
+  });
+
   app.get('/api/restaurants/:id', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
