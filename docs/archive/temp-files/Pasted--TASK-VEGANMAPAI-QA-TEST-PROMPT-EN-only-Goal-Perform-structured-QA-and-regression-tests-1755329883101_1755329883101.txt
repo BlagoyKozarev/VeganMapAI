@@ -1,0 +1,65 @@
+🎯 TASK: VEGANMAPAI – QA & TEST PROMPT (EN-only)
+
+Goal: Perform structured QA and regression tests on VeganMapAI. Report in structured format: ✅ Working / ⚠️ Issues / 🚀 Next steps.
+
+--------------------------------------------------
+
+1. Functional Tests
+- Check backend endpoints:
+  - /healthz → should return status=ok
+  - /map-data → returns items (>=1), valid JSON
+  - /recommend → returns list with vegan restaurants
+  - /feedback → accepts POST with sample feedback
+- Verify DB connection → must have 407 restaurants.
+- Check geohash cache works (repeated queries faster).
+- Verify rate limiting triggers on excessive requests.
+
+2. PWA Frontend Tests
+- Load main page without errors.
+- Map renders with pins (407 restaurants).
+- Clusterization works on zoom in/out.
+- Clicking a pin opens restaurant details.
+- Search bar works (“vegan” returns results).
+- Filters drawer opens and applies filters.
+- Responsive design works on mobile view (safe areas ok).
+- PWA manifest + service worker installed.
+- App can be added to home screen.
+- Offline mode (limited functionality still loads cached screen).
+
+3. Voice/AI Tests
+- Mic button starts recording and stops after ≤30s.
+- STT endpoint (/voice/stt) converts speech → text.
+- TTS endpoint (/voice/tts) returns playable audio.
+- Ask agent via voice: “Vegan restaurant nearby” → should trigger RecommendationAgent.
+- Ask: “Why this Vegan Score?” → should trigger ExplainabilityAgent.
+- Voice replies ≤2 sentences, in English.
+- If location missing → system requests it politely.
+
+4. Advanced Search & Filters Tests
+- minScore=8 → returns only high-score items.
+- cuisines=thai,mexican → returns correct subset.
+- allergens=gluten → excludes gluten restaurants.
+- price range 1–2 → only cheap restaurants.
+- distance=5km with lat/lng → results sorted by distance.
+- Empty state shows: “No results. Try adjusting your filters.”
+
+5. Analytics Tests
+- filters_changed event fires on filter update.
+- search_submitted fires with q, filters, results, took_ms.
+- pagination_changed works correctly.
+- sort_changed logged.
+
+6. Acceptance Criteria
+- No console errors in frontend.
+- TypeScript compilation passes without errors.
+- Response time:
+  - Cached requests ≤800 ms
+  - Uncached ≤2.5s
+- All UI text in English only (no Bulgarian).
+
+--------------------------------------------------
+
+Report format:
+✅ Working – list what passed
+⚠️ Issues – list failed tests
+🚀 Next steps – recommended fixes

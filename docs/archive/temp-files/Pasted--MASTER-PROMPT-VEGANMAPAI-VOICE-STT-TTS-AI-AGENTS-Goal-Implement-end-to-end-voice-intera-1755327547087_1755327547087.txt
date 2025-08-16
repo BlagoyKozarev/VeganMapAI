@@ -1,0 +1,171 @@
+🎙️ MASTER PROMPT: VEGANMAPAI – VOICE/STT/TTS + AI AGENTS
+
+Goal: Implement end-to-end voice interaction (STT → Agent → TTS) with base integration of ExplainabilityAgent and RecommendationAgent. MemoryAgent and AnalyticsAgent remain as placeholders.
+
+## 0) Dependencies
+npm i openai elevenlabs ws uuid zod
+npm i undici   # if fetch polyfill needed in Node
+
+## 1) ENV (.env)
+OPENAI_API_KEY=***
+ELEVENLABS_API_KEY=***
+ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
+VOICE_LANG=en
+MAX_VOICE_SEC=30
+
+## 2) Backend: /voice/stt and /voice/tts (server/voice.ts)
+import type { Request, Response } from "express";
+import { z } from "zod";
+import OpenAI from "openai";
+import { ElevenLabsClient } from "elevenlabs";
+import { randomUUID } from "crypto";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+const el = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY! });
+
+const TTSSchema = z.object({
+  text: z.string().min(1).max(500),
+  lang: z.string().default(process.env.VOICE_LANG || "en")
+});
+
+export async function stt(req: Request, res: Response) {
+  try {
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: "audio required" });
+
+    const transcript = await openai.audio.transcriptions.create({
+      file: file,
+      model: "whisper-1",
+      response_format: "json"
+    });
+
+    res.json({ text: (transcript as any).text || "" });
+  } catch (e:any) {
+    res.status(500).json({ error: e.message });
+  }
+}
+
+export async function tts(req: Request, res: Response) {
+  try {
+    const qp = TTSSchema.parse(req.body);
+    const audio = await el.textToSpeech.convert({
+      voice_id: process.env.ELEVENLABS_VOICE_ID!,
+      text: qp.text,
+      model_id: "eleven_monolingual_v1",
+      voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+    });
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.send(Buffer.from(await audio.arrayBuffer()));
+  } catch (e:any) {
+    res.status(500).json({ error: e.message });
+  }
+}
+
+## 3) Backend routes (server/index.ts)
+import express from "express";
+import multer from "multer";
+import { stt, tts } from "./voice";
+const upload = multer({ limits: { fileSize: 8 * 1024 * 1024 } });
+
+app.post("/voice/stt", upload.single("audio"), stt);
+app.post("/voice/tts", express.json(), tts);
+
+## 4) Frontend hooks (src/voice.ts)
+export async function recordOnce(maxSec=30): Promise<Blob> {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const rec = new MediaRecorder(stream, { mimeType: "audio/webm" });
+  const chunks: BlobPart[] = [];
+  const done = new Promise<Blob>((resolve) => {
+    rec.ondataavailable = e => chunks.push(e.data);
+    rec.onstop = () => resolve(new Blob(chunks, { type: "audio/webm" }));
+  });
+  rec.start();
+  setTimeout(()=>rec.state!=="inactive"&&rec.stop(), maxSec*1000);
+  return await done;
+}
+
+export async function sttCall(blob: Blob): Promise<string> {
+  const fd = new FormData();
+  fd.append("audio", blob, "input.webm");
+  const r = await fetch("/voice/stt", { method:"POST", body: fd });
+  const j = await r.json();
+  return j.text || "";
+}
+
+export async function ttsCall(text: string): Promise<HTMLAudioElement> {
+  const r = await fetch("/voice/tts", {
+    method:"POST",
+    headers: { "Content-Type":"application/json" },
+    body: JSON.stringify({ text })
+  });
+  const buf = await r.arrayBuffer();
+  const url = URL.createObjectURL(new Blob([buf], { type:"audio/mpeg" }));
+  const audio = new Audio(url);
+  return audio;
+}
+
+## 5) UI Integration (Chat Screen example)
+import { recordOnce, sttCall, ttsCall } from "./voice";
+import { askAgent } from "./xa";
+
+async function onMicClick() {
+  const blob = await recordOnce();
+  const userText = await sttCall(blob);
+  if (!userText) return;
+
+  appendMessage({ role:"user", content:userText });
+  const aiReply = await askAgent(userText);
+  appendMessage({ role:"assistant", content:aiReply });
+
+  const audio = await ttsCall(aiReply);
+  await audio.play();
+}
+
+## 6) AI Agents
+import OpenAI from "openai";
+const oai = new OpenAI({ apiKey: import.meta.env.VITE_OPENAI_KEY });
+
+const SYSTEM = `
+You are VeganMapAI Assistant. Reply in 1–2 short sentences.
+If asked "why this Vegan Score": explain with 2–3 criteria.
+If asked for recommendations: return 2–3 places + short reason.
+Always request location if missing. Language: English only.
+`;
+
+export async function askAgent(userText: string): Promise<string> {
+  const r = await oai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.3,
+    messages: [
+      { role:"system", content: SYSTEM },
+      { role:"user", content: userText }
+    ]
+  });
+  return r.choices[0]?.message?.content?.trim() || "Sorry, I didn’t get that.";
+}
+
+## 7) Placeholders
+export function saveMemory(evt:{ userId:string; text:string; ts:number }) {
+  console.debug("MEMORY_EVT", evt);
+}
+export function trackUX(evt:{ name:string; meta:any; ts:number }) {
+  console.debug("UX_EVT", evt);
+}
+
+## 8) Voice Prompts Rules
+- Replies must be ≤2 sentences.
+- If location is missing: ask for it.
+- Always answer in English.
+- If long answer: say “Would you like details on screen?”
+
+## 9) Tests
+curl -X POST http://localhost:5000/voice/tts \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hello, testing TTS."}' -o out.mp3
+
+## 10) Acceptance Criteria
+- Mic → record ≤30s → STT text → AI reply → TTS playback.
+- Missing location → proper prompt.
+- Replies short, no verbosity.
+- English-only responses.
+- TypeScript clean, no runtime errors.

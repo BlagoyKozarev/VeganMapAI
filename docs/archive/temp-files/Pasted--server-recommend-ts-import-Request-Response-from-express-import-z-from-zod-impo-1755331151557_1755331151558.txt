@@ -1,0 +1,77 @@
+// server/recommend.ts
+import { Request, Response } from "express";
+import { z } from "zod";
+import { db } from "./db"; // pg-promise/pg Pool
+
+const Schema = z.object({
+  lat: z.coerce.number(),
+  lng: z.coerce.number(),
+  radiusKm: z.coerce.number().default(5),
+  minScore: z.coerce.number().min(1).max(10).default(7),
+  limit: z.coerce.number().min(1).max(20).default(5),
+  cuisines: z.string().optional(),   // "thai,mexican"
+  allergens: z.string().optional(),  // "gluten,peanut"
+});
+
+export async function recommend(req: Request, res: Response) {
+  const p = Schema.safeParse(req.query);
+  if (!p.success) return res.status(400).json({ error: "Invalid params" });
+  const { lat, lng, radiusKm, minScore, limit, cuisines, allergens } = p.data;
+
+  const cuisinesArr = cuisines ? cuisines.split(",").map(s => s.trim()) : [];
+  const allergensArr = allergens ? allergens.split(",").map(s => s.trim()) : [];
+
+  // Haversine (km)
+  const sql = `
+    WITH params AS (
+      SELECT
+        $1::float8 AS lat, $2::float8 AS lng,
+        $3::float8 AS radius_km, $4::int AS min_score,
+        $5::text[] AS cuisines, $6::text[] AS allergens,
+        $7::int AS lim
+    )
+    SELECT r.id, r.name, r.lat, r.lng,
+           r.vegan_score, r.cuisine_types, r.price_level, r.photo_url,
+           2 * 6371 * asin(
+             sqrt(
+               sin(radians((r.lat - p.lat)/2))^2 +
+               cos(radians(p.lat)) * cos(radians(r.lat)) *
+               sin(radians((r.lng - p.lng)/2))^2
+             )
+           ) AS dist_km
+    FROM restaurants r, params p
+    WHERE r.vegan_score >= p.min_score
+      AND (
+        cardinality(p.cuisines)=0
+        OR r.cuisine_types && p.cuisines
+      )
+      AND (
+        cardinality(p.allergens)=0
+        OR NOT (COALESCE(r.allergens, ARRAY[]::text[]) && p.allergens)
+      )
+    HAVING 2 * 6371 * asin(
+             sqrt(
+               sin(radians((r.lat - p.lat)/2))^2 +
+               cos(radians(p.lat)) * cos(radians(r.lat)) *
+               sin(radians((r.lng - p.lng)/2))^2
+             )
+           ) <= p.radius_km
+    ORDER BY dist_km ASC, r.vegan_score DESC
+    LIMIT (SELECT lim FROM params);
+  `;
+
+  const rows = await db.any(sql, [
+    lat, lng, radiusKm, minScore, cuisinesArr, allergensArr, limit,
+  ]);
+
+  res.json({
+    items: rows.map(r => ({
+      id: r.id, name: r.name, lat: r.lat, lng: r.lng,
+      veganScore: r.vegan_score,
+      cuisineTypes: r.cuisine_types ?? [],
+      priceLevel: r.price_level,
+      photoUrl: r.photo_url,
+      distanceKm: Number(r.dist_km?.toFixed?.(2) ?? r.dist_km),
+    })),
+  });
+}

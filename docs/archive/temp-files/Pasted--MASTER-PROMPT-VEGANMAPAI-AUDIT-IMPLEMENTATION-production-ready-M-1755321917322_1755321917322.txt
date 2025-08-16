@@ -1,0 +1,94 @@
+🔍 MASTER PROMPT: VEGANMAPAI AUDIT & IMPLEMENTATION
+
+🎯 Цел: Постигни стабилен, production-ready MVP на VeganMapAI с ясна архитектура, основни функционалности и път към Beta.
+
+---
+
+## 1. Архитектурни корекции
+- Поправи всички TypeScript грешки (snake_case → camelCase) в `server/routes.ts` (24 броя).
+- Въведи **geohash-based caching** за Google Maps API (TTL 7 дни, precision 6 ~2km).
+- Имплементирай **rate limiting middleware**: 300 заявки/IP/15мин + бавно отговаряне след 50% лимит.
+- Потвърди CORS и API Base URL (frontend ↔ backend).
+- In-memory cache (TTL 5 мин) да остане активен.
+
+---
+
+## 2. Frontend / PWA
+- PWA структура: `index.html`, `style.css`, `script.js`, `manifest.json`, `service-worker.js`.
+- Screens (mobile-first):
+  1. Login (Google/Apple OAuth).
+  2. Profile Setup (диета, алергии, кухни, цена).
+  3. Main Map: 2 km radius, pins с Vegan Score (цветен bubble), action menu (разгледай, навигация, резервация, поръчка онлайн, любими).
+  4. AI Chat Agent screen (text + mic).
+  5. Restaurant Details (Vegan Score breakdown, allergen check, Taste Match, бутони за резервация/поръчка).
+  6. Advanced Search (филтри по score, allergens, cuisine).
+  7. Profile (история, любими, logout).
+- Включи responsive дизайн (Poppins/Open Sans, minimalist white/green/gray).
+
+---
+
+## 3. Voice & AI агенти
+- Вгради **Whisper (STT)** и **ElevenLabs (TTS)** за hands-free асистент.
+- Въведи готовите voice промпти:
+  - Отговори до 1–2 изречения, кратки и ясни.
+  - Ако липсва локация → поискай достъп.
+  - Ако липсва име → обръщение „приятелю“.
+- AI агенти (CrewAI/OpenAI):
+  - ExplainabilityAgent (обяснява Vegan Score).
+  - RecommendationAgent (препоръки).
+  - MemoryAgent (запазва навици и любими).
+  - AnalyticsAgent (поведение, отчети).
+- Multi-agent orchestration (CrewAI или LangChain/LangGraph).
+
+---
+
+## 4. 🚫 Бизнес логика & Монетизация (ОТЛОЖЕНО)
+- Реалните интеграции със Stripe/PayPal **да НЕ се правят сега** (изискват юр. лице + банкова сметка).
+- Добави само **placeholder-и / mock functions** за:
+  - Upgrade to Premium / Premium Max.
+  - Payment initiation flow.
+  - Upsell съобщения при изчерпване на лимитите.
+- След регистрация ще заменим placeholder-ите с реална интеграция.
+
+---
+
+## 5. Аналитика & UX
+- Събирай поведение: zoom/pan, търсения, бутони, активност.
+- Monthly AnalyticsAgent report (на база данни).
+- Feedback loop → подобрява препоръките.
+- Админ Dashboard (healthz, API usage, разходи).
+- UI/UX подобрения според последния тест:
+  - По-ясни Call-to-Action бутони.
+  - Визуална йерархия карта/търсене.
+  - Подобрена навигация на менюта.
+
+---
+
+## 6. Roadmap & Приоритети
+### MVP (Q3 2025)
+- Backend стабилизация (TS fix, geohash cache, rate limiting).
+- PWA с Map + Profile + Details.
+- Basic AI Chat (text).
+- Placeholder-и за Premium flow (без реални плащания).
+- AnalyticsAgent logging.
+
+### Beta (Q4 2025)
+- Whisper + ElevenLabs voice.
+- Multi-agent orchestration (CrewAI).
+- Advanced Search + филтри.
+- MemoryAgent (любими, история).
+- Marketing launch: NYC, LA, SF, Seattle, Austin.
+
+### v1.0 (Q1 2026)
+- Full personalization (вкусови профили, health fit).
+- Dashboard за админ.
+- Trust transparency layer (източници на Vegan Score).
+- Реална интеграция Stripe/PayPal (след регистрация).
+- Global expansion mode (multi-language, GDPR-ready).
+
+---
+
+📌 Изведи резултата в структурирана форма:  
+- ✅ Работещо  
+- ⚠️ Проблеми  
+- 🚀 Следващи стъпки (с код ако е нужно)

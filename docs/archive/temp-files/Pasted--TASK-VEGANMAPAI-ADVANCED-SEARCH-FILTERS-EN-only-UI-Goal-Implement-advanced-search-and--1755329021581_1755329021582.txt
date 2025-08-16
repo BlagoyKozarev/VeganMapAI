@@ -1,0 +1,120 @@
+🎯 TASK: VEGANMAPAI – ADVANCED SEARCH & FILTERS (EN-only UI)
+
+Goal: Implement advanced search and filtering: Vegan Score range, allergens, cuisines, price range, distance, sorting. Support URL parameters and analytics tracking. All UI text must be in English only.
+
+## 0) Scope
+- Backend: new /search endpoint or extend /map-data with filters. Validate input. Add indexes for fast queries. Support pagination.
+- Frontend (PWA): filter panel + URL sync. Manage state, reset, and empty state. All labels in English.
+- Analytics: events for search submissions and filter changes.
+
+## 1) Backend – Validation & Params (Zod)
+Query parameters:
+- q?: string                  // free text search
+- minScore?: number [1..10]
+- maxScore?: number [1..10]
+- allergens?: string[]        // excluded allergens
+- cuisines?: string[]         // e.g. ["thai","mexican"]
+- priceMin?: number?          // 1..4
+- priceMax?: number?
+- maxDistanceKm?: number?     // requires lat/lng
+- lat?: number?, lng?: number?
+- sort?: "score"|"distance"|"price"|"rating"
+- order?: "asc"|"desc"
+- page?: number >=1
+- limit?: number in [10..100]
+
+Use z.coerce.number().optional() for parsing. Normalize lists (split by comma).
+
+## 2) Backend – Query & Indexes
+Indexes:
+- restaurants(lat, lng)
+- restaurants(vegan_score)
+- restaurants USING GIN (to_tsvector('simple', name || ' ' || coalesce(array_to_string(cuisine_types, ' '),'')))
+- price_level (optional)
+
+Filtering:
+- If q → search by name + cuisines (ILIKE or full-text)
+- vegan_score BETWEEN minScore AND maxScore
+- cuisines && :cuisines
+- allergens: exclude if overlapping allergens column (if exists). Otherwise → placeholder.
+- price_level BETWEEN priceMin AND priceMax
+- Distance filter with Haversine if lat/lng + maxDistanceKm provided.
+
+Sorting:
+- Default: score desc
+- Distance sort if lat/lng provided
+
+Pagination:
+- OFFSET/LIMIT, return { items, total, page, pages }
+
+Facets (optional): top cuisines, price buckets.
+
+Cache:
+- Use existing in-memory + geohash cache. Cache key must include filter params.
+
+## 3) Backend – Example SQL (pseudo)
+- Build dynamic WHERE clause.
+- If distance → add dist_km to SELECT + ORDER BY dist_km.
+- For facets → GROUP BY cuisine_types (unnest) for top 10.
+
+## 4) Frontend – UI (English-only)
+Components:
+- SearchBar (placeholder: "Search restaurants or cuisines")
+- FiltersDrawer/Panel:
+  - Vegan Score: range slider (1–10)
+  - Cuisines: multi-select (top 20 + free text)
+  - Allergens: multi-select (e.g., "gluten","peanut","soy","tree nut","sesame","dairy","egg")
+  - Price: checkboxes for $, $$, $$$, $$$$
+  - Distance: radio options (1, 2, 5, 10, 20 km)
+  - Sort: Score | Distance | Price | Rating
+  - Buttons: Apply, Reset
+- Results list + map sync:
+  - On filter change → fetch /search
+  - Show result count + query time
+- URL sync:
+  - Serialize state into query string (?q=...&minScore=...&cuisines=thai,mexican...)
+  - On load → hydrate state from URL
+- Empty state:
+  - "No results. Try adjusting your filters."
+
+## 5) Frontend – Types & Safeguards
+- Strict TS types for SearchParams and ApiRestaurant
+- Debounce text search (300–400 ms)
+- Cancel old fetch requests on new input
+- Loading spinners and disabled states
+
+## 6) Analytics
+Events:
+- search_submitted {q, filters, results, took_ms}
+- filters_changed {diff}
+- pagination_changed {page, limit}
+- sort_changed {sort, order}
+Fire-and-forget, non-blocking.
+
+## 7) Acceptance Tests
+- No params → returns list (default sort=score desc, page=1, limit=20)
+- q=vegan → returns matches; debounce works
+- minScore/maxScore → respected
+- cuisines=thai,mexican → works
+- price range 1–2 → works
+- distance filter 5km with lat/lng → works
+- URL deep-link with query params → UI initializes correctly
+- Pagination/page count correct
+- Empty state displayed properly
+- Response time ≤800 ms on cache hit, ≤2.5s on cache miss
+
+## 8) Performance & Limits
+- Default limit=20, max=100
+- Guard against overly broad queries (e.g., no lat/lng + huge radius)
+- Rate limiting middleware already integrated
+
+## 9) Documentation
+- Update README/API.md with query params and examples
+- Ensure UI strings are English only. No Bulgarian strings.
+
+## 10) Deliverable
+- PR with:
+  - Backend: endpoint, Zod schema, indexes, curl tests
+  - Frontend: filter components, URL sync, map integration, analytics hooks
+  - Changelog with query times and cache effect
+- Output format: “✅ Working / ⚠️ Issues / 🚀 Next steps”
