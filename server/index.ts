@@ -40,6 +40,7 @@ function validateEnvironment() {
 validateEnvironment();
 
 import express, { type Request, Response, NextFunction } from "express";
+import multer from 'multer';
 import cors from "cors";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
@@ -49,6 +50,7 @@ import { initializeDatabase } from "./init-database.js";
 import testGBGPTRouter from './routes/testGBGPT.js';
 import bulkTestGBGPTRouter from './routes/bulkTestGBGPT.js';
 import { geoCache, geoCacheMiddleware } from './middleware/geoCache.js';
+import { stt, tts } from './voice.js';
 
 const app = express();
 
@@ -213,6 +215,14 @@ app.get('/api/places', geoCacheMiddleware('places'), async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Register main routes
+registerRoutes(app);
+
+// Voice Routes
+const upload = multer({ limits: { fileSize: 8 * 1024 * 1024 } }); // 8MB limit
+app.post("/voice/stt", upload.single("audio"), stt);
+app.post("/voice/tts", express.json(), tts);
 
 // Add GBGPT test routes
 app.use('/api', testGBGPTRouter);
