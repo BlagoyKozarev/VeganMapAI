@@ -31,7 +31,7 @@ validateEnvironment();
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import compression from "compression";
-import { registerRoutes, router as apiRouter } from "./routes.js";
+import { registerRoutes, apiRouter } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
 import { fileURLToPath } from 'url';
@@ -43,66 +43,40 @@ const __dirname = dirname(__filename);
 const app = express();
 app.set("trust proxy", 1);
 
-// CORS Configuration
-const allowedOrigins = [
-  "https://www.veganmapai.ai",
-  "https://vegan-map-ai-bkozarev.replit.app",
-  "http://localhost:5173",
-  "http://localhost:5000",
-  "http://127.0.0.1:5000",
-  process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : undefined
-].filter(Boolean);
+// 1) security + json
+app.disable('x-powered-by');
 
+// 2) CORS (ограничи по origin)
+const allow = [
+  'https://vegan-map-ai-bkozarev.replit.app',
+  'http://127.0.0.1:5000',
+  'http://localhost:5000'
+];
 app.use(cors({
-  origin(origin, cb) {
-    if (!origin) return cb(null, true); // Allow same-origin requests
-    if (allowedOrigins.includes(origin)) return cb(null, true);
-    return cb(new Error(`CORS blocked: ${origin}`));
-  },
-  credentials: true,
-  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
-  allowedHeaders: ["Content-Type","Authorization"],
+  origin: (o, cb) => !o || allow.includes(o) ? cb(null, true) : cb(null, false),
+  credentials: false
 }));
 
-// Compression and parsing middleware
-app.use(compression({
-  level: 6,
-  threshold: 1024,
-  filter: (req: Request, res: Response) => {
-    if (req.headers['x-no-compression']) {
-      return false;
-    }
-    return compression.filter(req, res);
-  }
-}));
-
+// 3) Compression and JSON parsing
+app.use(compression({ level: 6, threshold: 1024 }));
 app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: false }));
 
-// API ROUTES FIRST - CRITICAL FOR PRODUCTION
-app.use("/api", apiRouter);
+// 3) API РУТЕР – ПРЕДИ Vite/статиката
+app.use('/api', apiRouter);
 
-// Service worker explicit
-app.get("/service-worker.js", (_req, res) => {
-  res.type("application/javascript");
-  res.sendFile(path.join(__dirname, "../dist/service-worker.js"));
-});
-
-// Static files AFTER API (only for production build)
-const distPublicPath = path.join(__dirname, "../dist/public");
-if (fs.existsSync(distPublicPath)) {
-  app.use(express.static(distPublicPath, { maxAge: "1h" }));
+// 4) static/PWA
+const distDir = path.join(__dirname, "../dist/public");
+if (fs.existsSync(distDir)) {
+  app.use('/assets', express.static(path.join(distDir, 'assets'), { maxAge: '7d', immutable: true }));
+  app.get('/manifest.json', (_, res) => res.sendFile(path.join(distDir, 'manifest.json')));
+  app.get('/service-worker.js', (_, res) => res.sendFile(path.join(distDir, 'sw.js')));
   
-  // SPA fallback LAST (non-API only)
-  app.get(/^\/(?!api\/).*/, (_req, res) => {
-    res.sendFile(path.join(distPublicPath, "index.html"));
+  // 5) SPA fallback (само за НЕ-API)
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next();
+    res.sendFile(path.join(distDir, 'index.html'));
   });
 }
-
-// API 404 JSON (catch unmatched /api/*)
-app.use("/api", (_req, res) => {
-  res.status(404).json({ error: "Not found" });
-});
 
 // Error handler
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

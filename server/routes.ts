@@ -26,8 +26,122 @@ import { insertUserProfileSchema, insertUserFavoriteSchema, insertUserVisitSchem
 import { z } from "zod";
 import { searchRestaurantsWithAI } from "./services/aiSearch";
 
-// Create API router
-export const router = Router();
+// Create API router with your optimized structure
+export const apiRouter = Router();
+
+// Core API endpoints with guaranteed JSON responses
+apiRouter.get('/health', async (req, res) => {
+  try {
+    const allRestaurants = await storage.getAllRestaurants();
+    res.type('application/json').json({ 
+      status: "healthy",
+      database: "connected",
+      restaurantCount: allRestaurants.length.toString(),
+      autoLoaded: false,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.type('application/json').status(500).json({ 
+      status: "error", 
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+apiRouter.get('/restaurants/public/map-data', async (req, res) => {
+  try {
+    const items = await storage.getAllRestaurantsWithScores();
+    res.type('application/json').json({
+      success: true,
+      restaurants: items,
+      count: items.length,
+      public: true,
+      optimized: true,
+      viewport: false,
+      dbCount: items.length.toString()
+    });
+  } catch (error) {
+    res.type('application/json').status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+apiRouter.get('/recommend', async (req, res) => {
+  try {
+    const { lat, lng, radiusKm = 5, minScore = 0, limit = 10 } = req.query as any;
+    const items = await storage.getRestaurantsNearby({ 
+      lat: +lat, 
+      lng: +lng, 
+      radiusKm: +radiusKm, 
+      minScore: +minScore, 
+      limit: +limit 
+    });
+    res.type('application/json').json({
+      success: true,
+      restaurants: items,
+      count: items.length,
+      params: { lat, lng, radiusKm, minScore, limit }
+    });
+  } catch (error) {
+    res.type('application/json').status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+apiRouter.post('/feedback', async (req, res) => {
+  try {
+    // Simple feedback logging since we don't have a feedback table yet
+    console.log('Feedback received:', req.body);
+    res.type('application/json').json({ ok: true, queued: true });
+  } catch (error) {
+    res.type('application/json').status(500).json({ 
+      ok: false, 
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+apiRouter.post('/emergency-load', async (req, res) => {
+  try {
+    // Check if restaurants already exist
+    const existing = await storage.getAllRestaurants();
+    if (existing.length > 0) {
+      res.type('application/json').json({ 
+        success: true,
+        message: `Database already has ${existing.length} restaurants`,
+        count: existing.length.toString(),
+        emergency: false,
+        restaurants: existing.slice(0, 5).map(r => ({
+          name: r.name,
+          veganScore: r.veganScore,
+          coordinates: [r.latitude, r.longitude]
+        }))
+      });
+      return;
+    }
+    
+    // Load sample data (this would need to be implemented in storage)
+    res.type('application/json').json({ 
+      success: false,
+      error: "Emergency loading not implemented yet"
+    });
+  } catch (error) {
+    res.type('application/json').status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+// 404 for unknown /api/*
+apiRouter.use((req, res) => res.status(404).type('application/json').json({ ok: false, error: 'Not Found' }));
+
+// Legacy router export for compatibility
+export const router = apiRouter;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
