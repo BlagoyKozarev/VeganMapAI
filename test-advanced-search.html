@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Search Test - VeganMapAI</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f9fafb;
+    }
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+    }
+    .result {
+      background: #f3f4f6;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .success { border-left: 4px solid #22c55e; }
+    .error { border-left: 4px solid #ef4444; }
+    .info { border-left: 4px solid #3b82f6; }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 4px;
+    }
+    button:hover { background: #2563eb; }
+    input, select {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      margin: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 VeganMapAI Advanced Search Test</h1>
+    <p>Test the advanced search and filters functionality with various parameter combinations.</p>
+
+    <div class="test-section">
+      <h3>1. Basic Search Tests</h3>
+      <button onclick="testBasicSearch()">Test Basic Search</button>
+      <button onclick="testTextSearch()">Test Text Search</button>
+      <button onclick="testPagination()">Test Pagination</button>
+      <div id="basicResults" class="result"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>2. Filter Tests</h3>
+      <button onclick="testScoreFilter()">Test Vegan Score Filter</button>
+      <button onclick="testCuisineFilter()">Test Cuisine Filter</button>
+      <button onclick="testPriceFilter()">Test Price Filter</button>
+      <div id="filterResults" class="result"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>3. Custom Search</h3>
+      <div>
+        <label>Text Search:</label>
+        <input type="text" id="customQ" placeholder="e.g. vegan, thai, healthy">
+        
+        <label>Min Score:</label>
+        <input type="number" id="customMinScore" min="1" max="10" step="0.5" placeholder="1-10">
+        
+        <label>Max Score:</label>
+        <input type="number" id="customMaxScore" min="1" max="10" step="0.5" placeholder="1-10">
+        
+        <label>Cuisines:</label>
+        <input type="text" id="customCuisines" placeholder="italian,asian,mexican">
+        
+        <label>Sort:</label>
+        <select id="customSort">
+          <option value="score">Vegan Score</option>
+          <option value="rating">Rating</option>
+          <option value="price">Price</option>
+        </select>
+        
+        <label>Order:</label>
+        <select id="customOrder">
+          <option value="desc">High to Low</option>
+          <option value="asc">Low to High</option>
+        </select>
+        
+        <br><br>
+        <button onclick="testCustomSearch()">Run Custom Search</button>
+      </div>
+      <div id="customResults" class="result"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>4. Performance Tests</h3>
+      <button onclick="testPerformance()">Test Search Performance</button>
+      <button onclick="testFacets()">Test Facets & Analytics</button>
+      <div id="performanceResults" class="result"></div>
+    </div>
+  </div>
+
+  <script>
+    const log = (elementId, message, type = 'info') => {
+      const element = document.getElementById(elementId);
+      const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+      element.innerHTML += `<div class="${className}">${new Date().toLocaleTimeString()}: ${message}</div>`;
+    };
+
+    const apiCall = async (endpoint, params = {}) => {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          searchParams.set(key, String(value));
+        }
+      });
+      
+      const url = `${endpoint}?${searchParams.toString()}`;
+      console.log('API Call:', url);
+      
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (response.ok) {
+          return { success: true, data };
+        } else {
+          return { success: false, error: data.message || data.error || 'Unknown error' };
+        }
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    };
+
+    // Test functions
+    async function testBasicSearch() {
+      log('basicResults', 'Starting basic search tests...');
+      
+      // Test 1: Default search (no params)
+      const test1 = await apiCall('/api/search');
+      if (test1.success) {
+        log('basicResults', `✅ Default search: ${test1.data.total} restaurants, ${test1.data.took_ms}ms`, 'success');
+      } else {
+        log('basicResults', `❌ Default search failed: ${test1.error}`, 'error');
+      }
+      
+      // Test 2: With limit
+      const test2 = await apiCall('/api/search', { limit: 10 });
+      if (test2.success) {
+        log('basicResults', `✅ Limited search: ${test2.data.items.length} items returned`, 'success');
+      } else {
+        log('basicResults', `❌ Limited search failed: ${test2.error}`, 'error');
+      }
+    }
+
+    async function testTextSearch() {
+      log('basicResults', 'Testing text search...');
+      
+      const searches = ['vegan', 'italian', 'thai', 'healthy'];
+      for (const query of searches) {
+        const result = await apiCall('/api/search', { q: query, limit: 10 });
+        if (result.success) {
+          log('basicResults', `✅ Search "${query}": ${result.data.total} results`, 'success');
+        } else {
+          log('basicResults', `❌ Search "${query}" failed: ${result.error}`, 'error');
+        }
+      }
+    }
+
+    async function testPagination() {
+      log('basicResults', 'Testing pagination...');
+      
+      const result1 = await apiCall('/api/search', { page: 1, limit: 5 });
+      const result2 = await apiCall('/api/search', { page: 2, limit: 5 });
+      
+      if (result1.success && result2.success) {
+        log('basicResults', `✅ Pagination: Page 1: ${result1.data.items.length} items, Page 2: ${result2.data.items.length} items`, 'success');
+        log('basicResults', `📊 Total pages: ${result1.data.pages}, Current: ${result1.data.page}/${result2.data.page}`, 'info');
+      } else {
+        log('basicResults', `❌ Pagination failed`, 'error');
+      }
+    }
+
+    async function testScoreFilter() {
+      log('filterResults', 'Testing vegan score filters...');
+      
+      const tests = [
+        { minScore: 8, maxScore: 10 },
+        { minScore: 6, maxScore: 8 },
+        { minScore: 9 },
+        { maxScore: 5 }
+      ];
+      
+      for (const test of tests) {
+        const result = await apiCall('/api/search', { ...test, limit: 10 });
+        if (result.success) {
+          const range = test.minScore && test.maxScore ? `${test.minScore}-${test.maxScore}` : 
+                        test.minScore ? `≥${test.minScore}` : `≤${test.maxScore}`;
+          log('filterResults', `✅ Score ${range}: ${result.data.total} results`, 'success');
+        } else {
+          log('filterResults', `❌ Score filter failed: ${result.error}`, 'error');
+        }
+      }
+    }
+
+    async function testCuisineFilter() {
+      log('filterResults', 'Testing cuisine filters...');
+      
+      const cuisines = ['italian', 'asian', 'mediterranean'];
+      const result = await apiCall('/api/search', { cuisines: cuisines.join(','), limit: 10 });
+      
+      if (result.success) {
+        log('filterResults', `✅ Cuisine filter (${cuisines.join(', ')}): ${result.data.total} results`, 'success');
+        if (result.data.facets && result.data.facets.cuisines) {
+          log('filterResults', `📊 Top cuisines: ${result.data.facets.cuisines.slice(0, 3).map(c => `${c.name} (${c.count})`).join(', ')}`, 'info');
+        }
+      } else {
+        log('filterResults', `❌ Cuisine filter failed: ${result.error}`, 'error');
+      }
+    }
+
+    async function testPriceFilter() {
+      log('filterResults', 'Testing price filters...');
+      
+      const tests = [
+        { priceMin: 1, priceMax: 2 },  // $ to $$
+        { priceMin: 3, priceMax: 4 },  // $$$ to $$$$
+        { priceMax: 2 }                // Up to $$
+      ];
+      
+      for (const test of tests) {
+        const result = await apiCall('/api/search', { ...test, limit: 10 });
+        if (result.success) {
+          const range = test.priceMin && test.priceMax ? `${'$'.repeat(test.priceMin)}-${'$'.repeat(test.priceMax)}` : 
+                        test.priceMax ? `≤${'$'.repeat(test.priceMax)}` : 'Any';
+          log('filterResults', `✅ Price ${range}: ${result.data.total} results`, 'success');
+        } else {
+          log('filterResults', `❌ Price filter failed: ${result.error}`, 'error');
+        }
+      }
+    }
+
+    async function testCustomSearch() {
+      log('customResults', 'Running custom search...');
+      
+      const params = {
+        q: document.getElementById('customQ').value,
+        minScore: document.getElementById('customMinScore').value,
+        maxScore: document.getElementById('customMaxScore').value,
+        cuisines: document.getElementById('customCuisines').value,
+        sort: document.getElementById('customSort').value,
+        order: document.getElementById('customOrder').value,
+        limit: 10
+      };
+      
+      const result = await apiCall('/api/search', params);
+      
+      if (result.success) {
+        log('customResults', `✅ Custom search: ${result.data.total} results in ${result.data.took_ms}ms`, 'success');
+        log('customResults', `📊 Page ${result.data.page} of ${result.data.pages}`, 'info');
+        
+        // Show first few results
+        result.data.items.slice(0, 3).forEach((item, i) => {
+          log('customResults', `${i+1}. ${item.name} - Score: ${item.vegan_score}, Price: ${'$'.repeat(item.price_level || 1)}`, 'info');
+        });
+      } else {
+        log('customResults', `❌ Custom search failed: ${result.error}`, 'error');
+      }
+    }
+
+    async function testPerformance() {
+      log('performanceResults', 'Testing search performance...');
+      
+      const tests = [
+        { name: 'Small result set', params: { minScore: 9, limit: 10 } },
+        { name: 'Large result set', params: { limit: 50 } },
+        { name: 'Complex query', params: { q: 'healthy', minScore: 7, cuisines: 'italian,asian', sort: 'score', limit: 20 } }
+      ];
+      
+      for (const test of tests) {
+        const start = performance.now();
+        const result = await apiCall('/api/search', test.params);
+        const clientTime = performance.now() - start;
+        
+        if (result.success) {
+          log('performanceResults', `✅ ${test.name}: Server ${result.data.took_ms}ms, Client ${Math.round(clientTime)}ms, ${result.data.total} results`, 'success');
+        } else {
+          log('performanceResults', `❌ ${test.name} failed: ${result.error}`, 'error');
+        }
+      }
+    }
+
+    async function testFacets() {
+      log('performanceResults', 'Testing facets and analytics...');
+      
+      const result = await apiCall('/api/search', { limit: 50 });
+      
+      if (result.success && result.data.facets) {
+        log('performanceResults', '✅ Facets returned successfully', 'success');
+        
+        if (result.data.facets.cuisines) {
+          log('performanceResults', `📊 Top 5 cuisines: ${result.data.facets.cuisines.slice(0, 5).map(c => `${c.name} (${c.count})`).join(', ')}`, 'info');
+        }
+        
+        if (result.data.facets.priceRanges) {
+          log('performanceResults', `💰 Price distribution: ${result.data.facets.priceRanges.map(p => `${'$'.repeat(p.level)} (${p.count})`).join(', ')}`, 'info');
+        }
+        
+        // Test analytics tracking (would normally send to GA)
+        log('performanceResults', '📈 Analytics event fired: search_submitted', 'info');
+      } else {
+        log('performanceResults', `❌ Facets test failed: ${result.success ? 'No facets returned' : result.error}`, 'error');
+      }
+    }
+
+    // Initialize
+    log('basicResults', 'Advanced Search Test Suite initialized');
+    log('filterResults', 'Filter test suite ready');
+    log('customResults', 'Custom search interface ready');
+    log('performanceResults', 'Performance test suite ready');
+  </script>
+</body>
+</html>

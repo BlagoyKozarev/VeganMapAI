@@ -19,6 +19,7 @@ import AdminPanel from "@/pages/admin-panel";
 import ApiStats from "@/pages/api-stats";
 import Favorites from "@/pages/favorites";
 import AiChat from "@/pages/ai-chat";
+import AdvancedSearch from "@/pages/advanced-search";
 import VoiceLimitsTest from "@/pages/VoiceLimitsTest";
 import GoogleMapsCost from "@/pages/GoogleMapsCost";
 import MobileMapPage from "@/pages/mobile-map";
@@ -59,6 +60,7 @@ function Router() {
             <Route path="/profile-setup" component={ProfileSetup} />
             <Route path="/home" component={isMobile ? MobileMapPage : Home} />
             <Route path="/search" component={Search} />
+            <Route path="/advanced-search" component={AdvancedSearch} />
 
             <Route path="/restaurant/:id" component={RestaurantDetail} />
             <Route path="/profile" component={Profile} />
