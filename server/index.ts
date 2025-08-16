@@ -60,6 +60,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Commit header для валидация на deployment
+app.use((req, res, next) => { 
+  res.setHeader('X-App-Commit', process.env.GIT_SHA ?? 'dev'); 
+  next(); 
+});
+
 // 3) API РУТЕР – ПРЕДИ Vite/статиката и всеки catch-all
 app.use('/api', apiRouter);
 

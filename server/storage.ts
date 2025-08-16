@@ -344,7 +344,17 @@ export class DatabaseStorage implements IStorage {
         .slice(0, params.limit);
       
       console.log(`Storage: Returning ${sortedRestaurants.length} nearby restaurants with min score ${params.minScore}`);
-      return sortedRestaurants;
+      
+      // Hard cast with fallback protection (duplicate safety)
+      const toNum = (v: any) => typeof v === 'number' ? v : Number(String(v).replace(',', '.'));
+      return sortedRestaurants.map(r => ({
+        ...r,
+        id: r.id,
+        name: r.name,
+        veganScore: toNum(r.veganScore || '0'),
+        latitude: String(toNum(r.latitude || '0')),
+        longitude: String(toNum(r.longitude || '0'))
+      }));
     } catch (error) {
       console.error(`Storage: Error getting nearby restaurants:`, error);
       throw error;

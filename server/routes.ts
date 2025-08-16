@@ -36,6 +36,7 @@ apiRouter.get('/health', async (req, res) => {
     res.type('application/json').json({ 
       ok: true,
       ts: Date.now(),
+      version: process.env.GIT_SHA ?? 'dev',
       counts: { restaurants: restaurantCount }
     });
   } catch (error) {

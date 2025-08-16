@@ -450,7 +450,15 @@ var init_storage = __esm({
           });
           const sortedRestaurants = filteredRestaurants.sort((a, b) => parseFloat(b.veganScore || "0") - parseFloat(a.veganScore || "0")).slice(0, params.limit);
           console.log(`Storage: Returning ${sortedRestaurants.length} nearby restaurants with min score ${params.minScore}`);
-          return sortedRestaurants;
+          const toNum = (v) => typeof v === "number" ? v : Number(String(v).replace(",", "."));
+          return sortedRestaurants.map((r) => ({
+            ...r,
+            id: r.id,
+            name: r.name,
+            veganScore: toNum(r.veganScore || "0"),
+            latitude: String(toNum(r.latitude || "0")),
+            longitude: String(toNum(r.longitude || "0"))
+          }));
         } catch (error) {
           console.error(`Storage: Error getting nearby restaurants:`, error);
           throw error;
@@ -3683,6 +3691,7 @@ apiRouter.get("/health", async (req, res) => {
     res.type("application/json").json({
       ok: true,
       ts: Date.now(),
+      version: process.env.GIT_SHA ?? "dev",
       counts: { restaurants: restaurantCount }
     });
   } catch (error) {
@@ -5243,6 +5252,10 @@ app.use(cors({
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+app.use((req, res, next) => {
+  res.setHeader("X-App-Commit", process.env.GIT_SHA ?? "dev");
+  next();
+});
 app.use("/api", apiRouter);
 var distDir = path4.join(__dirname, "../dist/public");
 if (fs4.existsSync(distDir)) {
