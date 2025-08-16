@@ -1,4 +1,7 @@
 # VeganMapAI
+
+![CI](https://github.com/BlagoyKozarev/VeganMapAI/actions/workflows/ci.yml/badge.svg)
+
 Discover top vegan-friendly places with an AI-driven score and clean, Google Maps–style UI.
 
 ## Features
