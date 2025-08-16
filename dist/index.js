@@ -3714,9 +3714,12 @@ apiRouter.get("/recommend", async (req, res) => {
   const items = nearbyRestaurants.map((r) => ({
     id: r.id,
     name: r.name,
-    score: r.veganScore,
-    lat: r.latitude,
-    lng: r.longitude
+    score: Number(r.veganScore),
+    // ← число
+    lat: Number(r.latitude),
+    // ← число
+    lng: Number(r.longitude)
+    // ← число
   }));
   res.type("application/json").json({ count: items.length, restaurants: items });
 });
@@ -3745,6 +3748,12 @@ apiRouter.post("/emergency-load", async (req, res) => {
       error: error instanceof Error ? error.message : "Unknown error"
     });
   }
+});
+apiRouter.use("*", (req, res) => {
+  res.status(404).type("application/json").json({
+    ok: false,
+    error: "Not Found"
+  });
 });
 apiRouter.use((req, res) => res.status(404).type("application/json").json({ ok: false, error: "Not Found" }));
 var router = apiRouter;
@@ -5230,7 +5239,9 @@ var allow = [
 ];
 app.use(cors({
   origin: (o, cb) => !o || allow.includes(o) ? cb(null, true) : cb(null, false),
-  credentials: false
+  credentials: false,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use("/api", apiRouter);
 var distDir = path4.join(__dirname, "../dist/public");

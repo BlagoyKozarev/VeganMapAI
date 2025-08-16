@@ -55,7 +55,9 @@ const allow = [
 ];
 app.use(cors({
   origin: (o, cb) => !o || allow.includes(o) ? cb(null, true) : cb(null, false),
-  credentials: false
+  credentials: false,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // 3) API РУТЕР – ПРЕДИ Vite/статиката и всеки catch-all

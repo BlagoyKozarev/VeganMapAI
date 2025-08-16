@@ -111,6 +111,14 @@ apiRouter.post('/emergency-load', async (req, res) => {
   }
 });
 
+// 404 handler for invalid API routes
+apiRouter.use('*', (req, res) => {
+  res.status(404).type('application/json').json({
+    ok: false,
+    error: "Not Found"
+  });
+});
+
 // 404 catcher за непознати /api/*
 apiRouter.use((req, res) => res.status(404).type('application/json').json({ ok: false, error: 'Not Found' }));
 
