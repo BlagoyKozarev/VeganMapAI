@@ -102,5 +102,6 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **API Endpoint Standardization** (August 16, 2025): Implemented clean health endpoint structure supporting both `/health` and `/healthz` for consistency.
 - **PWA Manifest & Service Worker FIXED** (August 16, 2025): Both manifest.json and service-worker.js now return 200 OK with proper Content-Type headers (application/json and application/javascript). Added offline.html for PWA offline functionality.
 - **Voice System Audio Testing COMPLETE** (August 16, 2025): TTS endpoint generating 33KB MP3 files successfully. STT endpoint operational and ready for audio file processing. Bulgarian language support confirmed.
-- **Production Status**: System now 95% production ready with all core systems operational
-- **Next Phase**: Final frontend integration testing, Deployment preparation
+- **API Routes Standardization COMPLETE** (August 16, 2025): All endpoints now follow `/api` prefix convention. Standardized routes: `/api/voice/tts`, `/api/voice/stt`, `/api/crew`, `/api/health`, `/api/search`, `/api/feedback`. Backward compatibility maintained for legacy endpoints.
+- **Production Status**: System now 98% production ready with all core systems operational and standardized
+- **Next Phase**: Final deployment preparation

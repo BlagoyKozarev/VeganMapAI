@@ -233,8 +233,12 @@ app.get('/api/places', geoCacheMiddleware('places'), async (req, res) => {
 // Register main routes
 registerRoutes(app);
 
-// Voice Routes
+// Voice Routes - standardized under /api
 const upload = multer({ limits: { fileSize: 8 * 1024 * 1024 } }); // 8MB limit
+app.post("/api/voice/stt", upload.single("audio"), stt);
+app.post("/api/voice/tts", express.json(), tts);
+
+// Backward compatibility for old voice endpoints
 app.post("/voice/stt", upload.single("audio"), stt);
 app.post("/voice/tts", express.json(), tts);
 
