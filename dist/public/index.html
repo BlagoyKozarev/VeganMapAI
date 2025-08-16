@@ -20,7 +20,14 @@
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module" crossorigin src="/assets/index-DT9ku-B1.js"></script>
+    <script>
+      // временно спиране на SW за да се изчисти мок кешът
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister()));
+        caches && caches.keys().then(keys=>keys.forEach(k=>caches.delete(k)));
+      }
+    </script>
+    <script type="module" crossorigin src="/assets/index-Chu2kiFz.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-BQMwVnAe.css">
   </head>
   <body>

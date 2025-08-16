@@ -5237,7 +5237,10 @@ var distDir = path4.join(__dirname, "../dist/public");
 if (fs4.existsSync(distDir)) {
   app.use("/assets", express3.static(path4.join(distDir, "assets"), { maxAge: "7d", immutable: true }));
   app.get("/manifest.json", (_, res) => res.sendFile(path4.join(distDir, "manifest.json")));
-  app.get("/service-worker.js", (_, res) => res.sendFile(path4.join(distDir, "service-worker.js")));
+  app.get("/service-worker.js", (req, res) => {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+    res.sendFile(path4.join(distDir, "service-worker.js"));
+  });
   app.get("*", (req, res, next) => req.path.startsWith("/api/") ? next() : res.sendFile(path4.join(distDir, "index.html")));
 }
 app.use((err, _req, res, _next) => {

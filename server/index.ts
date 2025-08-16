@@ -66,7 +66,10 @@ const distDir = path.join(__dirname, "../dist/public");
 if (fs.existsSync(distDir)) {
   app.use('/assets', express.static(path.join(distDir, 'assets'), { maxAge: '7d', immutable: true }));
   app.get('/manifest.json', (_, res) => res.sendFile(path.join(distDir, 'manifest.json')));
-  app.get('/service-worker.js', (_, res) => res.sendFile(path.join(distDir, 'service-worker.js')));
+  app.get('/service-worker.js', (req, res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.sendFile(path.join(distDir, 'service-worker.js'));
+  });
   
   // 5) SPA fallback (само за НЕ-API)
   app.get('*', (req, res, next) => req.path.startsWith('/api/') ? next() : res.sendFile(path.join(distDir, 'index.html')));

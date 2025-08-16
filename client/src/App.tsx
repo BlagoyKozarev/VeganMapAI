@@ -53,6 +53,10 @@ function Router() {
           <Route path="/profile-setup" component={ProfileSetup} />
           <Route path="/home" component={Home} />
           <Route path="/search" component={Search} />
+          <Route path="/map" component={Home} />
+          <Route path="/test-map">
+            {() => { window.location.href = '/map'; return null; }}
+          </Route>
 
           <Route path="/restaurant/:id" component={RestaurantDetail} />
           <Route path="/profile" component={Profile} />
