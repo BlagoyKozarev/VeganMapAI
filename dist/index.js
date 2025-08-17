@@ -5524,9 +5524,7 @@ app.use((err, _req, res, _next) => {
 });
 (async () => {
   const server = await registerRoutes(app);
-  if (process.env.NODE_ENV !== "production") {
-    await initializeDatabase();
-  }
+  await initializeDatabase();
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {

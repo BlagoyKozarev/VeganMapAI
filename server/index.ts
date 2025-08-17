@@ -258,10 +258,8 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 (async () => {
   const server = await registerRoutes(app);
   
-  // Initialize database with restaurant data if empty (only in development)
-  if (process.env.NODE_ENV !== 'production') {
-    await initializeDatabase();
-  }
+  // Initialize database with restaurant data if empty
+  await initializeDatabase();
 
   // Setup Vite in development or serve static files in production
   // Important: setupVite must come AFTER API routes are registered
