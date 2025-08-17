@@ -260,6 +260,11 @@ var init_db = __esm({
 });
 
 // server/storage.ts
+var storage_exports = {};
+__export(storage_exports, {
+  DatabaseStorage: () => DatabaseStorage,
+  storage: () => storage
+});
 import { eq, and, desc, sql as sql2, inArray } from "drizzle-orm";
 var DatabaseStorage, storage;
 var init_storage = __esm({
@@ -3843,6 +3848,137 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to get restaurants" });
     }
   });
+  router.post("/emergency-load", async (req, res) => {
+    res.type("application/json");
+    try {
+      console.log("\u{1F6A8} [V1] Emergency loading Sofia restaurants...");
+      const existingCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const count = existingCount[0]?.count || 0;
+      if (count > 0) {
+        console.log(`\u274C Database already has ${count} restaurants`);
+        return res.json({
+          ok: false,
+          message: `Database already has ${count} restaurants`,
+          count,
+          emergency: true,
+          endpoint: "/api/v1/emergency-load"
+        });
+      }
+      const emergencyRestaurants = [
+        {
+          id: "loving-hut-sofia-v1-emergency",
+          name: "Loving Hut Sofia",
+          address: 'ul. "Vitosha" 18, 1000 Sofia, Bulgaria',
+          latitude: "42.69798360",
+          longitude: "23.33007510",
+          phoneNumber: "+359 2 980 1689",
+          website: "https://lovinghut.com/sofia",
+          veganScore: "8.0",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Asian", "Vegan", "Vegetarian"],
+          priceLevel: 2,
+          rating: "4.5",
+          reviewCount: 247,
+          openingHours: { hours: "Mon-Sun: 11:00-22:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "soul-kitchen-sofia-v1-emergency",
+          name: "Soul Kitchen",
+          address: 'ul. "Graf Ignatiev" 12, 1000 Sofia, Bulgaria',
+          latitude: "42.68432380",
+          longitude: "23.32737170",
+          phoneNumber: "+359 88 123 4567",
+          veganScore: "7.8",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Modern European", "Vegan"],
+          priceLevel: 3,
+          rating: "4.7",
+          reviewCount: 189,
+          openingHours: { hours: "Tue-Sun: 12:00-23:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "edgy-veggy-sofia-v1-emergency",
+          name: "Edgy Veggy",
+          address: 'bul. "Vitosha" 45, 1000 Sofia, Bulgaria',
+          latitude: "42.69181700",
+          longitude: "23.31720890",
+          phoneNumber: "+359 2 987 6543",
+          veganScore: "7.4",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["International", "Vegan", "Raw Food"],
+          priceLevel: 2,
+          rating: "4.3",
+          reviewCount: 156,
+          openingHours: { hours: "Mon-Sat: 10:00-21:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "vita-rama-sofia-v1-emergency",
+          name: "Vita Rama Vegan Restaurant",
+          address: 'ul. "Solunska" 32, 1000 Sofia, Bulgaria',
+          latitude: "42.68529520",
+          longitude: "23.32166450",
+          phoneNumber: "+359 2 456 7890",
+          veganScore: "7.1",
+          isFullyVegan: true,
+          hasVeganOptions: true,
+          cuisineTypes: ["Bulgarian", "Vegan", "Traditional"],
+          priceLevel: 1,
+          rating: "4.2",
+          reviewCount: 203,
+          openingHours: { hours: "Mon-Fri: 11:00-22:00, Sat-Sun: 12:00-23:00" },
+          city: "Sofia",
+          country: "Bulgaria"
+        },
+        {
+          id: "satsanga-sofia-v1-emergency",
+          name: "SATSANGA Vegetarian Restaurant",
+          address: 'ul. "William Gladstone" 2, 1000 Sofia, Bulgaria',
+          latitude: "42.69511920",
+          longitude: "23.32847910",
+          phoneNumber: "+359 2 321 6543",
+          veganScore: "6.8",
+          isFullyVegan: false,
+          hasVeganOptions: true,
+          cuisineTypes: ["Indian", "Vegetarian", "Vegan Options"],
+          priceLevel: 2,
+          rating: "4.4",
+          reviewCount: 312,
+          openingHours: { hours: "Daily: 11:30-22:30" },
+          city: "Sofia",
+          country: "Bulgaria"
+        }
+      ];
+      await db.insert(restaurants).values(emergencyRestaurants);
+      const finalCount = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const finalTotal = finalCount[0]?.count || 0;
+      console.log(`\u2705 [V1] Successfully loaded ${finalTotal} Sofia restaurants`);
+      res.json({
+        ok: true,
+        inserted: emergencyRestaurants.length,
+        message: `Emergency loaded ${finalTotal} Sofia restaurants`,
+        count: finalTotal,
+        emergency: true,
+        endpoint: "/api/v1/emergency-load"
+      });
+    } catch (error) {
+      console.error("\u274C [V1] Emergency load error:", error);
+      res.status(500).json({
+        ok: false,
+        error: "Failed to emergency load data",
+        message: error.message,
+        endpoint: "/api/v1/emergency-load"
+      });
+    }
+  });
   router.get("/restaurants/public/map-data", async (req, res) => {
     res.type("application/json");
     try {
@@ -4121,6 +4257,54 @@ async function registerRoutes(app2) {
         error: error.message,
         stack: error.stack
       });
+    }
+  });
+  router.get("/map-data", async (req, res) => {
+    res.type("application/json");
+    try {
+      console.log("=== V1 MAP DATA REQUEST ===");
+      const { minLat, minLng, maxLat, maxLng, limit } = req.query;
+      const dbTestResult = await db.select({ count: sql3`count(*)` }).from(restaurants);
+      const restaurantCount = dbTestResult[0]?.count || 0;
+      console.log(`[V1] Database has ${restaurantCount} restaurants`);
+      if (restaurantCount === 0) {
+        console.warn("[V1] Database is empty - no restaurants found");
+        return res.json([]);
+      }
+      let restaurantsData;
+      if (minLat && minLng && maxLat && maxLng) {
+        console.log("[V1] Fetching restaurants for bounds");
+        const bounds = {
+          north: parseFloat(maxLat),
+          south: parseFloat(minLat),
+          east: parseFloat(maxLng),
+          west: parseFloat(minLng)
+        };
+        restaurantsData = await storage.getRestaurantsInBounds(
+          bounds,
+          parseInt(limit) || 1e3
+        );
+      } else {
+        console.log("[V1] Fetching all restaurants");
+        restaurantsData = await storage.getAllRestaurantsWithScores();
+        restaurantsData = restaurantsData.slice(0, 1e3);
+      }
+      console.log(`[V1] Retrieved ${restaurantsData.length} restaurants`);
+      const publicData = restaurantsData.map((restaurant) => ({
+        id: restaurant.id,
+        name: restaurant.name,
+        latitude: restaurant.latitude,
+        longitude: restaurant.longitude,
+        veganScore: restaurant.veganScore || restaurant.vegan_score,
+        cuisineTypes: restaurant.cuisineTypes || restaurant.cuisine_types,
+        rating: restaurant.rating,
+        priceLevel: restaurant.priceLevel || restaurant.price_level,
+        address: restaurant.address
+      }));
+      res.json(publicData);
+    } catch (error) {
+      console.error("[V1] Map data error:", error);
+      res.status(500).json([]);
     }
   });
   router.get("/recommend", async (req, res) => {
@@ -5506,6 +5690,55 @@ app.get("/api/v1/recommend", publicLimiter, (req, res, next) => {
   req.url = "/recommend" + qs;
   req.originalUrl = req.originalUrl.replace("/api/v1/recommend", "/api/recommend");
   return apiRouter(req, res, next);
+});
+app.post("/api/v1/emergency-load", publicLimiter, (req, res, next) => {
+  req.url = "/emergency-load";
+  req.originalUrl = req.originalUrl.replace("/api/v1/emergency-load", "/api/emergency-load");
+  return apiRouter(req, res, next);
+});
+app.post("/api/v1/seed-full", publicLimiter, async (req, res) => {
+  try {
+    console.log("V1 seed-full: Loading Sofia GeoJSON dataset");
+    const geoPath = path6.join(process.cwd(), "backend", "geojson", "sofia.geojson");
+    if (!fs6.existsSync(geoPath)) {
+      console.error("V1 seed-full: Sofia GeoJSON file not found:", geoPath);
+      return res.status(404).json({ ok: false, error: "Sofia GeoJSON file not found" });
+    }
+    const raw = fs6.readFileSync(geoPath, "utf-8");
+    const geo = JSON.parse(raw);
+    const features = geo.features || [];
+    console.log(`V1 seed-full: Found ${features.length} features in GeoJSON`);
+    const { storage: storage2 } = await Promise.resolve().then(() => (init_storage(), storage_exports));
+    let inserted = 0;
+    for (const f of features) {
+      const props = f.properties || {};
+      const coords = f.geometry?.coordinates || [0, 0];
+      try {
+        await storage2.createRestaurant({
+          id: props.id ?? `sofia_${coords[1]}_${coords[0]}`,
+          name: props.name ?? "Unknown Restaurant",
+          latitude: coords[1].toString(),
+          longitude: coords[0].toString(),
+          veganScore: props.vegan_score?.toString() ?? "0",
+          cuisineTypes: props.cuisine ? [props.cuisine] : [],
+          city: "Sofia",
+          country: "Bulgaria",
+          address: props.address ?? "",
+          phoneNumber: props.phone ?? null,
+          websiteUrl: props.urls?.website ?? null,
+          placeId: props.place_id ?? null
+        });
+        inserted++;
+      } catch (error) {
+        console.warn(`V1 seed-full: Skip restaurant ${props.name}:`, error.message);
+      }
+    }
+    console.log(`V1 seed-full: Successfully inserted ${inserted} restaurants`);
+    res.json({ ok: true, inserted, total_features: features.length });
+  } catch (e) {
+    console.error("V1 seed-full error:", e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
 });
 app.use("/api", apiRouter);
 var distPath = path6.join(process.cwd(), "dist", "public");

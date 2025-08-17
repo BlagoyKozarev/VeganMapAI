@@ -217,6 +217,60 @@ app.post('/api/v1/emergency-load', publicLimiter, (req, res, next) => {
   return apiRouter(req, res, next);
 });
 
+// Seed-full endpoint - load complete Sofia dataset from GeoJSON
+app.post('/api/v1/seed-full', publicLimiter, async (req, res) => {
+  try {
+    console.log('V1 seed-full: Loading Sofia GeoJSON dataset');
+    const geoPath = path.join(process.cwd(), 'backend', 'geojson', 'sofia.geojson');
+    
+    if (!fs.existsSync(geoPath)) {
+      console.error('V1 seed-full: Sofia GeoJSON file not found:', geoPath);
+      return res.status(404).json({ ok: false, error: 'Sofia GeoJSON file not found' });
+    }
+
+    const raw = fs.readFileSync(geoPath, 'utf-8');
+    const geo = JSON.parse(raw);
+    const features = geo.features || [];
+
+    console.log(`V1 seed-full: Found ${features.length} features in GeoJSON`);
+    
+    // Import storage to access insertRestaurant method
+    const { storage } = await import('./storage.js');
+    
+    let inserted = 0;
+    for (const f of features) {
+      const props = f.properties || {};
+      const coords = f.geometry?.coordinates || [0, 0];
+      
+      try {
+        await storage.createRestaurant({
+          id: props.id ?? `sofia_${coords[1]}_${coords[0]}`,
+          name: props.name ?? 'Unknown Restaurant',
+          latitude: coords[1].toString(),
+          longitude: coords[0].toString(),
+          veganScore: props.vegan_score?.toString() ?? '0',
+          cuisineTypes: props.cuisine ? [props.cuisine] : [],
+          city: 'Sofia',
+          country: 'Bulgaria',
+          address: props.address ?? '',
+          phoneNumber: props.phone ?? null,
+          websiteUrl: props.urls?.website ?? null,
+          placeId: props.place_id ?? null
+        });
+        inserted++;
+      } catch (error) {
+        console.warn(`V1 seed-full: Skip restaurant ${props.name}:`, error.message);
+      }
+    }
+
+    console.log(`V1 seed-full: Successfully inserted ${inserted} restaurants`);
+    res.json({ ok: true, inserted, total_features: features.length });
+  } catch (e) {
+    console.error('V1 seed-full error:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // 4) API РУТЕР – общия след v1
 app.use('/api', apiRouter);
 
