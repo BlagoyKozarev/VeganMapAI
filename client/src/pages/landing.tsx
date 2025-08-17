@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import SimpleClusterMap from '../components/map/SimpleClusterMap';
+import { API_ENDPOINTS } from '@/config';
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -12,9 +13,9 @@ export default function Landing() {
 
   // Fetch restaurants for preview map
   const { data: restaurantsData } = useQuery({
-    queryKey: ['/api/restaurants/public/map-data'],
+    queryKey: [API_ENDPOINTS.mapData],
     queryFn: async () => {
-      const res = await fetch('/api/restaurants/public/map-data');
+      const res = await fetch(API_ENDPOINTS.mapData);
       if (!res.ok) throw new Error('Failed to fetch restaurants');
       return res.json();
     }
@@ -30,18 +31,18 @@ export default function Landing() {
 
   // Fetch restaurant stats
   const { data: stats } = useQuery({
-    queryKey: ['/api/restaurants/stats'],
+    queryKey: [API_ENDPOINTS.userStats],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/restaurants/public/map-data');
+        const response = await fetch(API_ENDPOINTS.mapData);
         const data = await response.json();
         return {
-          totalRestaurants: data.restaurants?.length || 408,
+          totalRestaurants: data?.length || 5,
           cities: 1,
           avgScore: 4.2
         };
       } catch {
-        return { totalRestaurants: 408, cities: 1, avgScore: 4.2 };
+        return { totalRestaurants: 5, cities: 1, avgScore: 4.2 };
       }
     }
   });

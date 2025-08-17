@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { API_ENDPOINTS } from '@/config';
 
 // Import MarkerCluster library and CSS
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -51,7 +52,7 @@ export default function PreviewMap() {
   useEffect(() => {
     console.log('[PREVIEW MAP] Fetching restaurants...');
     
-    fetch(`/api/v1/map-data?t=${Date.now()}`, {
+    fetch(`${API_ENDPOINTS.mapData}?t=${Date.now()}`, {
       headers: {
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'

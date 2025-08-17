@@ -63,16 +63,16 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 17, 2025)
-- **PRODUCTION DEPLOYMENT READY**: Complete API v1 system with 746KB client build + 206KB server bundle ready for deployment
-- **Production Smoke Tests**: All 9 tests passing locally, production test script created for post-deployment validation
-- **Security Configuration**: SWAGGER_USER/SWAGGER_PASS and METRICS_TOKEN configured for production environment protection  
-- **Monitoring Setup**: Comprehensive monitoring plan with UptimeRobot, structured logging, and backup strategies documented
-- **Prometheus Metrics**: Production-grade monitoring with custom registry, HTTP latency histogram, and 25KB+ data output
-- **Deployment Documentation**: Complete production deployment guide with DNS setup, verification steps, and rollback procedures
-- **CORS Production**: Finalized allowlist with https://veganmapai.ai and https://www.veganmapai.ai domains
-- **Quality Assurance COMPLETE**: All 9 smoke tests passing - health, version, OpenAPI, map data, geocoding, metrics, docs, legacy endpoints
-- **Legacy Compatibility**: Seamless forward compatibility maintained for existing API consumers
-- **Ready for Deploy Button**: All prerequisites met for Replit production deployment with custom domain configuration
+- **CLIENT API MIGRATION COMPLETE**: All frontend API calls migrated to centralized /api/v1 endpoints via config.ts 
+- **Mock Landing Removed**: Cleaned static mock sections from landing page, unified CTA routing
+- **Service Worker Cache Bust**: Added build versioning with automatic cache clearing on deployment
+- **Leaflet CSS Integration**: All map components properly import leaflet/dist/leaflet.css
+- **Production Build Ready**: 746KB client + 206KB server bundle with API v1 migration complete
+- **API Endpoints Centralized**: All fetch calls use API_ENDPOINTS constants from config.ts
+- **Development Testing**: Local endpoints confirmed working - healthz, map-data (5 restaurants), v1 namespace active
+- **Map Data Structure**: Migrated from data.restaurants array to direct array response format
+- **Build Performance**: Vite build optimized, 108KB CSS + 746KB JS bundle generated
+- **Cache Busting Active**: SW cache bust applied with build SHA tracking and localStorage management
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

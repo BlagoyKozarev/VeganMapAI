@@ -4,9 +4,10 @@ import { Restaurant, SearchFilters, GeolocationPosition } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
 import { fetchRestaurants } from '@/lib/restaurantCache';
+import { API_ENDPOINTS } from '@/config';
 export function useNearbyRestaurants(location: GeolocationPosition | null, radius?: number) {
   return useQuery({
-    queryKey: ['/api/restaurants/nearby', location?.lat, location?.lng, radius],
+    queryKey: [API_ENDPOINTS.restaurants, 'nearby', location?.lat, location?.lng, radius],
     queryFn: async () => {
       if (!location) return [];
       const params = new URLSearchParams({
@@ -26,7 +27,7 @@ export function useNearbyRestaurants(location: GeolocationPosition | null, radiu
 // Optimized viewport-based restaurant loading for better performance
 export function useViewportRestaurants(bounds?: { north: number; south: number; east: number; west: number }) {
   return useQuery({
-    queryKey: ['/api/restaurants/public/map-data', bounds],
+    queryKey: [API_ENDPOINTS.mapData, bounds],
     queryFn: async () => {
       // Използваме нашия кеш механизъм
       const restaurants = await fetchRestaurants();
@@ -50,7 +51,7 @@ export function useViewportRestaurants(bounds?: { north: number; south: number; 
 }
 export function useRestaurant(id: string) {
   return useQuery({
-    queryKey: ['/api/restaurants', id],
+    queryKey: [API_ENDPOINTS.restaurants, id],
     enabled: !!id,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -79,7 +80,7 @@ export function useSearchRestaurants() {
       if (filters?.priceRange) params.append('priceRange', filters.priceRange.join(','));
       if (filters?.cuisineTypes) params.append('cuisineTypes', filters.cuisineTypes.join(','));
       if (limit) params.append('limit', limit.toString());
-      const response = await apiRequest('GET', `/api/search/restaurants?${params}`);
+      const response = await apiRequest('GET', `${API_ENDPOINTS.restaurants}/search?${params}`);
       return response.json();
     },
   });
@@ -109,11 +110,11 @@ export function useFavoriteRestaurant() {
   const { toast } = useToast();
   return useMutation({
     mutationFn: async (restaurantId: string) => {
-      const response = await apiRequest('POST', '/api/favorites', { restaurantId });
+      const response = await apiRequest('POST', API_ENDPOINTS.favorites, { restaurantId });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.favorites] });
       toast({
         title: 'Added to Favorites',
         description: 'Restaurant has been added to your favorites.',
@@ -137,9 +138,9 @@ export function useUnfavoriteRestaurant() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/favorites'] });
+      queryClient.invalidateQueries({ queryKey: [API_ENDPOINTS.favorites] });
       toast({
-        title: 'Removed from Favorites',
+        title: 'Removed from Favorites', 
         description: 'Restaurant has been removed from your favorites.',
       });
     },
@@ -154,7 +155,7 @@ export function useUnfavoriteRestaurant() {
 }
 export function useFavorites() {
   return useQuery({
-    queryKey: ['/api/favorites'],
+    queryKey: [API_ENDPOINTS.favorites],
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }

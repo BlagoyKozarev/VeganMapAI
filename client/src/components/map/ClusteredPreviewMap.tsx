@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { API_ENDPOINTS } from '@/config';
 
 // Import MarkerCluster
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -31,7 +32,7 @@ export default function ClusteredPreviewMap() {
     const uniqueId = Math.random().toString(36).substr(2, 9);
     console.log('[CLUSTERED MAP] Fetching with unique ID:', uniqueId);
     
-    fetch(`/api/v1/map-data?fresh=${uniqueId}&t=${Date.now()}`, {
+    fetch(`${API_ENDPOINTS.mapData}?fresh=${uniqueId}&t=${Date.now()}`, {
       method: 'GET',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
