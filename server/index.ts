@@ -34,6 +34,7 @@ import compression from "compression";
 import { registerRoutes, apiRouter } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
+import shareRouter from "./share-route.js";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -68,6 +69,9 @@ app.use((req, res, next) => {
 
 // 3) API РУТЕР – ПРЕДИ Vite/статиката и всеки catch-all
 app.use('/api', apiRouter);
+
+// Share ZIP endpoint
+app.use('/', shareRouter);
 
 // 4) static/PWA
 const distDir = path.join(__dirname, "../dist/public");

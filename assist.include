@@ -1,0 +1,12 @@
+# Един път на ред: път или glob. Примери:
+# backend/agents/**
+# scripts/*.sh
+frontend/**
+client/**
+server/**
+backend/**
+api/**
+public/**
+configs/**
+infra/**
+scripts/*.sh
