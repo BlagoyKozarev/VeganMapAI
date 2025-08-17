@@ -83,8 +83,12 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **GEOJSON PROCESSING**: Sofia dataset contains 5 quality restaurants with full metadata
 - **DUPLICATE HANDLING**: Primary key constraints properly enforced, skips existing restaurants
 - **DEVELOPMENT DATABASE**: 510 total restaurants (505 original + 5 GeoJSON features)
-- **V1 ENDPOINTS**: All v1 endpoints functional (healthz, version, openapi.json, map-data, emergency-load, seed-full)
-- **FINAL STATUS**: V1 seed-full ready for deployment, production awaiting new endpoint activation
+- **V1 ADMIN/INGEST ENDPOINT**: Added secure bulk data import with SEED_TOKEN authentication
+- **SYNC SCRIPT**: Created scripts/sync_prod_from_dev.mjs for development to production data transfer  
+- **TOKEN SECURITY**: SEED_TOKEN environment variable configured for production protection
+- **BATCH PROCESSING**: 200 restaurants per batch with rate limiting and error handling
+- **V1 ENDPOINTS**: All v1 endpoints functional (healthz, version, openapi.json, map-data, emergency-load, seed-full, admin/ingest)
+- **FINAL STATUS**: Admin/ingest ready for deployment, sync script prepared for ~510 restaurant transfer
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson
