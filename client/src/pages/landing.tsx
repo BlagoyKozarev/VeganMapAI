@@ -4,7 +4,7 @@ import { MapPin, Star, Filter, Heart, ChefHat, Bot, Shield, Navigation } from 'l
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
-import SimpleClusterMap from '../components/map/SimpleClusterMap';
+import OptimizedLeafletMap from '../components/map/OptimizedLeafletMap';
 import { API_ENDPOINTS } from '@/config';
 
 export default function Landing() {
@@ -201,12 +201,7 @@ export default function Landing() {
           </h3>
           <Card className="overflow-hidden">
             <div className="relative h-96">
-              <SimpleClusterMap 
-                restaurants={restaurants || []} 
-                center={[42.6977, 23.3219]}
-                zoom={12}
-                className="w-full h-full"
-              />
+              <OptimizedLeafletMap />
             </div>
           </Card>
         </div>

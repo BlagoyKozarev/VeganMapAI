@@ -63,16 +63,16 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 17, 2025)
-- **FINAL API v1 MIGRATION**: All 22 frontend endpoints completely migrated to /api/v1 with dynamic API_BASE pattern
-- **Service Worker Disabled**: Complete SW unregistration with @ts-ignore cache clearing, no-store middleware added
-- **Cache Busting Complete**: BUILD_SHA=1755443230, force cache invalidation on every startup
-- **Voice Assistant Migrated**: All 6 voice endpoints (warning-status, limits, start-session, end-session, audio) using v1
-- **Production Build Final**: 746KB JS + 108KB CSS, 206KB server bundle with complete API migration
-- **Development Smoke Tests**: healthz, version, map-data all confirmed working through /api/v1 namespace
-- **Mock Landing Removed**: All BG static content deleted, CTA buttons route to /map internally
-- **Server Middleware Order**: Cache control applied before static files, v1 router mounted before legacy
-- **API Centralization**: All hardcoded /api/ paths replaced with dynamic import.meta.env.PROD conditional
-- **Ready for Production**: Complete migration validated, cache disabled, all endpoints functional
+- **MAP OPTIMIZATION COMPLETE**: OptimizedLeafletMap with reliable bbox fetch on load/moveend events
+- **DEBUG BAR ADDED**: DebugBar component shows API_BASE + live point count in bottom-left overlay
+- **BBOX FETCH SYSTEM**: loadBox() function with abort controller and proper error handling
+- **MAP MARKERS**: Color-coded cluster markers (green/orange/red) based on vegan scores
+- **PRODUCTION BUILD**: 730KB JS + 108KB CSS optimized bundle ready
+- **SERVICE WORKER**: Completely disabled with @ts-ignore cache clearing and no-store middleware  
+- **API v1 MIGRATION**: All 22 endpoints using dynamic API_BASE pattern (PROD ? '/api/v1' : 'http://localhost:5000/api/v1')
+- **SMOKE TESTS**: Map data endpoint returning 5 points, healthz + version working correctly
+- **CACHE CONTROL**: BUILD_SHA=1755443230 with complete cache invalidation system
+- **READY FOR PRODUCTION**: Map clustering functional, API centralized, cache disabled
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

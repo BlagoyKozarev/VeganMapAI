@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { API_BASE } from '@/config';
+import DebugBar from '../DebugBar';
 
 // Import MarkerCluster
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -278,6 +280,7 @@ export default function SimpleClusterMap({
           <p className="text-gray-600">No restaurants available</p>
         </div>
       )}
+      <DebugBar count={restaurants.length} />
     </div>
   );
 }
