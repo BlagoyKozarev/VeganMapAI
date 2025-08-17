@@ -6,9 +6,8 @@ import { BUILD_SHA } from "./build";
 // Force clear Service Worker and cache
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
-  if ('caches' in window) {
-    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-  }
+  // @ts-ignore
+  caches?.keys?.().then(keys => keys.forEach(k => caches.delete(k)));
 }
 
 console.log('[SW CLEAR] Cache cleared, build:', BUILD_SHA);

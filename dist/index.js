@@ -5491,6 +5491,10 @@ app.get("/api/v1/recommend", publicLimiter, (req, res, next) => {
   return apiRouter(req, res, next);
 });
 app.use("/api", apiRouter);
+app.use((_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 var distDir = path6.join(__dirname2, "../dist/public");
 if (fs6.existsSync(distDir)) {
   app.use("/assets", express5.static(path6.join(distDir, "assets"), { maxAge: "7d", immutable: true }));

@@ -63,16 +63,16 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 17, 2025)
-- **COMPLETE API v1 MIGRATION**: All 16 frontend endpoints migrated to /api/v1 namespace with centralized config.ts
-- **Service Worker Cleared**: Force unregister SW + cache clear on startup, no-store headers for index.html
-- **Mock Components Removed**: All BG mock sections deleted, CTA routing unified to /map endpoint
-- **Production Build Optimized**: 746KB JS + 108KB CSS, 206KB server bundle with cache-busted assets
-- **Hardcoded API Cleanup**: Migrated ai-search, voice, chat, audio, map-data endpoints to API_BASE pattern
-- **Development Testing Complete**: healthz, version, map-data (5 restaurants) all working via /api/v1
-- **Landing Page Cleaned**: Removed mock step 1 links, unified navigation to internal routes
-- **Build Versioning**: Dynamic BUILD_SHA with Date.now() for automatic cache invalidation
-- **Server Cache Control**: Added no-store headers for SPA fallback, proper static asset caching
-- **API Structure Ready**: v1 router mounted before legacy, map-data alias working correctly
+- **FINAL API v1 MIGRATION**: All 22 frontend endpoints completely migrated to /api/v1 with dynamic API_BASE pattern
+- **Service Worker Disabled**: Complete SW unregistration with @ts-ignore cache clearing, no-store middleware added
+- **Cache Busting Complete**: BUILD_SHA=1755443230, force cache invalidation on every startup
+- **Voice Assistant Migrated**: All 6 voice endpoints (warning-status, limits, start-session, end-session, audio) using v1
+- **Production Build Final**: 746KB JS + 108KB CSS, 206KB server bundle with complete API migration
+- **Development Smoke Tests**: healthz, version, map-data all confirmed working through /api/v1 namespace
+- **Mock Landing Removed**: All BG static content deleted, CTA buttons route to /map internally
+- **Server Middleware Order**: Cache control applied before static files, v1 router mounted before legacy
+- **API Centralization**: All hardcoded /api/ paths replaced with dynamic import.meta.env.PROD conditional
+- **Ready for Production**: Complete migration validated, cache disabled, all endpoints functional
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

@@ -32,13 +32,13 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
     if (currentSessionId && isRecording) {
       const warningInterval = setInterval(async () => {
         try {
-          const response = await fetch('/api/voice/warning-status', {
+          const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/voice/warning-status`, {
             credentials: 'include'
           });
           const data = await response.json();
           if (data.shouldWarn && !showLimitWarning) {
             setShowLimitWarning(true);
-            await fetch('/api/voice/mark-warning-shown', {
+            await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/voice/mark-warning-shown`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ sessionId: currentSessionId }),
@@ -53,7 +53,7 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
   }, [currentSessionId, isRecording, showLimitWarning]);
   const checkVoiceLimits = async () => {
     try {
-      const response = await fetch('/api/voice/limits', {
+      const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/voice/limits`, {
         credentials: 'include'
       });
       const limits = await response.json();
@@ -63,7 +63,7 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
   };
   const startVoiceSession = async () => {
     try {
-      const response = await fetch('/api/voice/start-session', {
+      const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/voice/start-session`, {
         method: 'POST',
         credentials: 'include'
       });
@@ -81,7 +81,7 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
   };
   const endVoiceSession = async (sessionId: string, endReason?: string) => {
     try {
-      await fetch('/api/voice/end-session', {
+      await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/voice/end-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, endReason }),
@@ -205,7 +205,7 @@ export default function VoiceAssistant({ onTranscription, onResponse }: VoiceAss
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
-      const response = await fetch('/api/audio', {
+      const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/audio`, {
         method: 'POST',
         body: formData,
         credentials: 'include' // Important for authentication

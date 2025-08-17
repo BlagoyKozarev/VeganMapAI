@@ -213,7 +213,9 @@ app.get('/api/v1/recommend', publicLimiter, (req, res, next) => {
 // 4) API РУТЕР – общия след v1
 app.use('/api', apiRouter);
 
-// 4) static/PWA
+// 4) static/PWA with cache control
+app.use((_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+
 const distDir = path.join(__dirname, "../dist/public");
 if (fs.existsSync(distDir)) {
   app.use('/assets', express.static(path.join(distDir, 'assets'), { maxAge: '7d', immutable: true }));
