@@ -38,11 +38,11 @@ import shareRouter from "./share-route";
 import shareRefreshRouter from "./share-refresh";
 import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
-import path from 'path';
-import fs from 'fs';
 import { Client } from '@googlemaps/google-maps-services-js';
+import client from 'prom-client';
 import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import { readFileSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -57,7 +57,7 @@ app.use(express.json({ limit: '1mb' }));
 // 2) CORS with allowlist
 const allowlist = [
   'https://www.veganmapai.ai',
-  'https://veganmapai.ai', 
+  'https://veganmapai.ai',
   'https://vegan-map-ai-bkozarev.replit.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -102,14 +102,36 @@ app.get('/api/v1/version', publicLimiter, (req, res) =>
 
 // OpenAPI JSON
 app.get('/api/v1/openapi.json', publicLimiter, (req, res) => {
-  const p = path.join(process.cwd(), 'server', 'api', 'openapi.v1.json');
-  res.type('application/json').send(fs.readFileSync(p, 'utf-8'));
+  const p = join(process.cwd(), 'server', 'api', 'openapi.v1.json');
+  res.type('application/json').send(readFileSync(p, 'utf-8'));
 });
 
-// Swagger UI
-const openapiPath = path.join(process.cwd(), 'server', 'api', 'openapi.v1.json');
-const openapiDoc = JSON.parse(fs.readFileSync(openapiPath, 'utf-8'));
-app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(openapiDoc));
+// Swagger UI with Basic Auth in production
+const openapiPath = join(process.cwd(), 'server', 'api', 'openapi.v1.json');
+const openapiDoc = JSON.parse(readFileSync(openapiPath, 'utf-8'));
+
+const swaggerAuth = (req: any, res: any, next: any) => {
+  if (process.env.NODE_ENV !== 'production') return next();
+  
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith('Basic ')) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="Swagger Docs"');
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  const credentials = Buffer.from(auth.slice(6), 'base64').toString().split(':');
+  const username = credentials[0];
+  const password = credentials[1];
+  
+  if (username === process.env.SWAGGER_USER && password === process.env.SWAGGER_PASS) {
+    return next();
+  }
+  
+  res.setHeader('WWW-Authenticate', 'Basic realm="Swagger Docs"');
+  return res.status(401).json({ error: 'Invalid credentials' });
+};
+
+app.use('/api/v1/docs', swaggerAuth, swaggerUi.serve, swaggerUi.setup(openapiDoc));
 
 // Геокодиране
 const gmaps = new Client({});
@@ -136,6 +158,12 @@ app.get('/api/v1/restaurants/:id/reviews', publicLimiter, async (req, res) => {
   res.json({ count: 0, items: [] });
 });
 
+// Admin metrics endpoint
+app.get('/api/v1/admin/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
 // Map-data alias (forward to legacy)
 app.get('/api/v1/map-data', publicLimiter, async (req, res) => {
   const qs = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
@@ -144,10 +172,11 @@ app.get('/api/v1/map-data', publicLimiter, async (req, res) => {
 });
 
 // Recommend alias (forward to legacy)
-app.get('/api/v1/recommend', publicLimiter, (req, res) => {
+app.get('/api/v1/recommend', publicLimiter, (req, res, next) => {
   const qs = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
   req.url = '/recommend' + qs;
-  return apiRouter(req, res, () => {});
+  req.originalUrl = req.originalUrl.replace('/api/v1/recommend', '/api/recommend');
+  return apiRouter(req, res, next);
 });
 
 // 4) API РУТЕР – общия след v1

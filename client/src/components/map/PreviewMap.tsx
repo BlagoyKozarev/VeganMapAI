@@ -51,7 +51,7 @@ export default function PreviewMap() {
   useEffect(() => {
     console.log('[PREVIEW MAP] Fetching restaurants...');
     
-    fetch(`/api/restaurants/public/map-data?t=${Date.now()}`, {
+    fetch(`/api/v1/map-data?t=${Date.now()}`, {
       headers: {
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'

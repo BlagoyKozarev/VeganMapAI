@@ -38,14 +38,14 @@ export function ProfileModal({ isOpen, onClose, onShowFavorites }: ProfileModalP
 
   // Fetch user stats
   const { data: userStats } = useQuery({
-    queryKey: ['/api/user/stats'],
+    queryKey: ['/api/v1/user/stats'],
     enabled: isAuthenticated,
     retry: false
   });
 
   // Fetch user favorites count
   const { data: favoritesData } = useQuery({
-    queryKey: ['/api/favorites'],
+    queryKey: ['/api/v1/favorites'],
     enabled: isAuthenticated,
     retry: false
   });
@@ -76,13 +76,10 @@ export function ProfileModal({ isOpen, onClose, onShowFavorites }: ProfileModalP
   // Save preferences mutation
   const savePreferencesMutation = useMutation({
     mutationFn: async (prefs: UserPreferences) => {
-      return await apiRequest('/api/user/preferences', {
-        method: 'POST',
-        body: JSON.stringify(prefs)
-      });
+      return await apiRequest('POST', '/api/v1/user/preferences', prefs);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/v1/user/preferences'] });
     }
   });
 

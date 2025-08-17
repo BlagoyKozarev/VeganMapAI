@@ -19,7 +19,7 @@ export function FavoriteButton({ restaurantId, size = 'md', showLabel = false }:
   
   // Query favorites
   const { data: favorites = [] } = useQuery<any[]>({
-    queryKey: ['/api/favorites'],
+    queryKey: ['/api/v1/favorites'],
     enabled: isAuthenticated,
     retry: false
   });

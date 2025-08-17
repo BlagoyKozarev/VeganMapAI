@@ -31,7 +31,7 @@ export default function ClusteredPreviewMap() {
     const uniqueId = Math.random().toString(36).substr(2, 9);
     console.log('[CLUSTERED MAP] Fetching with unique ID:', uniqueId);
     
-    fetch(`/api/restaurants/public/map-data?fresh=${uniqueId}&t=${Date.now()}`, {
+    fetch(`/api/v1/map-data?fresh=${uniqueId}&t=${Date.now()}`, {
       method: 'GET',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',

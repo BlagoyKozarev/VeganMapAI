@@ -63,16 +63,16 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 17, 2025)
-- **API v1 NAMESPACE**: Successfully implemented `/api/v1` with OpenAPI documentation, CORS, and rate limiting
-- **Production Endpoints**: All v1 endpoints functional - healthz, version, openapi.json, geocode, map-data, docs
-- **Swagger UI Integration**: Interactive API docs available at `/api/v1/docs` with complete OpenAPI 3.0.3 spec
-- **Rate Limiting**: Implemented 60 req/min public limit and 10 req/min geocoding limit for cost control
-- **Google Maps Geocoding**: Cached geocoding service with Bulgarian language support via Google Maps API
-- **Legacy Compatibility**: Forward-compatible aliases for map-data and recommend endpoints
-- **Enhanced CORS**: Extended allowlist for veganmapai.ai domain and proper credentials handling
-- **Service Architecture**: Clean separation between v1 (modern) and legacy API endpoints
-- **Share Functionality**: Complete project distribution system with ZIP downloads and manifest endpoints
-- **Database Status**: Development and production databases operational with 5 Sofia restaurants
+- **API v1 FINALIZED**: Complete v1 namespace with recommend alias, Basic Auth protected docs, Prometheus metrics
+- **Client Migration**: All frontend API calls migrated from `/api` to `/api/v1` for modern endpoint usage
+- **Production Security**: Swagger docs protected with SWAGGER_USER/SWAGGER_PASS in production environment
+- **Monitoring Ready**: `/api/v1/admin/metrics` endpoint provides Prometheus-compatible metrics for observability
+- **CORS Production**: Finalized allowlist with https://veganmapai.ai and https://www.veganmapai.ai domains
+- **Quality Assurance**: Complete smoke testing suite validates all v1 endpoints (9 tests covering health, docs, geocoding, map data)
+- **Legacy Compatibility**: Seamless forward compatibility maintained for existing API consumers
+- **OpenAPI Documentation**: Interactive Swagger UI at `/api/v1/docs` with complete API specification
+- **Rate Limiting**: Production-ready throttling (60/min general, 10/min geocoding) prevents API abuse
+- **Database Operational**: 5 Sofia restaurants loaded and serving via optimized v1 endpoints
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson
