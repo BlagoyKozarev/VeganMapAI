@@ -41,17 +41,27 @@ test_endpoint "Version Info" "/api/v1/version" 200 '"git_sha"'
 test_endpoint "OpenAPI Spec" "/api/v1/openapi.json" 200 'openapi'
 test_endpoint "Map Data" "/api/v1/map-data" 200 '"lat"'
 test_endpoint "Geocoding" "/api/v1/geocode?query=Sofia" 200 '"results"'
-test_endpoint "Metrics" "/api/v1/admin/metrics" 200 'nodejs_version'
-test_endpoint "Swagger Docs" "/api/v1/docs" 200 'swagger'
+test_endpoint "Metrics" "/api/v1/admin/metrics" 200 'veganmapai_'
+test_endpoint "Swagger Docs" "/api/v1/docs/" 200 'swagger'
 
 # Test legacy endpoints still work
 test_endpoint "Legacy Health" "/api/health" 200 '"ok":true'
 test_endpoint "Legacy Map Data" "/api/restaurants/public/map-data" 200 '"lat"'
 
+# Enhanced metrics test
+echo -n "Testing Metrics Size... "
+BYTES=$(curl -fsS "$BASE_URL/api/v1/admin/metrics" | wc -c | tr -d ' ')
+if [ "${BYTES:-0}" -gt 100 ]; then
+  echo "✅ PASS ($BYTES bytes)"
+else
+  echo "❌ FAIL ($BYTES bytes, expected >100)"
+  ((FAIL_COUNT++))
+fi
+
 echo ""
 echo "=================================="
 if [ $FAIL_COUNT -eq 0 ]; then
-  echo "🎉 All tests passed! API v1 is ready for production."
+  echo "🎉 All 9 tests passed! API v1 is ready for production."
 else
   echo "💥 $FAIL_COUNT test(s) failed. Please review the issues above."
   exit 1

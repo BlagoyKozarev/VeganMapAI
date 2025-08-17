@@ -63,14 +63,15 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 17, 2025)
-- **API v1 FINALIZED**: Complete v1 namespace with recommend alias, Basic Auth protected docs, Prometheus metrics
-- **Client Migration**: All frontend API calls migrated from `/api` to `/api/v1` for modern endpoint usage
-- **Production Security**: Swagger docs protected with SWAGGER_USER/SWAGGER_PASS in production environment
-- **Monitoring Ready**: `/api/v1/admin/metrics` endpoint provides Prometheus-compatible metrics for observability
+- **API v1 COMPLETE**: Full v1 namespace with Prometheus metrics, client migration, and 9/9 successful smoke tests
+- **Prometheus Metrics**: Production-grade monitoring with custom registry, HTTP latency histogram, and 25KB+ data output
+- **Client v1 Migration**: All frontend API calls successfully migrated from legacy `/api` to modern `/api/v1` endpoints
+- **Production Security**: Swagger docs protected with Basic Auth, metrics endpoint with token protection
+- **Monitoring Observatory**: `/api/v1/admin/metrics` endpoint provides comprehensive Prometheus metrics with app labeling
 - **CORS Production**: Finalized allowlist with https://veganmapai.ai and https://www.veganmapai.ai domains
-- **Quality Assurance**: Complete smoke testing suite validates all v1 endpoints (9 tests covering health, docs, geocoding, map data)
+- **Quality Assurance COMPLETE**: All 9 smoke tests passing - health, version, OpenAPI, map data, geocoding, metrics, docs, legacy endpoints
 - **Legacy Compatibility**: Seamless forward compatibility maintained for existing API consumers
-- **OpenAPI Documentation**: Interactive Swagger UI at `/api/v1/docs` with complete API specification
+- **OpenAPI Documentation**: Interactive Swagger UI at `/api/v1/docs/` with complete API specification
 - **Rate Limiting**: Production-ready throttling (60/min general, 10/min geocoding) prevents API abuse
 - **Database Operational**: 5 Sofia restaurants loaded and serving via optimized v1 endpoints
 

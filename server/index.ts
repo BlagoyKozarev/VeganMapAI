@@ -40,6 +40,24 @@ import rateLimit from 'express-rate-limit';
 import swaggerUi from 'swagger-ui-express';
 import { Client } from '@googlemaps/google-maps-services-js';
 import client from 'prom-client';
+
+// Prometheus metrics setup
+const reg = new client.Registry();
+reg.setDefaultLabels({ app: 'veganmapai' });
+
+client.collectDefaultMetrics({
+  register: reg,
+  prefix: 'veganmapai_',
+  gcDurationBuckets: [0.05, 0.1, 0.2, 0.5, 1, 2]
+});
+
+const httpRequestDuration = new client.Histogram({
+  name: 'veganmapai_http_request_duration_seconds',
+  help: 'HTTP request duration',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.05, 0.1, 0.2, 0.5, 1, 2, 5],
+  registers: [reg]
+});
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFileSync } from 'fs';
@@ -53,6 +71,13 @@ app.set("trust proxy", 1);
 // 1) security + json
 app.disable('x-powered-by');
 app.use(express.json({ limit: '1mb' }));
+
+// Metrics middleware
+app.use((req, res, next) => {
+  const end = httpRequestDuration.startTimer({ method: req.method, route: req.path });
+  res.on('finish', () => end({ status_code: String(res.statusCode) }));
+  next();
+});
 
 // 2) CORS with allowlist
 const allowlist = [
@@ -158,10 +183,16 @@ app.get('/api/v1/restaurants/:id/reviews', publicLimiter, async (req, res) => {
   res.json({ count: 0, items: [] });
 });
 
-// Admin metrics endpoint
-app.get('/api/v1/admin/metrics', async (req, res) => {
-  res.set('Content-Type', client.register.contentType);
-  res.end(await client.register.metrics());
+// Admin metrics endpoint with protection in production
+app.get('/api/v1/admin/metrics', (req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    return req.headers['x-metrics-token'] === process.env.METRICS_TOKEN ? next() : res.status(401).end();
+  }
+  next();
+}, async (req, res) => {
+  res.set('Content-Type', reg.contentType);
+  res.set('Cache-Control', 'no-store');
+  res.end(await reg.metrics());
 });
 
 // Map-data alias (forward to legacy)
