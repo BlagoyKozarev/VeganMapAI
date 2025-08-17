@@ -74,7 +74,10 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **SERVER CONFIGURATION**: API mounted before static assets, SPA fallback working properly
 - **BUILD OPTIMIZATION**: 730KB JS + 108KB CSS production bundle ready and tested
 - **STORAGE LIMITS**: Confirmed getRestaurantsInBounds() limit=1000, no problematic restrictions
-- **FINAL STATUS**: Development environment fully functional, production deployed with minimal test data
+- **V1 EMERGENCY-LOAD ALIAS**: Added /api/v1/emergency-load endpoint in development server/index.ts
+- **DEVELOPMENT SEEDING**: 505 restaurants successfully loaded via new v1 endpoint
+- **PRODUCTION STATUS**: Legacy deployment (5 restaurants), v1 alias not yet deployed
+- **FINAL STATUS**: Development environment fully functional, production awaiting code deployment
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

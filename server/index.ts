@@ -210,6 +210,13 @@ app.get('/api/v1/recommend', publicLimiter, (req, res, next) => {
   return apiRouter(req, res, next);
 });
 
+// Emergency-load alias (forward to legacy)
+app.post('/api/v1/emergency-load', publicLimiter, (req, res, next) => {
+  req.url = '/emergency-load';
+  req.originalUrl = req.originalUrl.replace('/api/v1/emergency-load', '/api/emergency-load');
+  return apiRouter(req, res, next);
+});
+
 // 4) API РУТЕР – общия след v1
 app.use('/api', apiRouter);
 
