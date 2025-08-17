@@ -36,6 +36,11 @@ import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
 import shareRouter from "./share-route";
 import shareRefreshRouter from "./share-refresh";
+import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import path from 'path';
+import fs from 'fs';
+import { Client } from '@googlemaps/google-maps-services-js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -49,15 +54,23 @@ app.set("trust proxy", 1);
 app.disable('x-powered-by');
 app.use(express.json({ limit: '1mb' }));
 
-// 2) CORS (ограничи по origin)
-const allow = [
+// 2) CORS with allowlist
+const allowlist = [
+  'https://www.veganmapai.ai',
+  'https://veganmapai.ai', 
   'https://vegan-map-ai-bkozarev.replit.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
   'http://localhost:5000',
   'http://127.0.0.1:5000'
 ];
+
 app.use(cors({
-  origin: (o, cb) => !o || allow.includes(o) ? cb(null, true) : cb(null, false),
-  credentials: false,
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    cb(null, allowlist.includes(origin));
+  },
+  credentials: true,
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -75,7 +88,69 @@ app.get("/__ping", (_req, res) => res.json({ ok: true, ts: Date.now() }));
 app.use(shareRouter);
 app.use(shareRefreshRouter);
 
-// 3) API РУТЕР – ПРЕДИ Vite/статиката и всеки catch-all
+// 3) API v1 endpoints inline - ПЪРВО добавяме v1
+const publicLimiter = rateLimit({ windowMs: 60_000, max: 60 });
+const geoLimiter = rateLimit({ windowMs: 60_000, max: 10 });
+
+app.get('/api/v1/healthz', publicLimiter, (req, res) => res.json({ ok: true, ts: Date.now() }));
+app.get('/api/v1/version', publicLimiter, (req, res) =>
+  res.json({
+    git_sha: process.env.GIT_SHA ?? 'dev',
+    node_env: process.env.NODE_ENV ?? 'dev'
+  })
+);
+
+// OpenAPI JSON
+app.get('/api/v1/openapi.json', publicLimiter, (req, res) => {
+  const p = path.join(process.cwd(), 'server', 'api', 'openapi.v1.json');
+  res.type('application/json').send(fs.readFileSync(p, 'utf-8'));
+});
+
+// Swagger UI
+const openapiPath = path.join(process.cwd(), 'server', 'api', 'openapi.v1.json');
+const openapiDoc = JSON.parse(fs.readFileSync(openapiPath, 'utf-8'));
+app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(openapiDoc));
+
+// Геокодиране
+const gmaps = new Client({});
+const geoCache = new Map<string, any>();
+app.get('/api/v1/geocode', geoLimiter, async (req, res) => {
+  try {
+    const q = String(req.query.query ?? '').trim();
+    if (!q) return res.status(400).json({ error: 'query required' });
+    if (geoCache.has(q)) return res.json({ cached: true, result: geoCache.get(q) });
+
+    const r = await gmaps.geocode({
+      params: { address: q, key: process.env.GOOGLE_MAPS_API_KEY! }
+    });
+    geoCache.set(q, r.data);
+    res.json({ cached: false, result: r.data });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message ?? 'geocode error' });
+  }
+});
+
+// Reviews placeholder
+app.get('/api/v1/restaurants/:id/reviews', publicLimiter, async (req, res) => {
+  const id = String(req.params.id);
+  res.json({ count: 0, items: [] });
+});
+
+// Map-data alias (forward to legacy)
+app.get('/api/v1/map-data', publicLimiter, async (req, res) => {
+  const qs = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  req.url = '/restaurants/public/map-data' + qs;
+  return apiRouter(req, res, () => {});
+});
+
+// Recommend alias (forward to legacy)
+app.get('/api/v1/recommend', publicLimiter, (req, res) => {
+  const qs = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  req.url = '/recommend' + qs;
+  return apiRouter(req, res, () => {});
+});
+
+// 4) API РУТЕР – общия след v1
 app.use('/api', apiRouter);
 
 // 4) static/PWA
@@ -91,6 +166,10 @@ if (fs.existsSync(distDir)) {
   // 5) SPA fallback (само за НЕ-API и НЕ-share)
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/') || req.path.startsWith('/share/')) {
+      // Add proper JSON 404 for API routes
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ ok: false, error: "Not Found" });
+      }
       return next();
     }
     res.sendFile(path.join(distDir, 'index.html'));

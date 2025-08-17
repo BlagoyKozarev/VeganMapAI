@@ -1,0 +1,26 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "VeganMapAI API", "version": "1.0.0" },
+  "servers": [{ "url": "/api/v1" }],
+  "paths": {
+    "/healthz": { "get": { "summary": "Health", "responses": { "200": { "description": "OK" } } } },
+    "/version": { "get": { "summary": "Build info", "responses": { "200": { "description": "OK" } } } },
+    "/geocode": {
+      "get": {
+        "parameters": [{ "name": "query", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/restaurants/{id}/reviews": {
+      "get": {
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK" } }
+      },
+      "post": {
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "required": true },
+        "responses": { "201": { "description": "Created" } }
+      }
+    }
+  }
+}

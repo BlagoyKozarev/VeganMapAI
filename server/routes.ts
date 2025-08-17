@@ -9,6 +9,9 @@ import fs from 'fs';
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import { restaurants } from "@shared/schema";
+import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
+import path from 'path';
 // FormData is now globally available in Node.js
 
 import { 
