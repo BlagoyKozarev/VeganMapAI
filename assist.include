@@ -1,12 +1,29 @@
-# Един път на ред: път или glob. Примери:
-# backend/agents/**
-# scripts/*.sh
+server/**
+src/**
+app/**
+api/**
+backend/**
 frontend/**
 client/**
-server/**
-backend/**
-api/**
+pages/**
+components/**
 public/**
-configs/**
-infra/**
-scripts/*.sh
+lib/**
+utils/**
+config/**
+scripts/**
+prisma/**
+migrations/**
+Dockerfile
+docker-compose.yml
+package.json
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+tsconfig.json
+next.config.*
+vite.config.*
+astro.config.*
+nuxt.config.*
+README.md
