@@ -1,0 +1,12 @@
+{
+  "name": "VeganMapAI Share",
+  "version": "1.0.0", 
+  "description": "VeganMapAI project share package",
+  "files": [
+    "README.md",
+    "package.json",
+    "client/src/components/ui/button.tsx"
+  ],
+  "created": "2025-08-17T06:25:22.095Z",
+  "size": 5714
+}
