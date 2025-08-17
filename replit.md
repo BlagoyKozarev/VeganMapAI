@@ -63,16 +63,18 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 17, 2025)
-- **DATABASE SEED SUCCESS**: Production DB expanded from 5 to 255 restaurants using correct schema (phone_number)
+- **DATABASE SEED SUCCESS**: Production DB expanded to 505 restaurants using correct schema (phone_number)
 - **NORMALIZE SYSTEM**: MapPoint interface with lat/lng/score for reliable data handling
 - **LEAFLET ICONS FIXED**: Vite asset loading in main.tsx with iconUrl/iconRetinaUrl/shadowUrl
-- **MAP OPTIMIZATION COMPLETE**: OptimizedLeafletMap with bbox fetch, 255 points rendering with clustering
-- **DEBUG BAR ACTIVE**: Shows API_BASE + live point count, confirms 255 restaurants loaded
+- **MAP OPTIMIZATION COMPLETE**: OptimizedLeafletMap with bbox fetch, 505 points rendering with clustering
+- **DEBUG BAR ACTIVE**: Shows API_BASE + live point count, confirms 505 restaurants loaded
 - **LIMIT REMOVED**: getRestaurantsInBounds() limit increased to 1000 from 200
 - **PWA MANIFEST**: Created public/manifest.json for mobile app functionality
-- **PRODUCTION BUILD**: 730KB JS + 108KB CSS optimized bundle
+- **PRODUCTION BUILD**: 730KB JS + 108KB CSS optimized bundle ready for deployment
+- **STATIC SERVING FIXED**: Server uses dist/public with proper cache-busting headers
+- **API V1 ALIASES**: map-data and recommend endpoints working in both dev and production
 - **CACHE BUSTING**: BUILD_SHA=1755444530 with complete invalidation
-- **READY FOR DEPLOYMENT**: Map shows 255 markers with clustering, all systems validated
+- **PRODUCTION READY**: Development shows 505 markers, production deployment prepared
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

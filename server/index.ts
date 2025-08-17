@@ -213,19 +213,27 @@ app.get('/api/v1/recommend', publicLimiter, (req, res, next) => {
 // 4) API РУТЕР – общия след v1
 app.use('/api', apiRouter);
 
-// 4) static/PWA with cache control
-app.use((_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+// 4) Static serving - dist/public folder (Vite output)
+const distPath = path.join(process.cwd(), 'dist', 'public');
 
-const distDir = path.join(__dirname, "../dist/public");
-if (fs.existsSync(distDir)) {
-  app.use('/assets', express.static(path.join(distDir, 'assets'), { maxAge: '7d', immutable: true }));
-  app.get('/manifest.json', (_, res) => res.sendFile(path.join(distDir, 'manifest.json')));
+// Cache bust headers for HTML
+app.use((req, res, next) => {
+  if (req.path === '/' || req.path.endsWith('.html')) {
+    res.set('Cache-Control', 'no-store');
+  }
+  next();
+});
+
+// Static assets with proper cache headers
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath, { maxAge: '0', etag: false }));
+  app.get('/manifest.json', (_, res) => res.sendFile(path.join(distPath, 'manifest.json')));
   app.get('/service-worker.js', (req, res) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
-    res.sendFile(path.join(distDir, 'service-worker.js'));
+    res.sendFile(path.join(distPath, 'service-worker.js'));
   });
   
-  // 5) SPA fallback (само за НЕ-API и НЕ-share)
+  // 5) SPA fallback - serve index.html for non-API routes
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/') || req.path.startsWith('/share/')) {
       // Add proper JSON 404 for API routes
@@ -235,7 +243,7 @@ if (fs.existsSync(distDir)) {
       return next();
     }
     res.set('Cache-Control', 'no-store');
-    res.sendFile(path.join(distDir, 'index.html'));
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
