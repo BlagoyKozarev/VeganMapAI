@@ -54,7 +54,6 @@ export function RestaurantFilters({
       minVeganScore: 0,
       priceLevel: 'all',
       maxDistance: 500
-      maxDistance: 10
     };
     setFilters(resetFilters);
   };
