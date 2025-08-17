@@ -63,16 +63,16 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 17, 2025)
-- **MAP OPTIMIZATION COMPLETE**: OptimizedLeafletMap with reliable bbox fetch on load/moveend events
-- **DEBUG BAR ADDED**: DebugBar component shows API_BASE + live point count in bottom-left overlay
-- **BBOX FETCH SYSTEM**: loadBox() function with abort controller and proper error handling
-- **MAP MARKERS**: Color-coded cluster markers (green/orange/red) based on vegan scores
-- **PRODUCTION BUILD**: 730KB JS + 108KB CSS optimized bundle ready
-- **SERVICE WORKER**: Completely disabled with @ts-ignore cache clearing and no-store middleware  
-- **API v1 MIGRATION**: All 22 endpoints using dynamic API_BASE pattern (PROD ? '/api/v1' : 'http://localhost:5000/api/v1')
-- **SMOKE TESTS**: Map data endpoint returning 5 points, healthz + version working correctly
-- **CACHE CONTROL**: BUILD_SHA=1755443230 with complete cache invalidation system
-- **READY FOR PRODUCTION**: Map clustering functional, API centralized, cache disabled
+- **DATABASE SEED SUCCESS**: Production DB expanded from 5 to 255 restaurants using correct schema (phone_number)
+- **NORMALIZE SYSTEM**: MapPoint interface with lat/lng/score for reliable data handling
+- **LEAFLET ICONS FIXED**: Vite asset loading in main.tsx with iconUrl/iconRetinaUrl/shadowUrl
+- **MAP OPTIMIZATION COMPLETE**: OptimizedLeafletMap with bbox fetch, 255 points rendering with clustering
+- **DEBUG BAR ACTIVE**: Shows API_BASE + live point count, confirms 255 restaurants loaded
+- **LIMIT REMOVED**: getRestaurantsInBounds() limit increased to 1000 from 200
+- **PWA MANIFEST**: Created public/manifest.json for mobile app functionality
+- **PRODUCTION BUILD**: 730KB JS + 108KB CSS optimized bundle
+- **CACHE BUSTING**: BUILD_SHA=1755444530 with complete invalidation
+- **READY FOR DEPLOYMENT**: Map shows 255 markers with clustering, all systems validated
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson
