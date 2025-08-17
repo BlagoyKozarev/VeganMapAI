@@ -6,19 +6,11 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { API_BASE } from '@/config';
 import DebugBar from '../DebugBar';
+import { normalizeItem, type MapPoint } from '@/utils/normalize';
 
-// Fix Leaflet icon paths
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+// Icons are fixed in main.tsx
 
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-  iconRetinaUrl: markerIcon2x,
-});
-
-async function loadBox(bounds: L.LatLngBounds, signal?: AbortSignal) {
+async function loadBox(bounds: L.LatLngBounds, signal?: AbortSignal): Promise<MapPoint[]> {
   const q = new URLSearchParams({
     minLat: String(bounds.getSouth()),
     minLng: String(bounds.getWest()),
@@ -29,19 +21,10 @@ async function loadBox(bounds: L.LatLngBounds, signal?: AbortSignal) {
   console.log('[MAP] Loading bbox:', bounds.toString());
   const r = await fetch(`${API_BASE}/map-data?${q.toString()}`, { signal });
   if (!r.ok) throw new Error(`map-data ${r.status}`);
-  const data = await r.json();
-  console.log('[MAP] Received', data.length, 'points from API');
-  return data;
-}
-
-interface Restaurant {
-  id: string;
-  name: string;
-  latitude: number | string;
-  longitude: number | string;
-  veganScore: number | string;
-  address?: string;
-  rating?: number;
+  const raw = await r.json();
+  const items = (Array.isArray(raw) ? raw : []).map(normalizeItem).filter(Boolean) as MapPoint[];
+  console.log('[MAP] Received', raw.length, 'raw items, normalized to', items.length, 'points');
+  return items;
 }
 
 export default function OptimizedLeafletMap() {
@@ -49,7 +32,7 @@ export default function OptimizedLeafletMap() {
   const mapInstanceRef = useRef<L.Map | null>(null);
   const clusterGroupRef = useRef<any>(null);
   const [pointsCount, setPointsCount] = useState(0);
-  const [markers, setMarkers] = useState<Restaurant[]>([]);
+  const [points, setPoints] = useState<MapPoint[]>([]);
 
   // Initialize map
   useEffect(() => {
@@ -126,7 +109,7 @@ export default function OptimizedLeafletMap() {
         
         const items = await loadBox(bounds, ctrl.signal);
         setPointsCount(items.length);
-        setMarkers(items);
+        setPoints(items);
         
         // Clear existing markers
         if (clusterGroupRef.current) {
@@ -134,38 +117,28 @@ export default function OptimizedLeafletMap() {
         }
         
         // Add markers to cluster
-        items.forEach((restaurant: Restaurant) => {
-          const lat = parseFloat(String(restaurant.latitude));
-          const lng = parseFloat(String(restaurant.longitude));
+        items.forEach((point: MapPoint) => {
+          const score = point.score || 0;
+          let color = '#ff4444'; // red for low scores
+          if (score >= 4) color = '#44ff44'; // green for high scores
+          else if (score >= 2) color = '#ffaa44'; // orange for medium scores
           
-          if (!isNaN(lat) && !isNaN(lng)) {
-            const score = parseFloat(String(restaurant.veganScore || 0));
-            let color = '#ff4444'; // red for low scores
-            if (score >= 4) color = '#44ff44'; // green for high scores
-            else if (score >= 2) color = '#ffaa44'; // orange for medium scores
-            
-            const marker = L.circleMarker([lat, lng], {
-              radius: 8,
-              fillColor: color,
-              color: '#fff',
-              weight: 2,
-              opacity: 1,
-              fillOpacity: 0.8
-            });
-            
-            const popupContent = `
-              <div>
-                <h4>${restaurant.name}</h4>
-                <p>Vegan Score: ${score}/8</p>
-                ${restaurant.address ? `<p>${restaurant.address}</p>` : ''}
-              </div>
-            `;
-            
-            marker.bindPopup(popupContent);
-            
-            if (clusterGroupRef.current) {
-              clusterGroupRef.current.addLayer(marker);
-            }
+          const marker = L.marker([point.lat, point.lng], {
+            title: point.name
+          });
+          
+          const popupContent = `
+            <div>
+              <h4>${point.name}</h4>
+              <p>Vegan Score: ${score}/8</p>
+              ${point.address ? `<p>${point.address}</p>` : ''}
+            </div>
+          `;
+          
+          marker.bindPopup(popupContent);
+          
+          if (clusterGroupRef.current) {
+            clusterGroupRef.current.addLayer(marker);
           }
         });
         
@@ -211,7 +184,7 @@ export default function OptimizedLeafletMap() {
         className="w-full h-full"
         style={{ minHeight: '400px' }}
       />
-      <DebugBar count={pointsCount} />
+      <DebugBar count={points.length} />
     </div>
   );
 }
