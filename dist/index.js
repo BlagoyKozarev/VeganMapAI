@@ -3948,6 +3948,23 @@ async function registerRoutes(app2) {
       res.status(500).json([]);
     }
   });
+  app2.post("/api/load-batch", async (req, res) => {
+    try {
+      const { restaurants: batch } = req.body;
+      if (!batch || !Array.isArray(batch)) {
+        return res.status(400).json({ error: "restaurants array required" });
+      }
+      await db.insert(restaurants).values(batch);
+      res.json({
+        ok: true,
+        inserted: batch.length,
+        message: `Loaded ${batch.length} restaurants`
+      });
+    } catch (error) {
+      console.error("Batch load error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
   router.get("/health", async (req, res) => {
     res.type("application/json");
     try {
