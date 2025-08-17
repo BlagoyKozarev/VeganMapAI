@@ -5322,10 +5322,10 @@ router3.post("/share/refresh", async (req, res) => {
           error: "Script execution timeout",
           code: 408,
           stdout: stdout.trim(),
-          stderr: "Script execution timed out after 30 seconds"
+          stderr: "Script execution timed out after 120 seconds"
         });
       }
-    }, 3e4);
+    }, 12e4);
   } catch (error) {
     isRefreshing = false;
     res.status(500).json({
@@ -5339,8 +5339,13 @@ router3.post("/share/refresh", async (req, res) => {
 var share_refresh_default = router3;
 
 // server/index.ts
+import rateLimit from "express-rate-limit";
+import swaggerUi from "swagger-ui-express";
+import { Client as Client4 } from "@googlemaps/google-maps-services-js";
+import client3 from "prom-client";
 import { fileURLToPath as fileURLToPath2 } from "url";
-import { dirname as dirname2 } from "path";
+import { dirname as dirname2, join } from "path";
+import { readFileSync } from "fs";
 var envPath = path6.join(process.cwd(), ".env");
 var envExists = fs6.existsSync(envPath);
 if (envExists) {
@@ -5359,20 +5364,46 @@ function validateEnvironment() {
   console.log("\u2705 All required environment variables loaded successfully");
 }
 validateEnvironment();
+var reg = new client3.Registry();
+reg.setDefaultLabels({ app: "veganmapai" });
+client3.collectDefaultMetrics({
+  register: reg,
+  prefix: "veganmapai_",
+  gcDurationBuckets: [0.05, 0.1, 0.2, 0.5, 1, 2]
+});
+var httpRequestDuration = new client3.Histogram({
+  name: "veganmapai_http_request_duration_seconds",
+  help: "HTTP request duration",
+  labelNames: ["method", "route", "status_code"],
+  buckets: [0.05, 0.1, 0.2, 0.5, 1, 2, 5],
+  registers: [reg]
+});
 var __filename2 = fileURLToPath2(import.meta.url);
 var __dirname2 = dirname2(__filename2);
 var app = express5();
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
 app.use(express5.json({ limit: "1mb" }));
-var allow = [
+app.use((req, res, next) => {
+  const end = httpRequestDuration.startTimer({ method: req.method, route: req.path });
+  res.on("finish", () => end({ status_code: String(res.statusCode) }));
+  next();
+});
+var allowlist = [
+  "https://www.veganmapai.ai",
+  "https://veganmapai.ai",
   "https://vegan-map-ai-bkozarev.replit.app",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
   "http://localhost:5000",
   "http://127.0.0.1:5000"
 ];
 app.use(cors({
-  origin: (o, cb) => !o || allow.includes(o) ? cb(null, true) : cb(null, false),
-  credentials: false,
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    cb(null, allowlist.includes(origin));
+  },
+  credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -5383,6 +5414,82 @@ app.use((req, res, next) => {
 app.get("/__ping", (_req, res) => res.json({ ok: true, ts: Date.now() }));
 app.use(share_route_default);
 app.use(share_refresh_default);
+var publicLimiter = rateLimit({ windowMs: 6e4, max: 60 });
+var geoLimiter = rateLimit({ windowMs: 6e4, max: 10 });
+app.get("/api/v1/healthz", publicLimiter, (req, res) => res.json({ ok: true, ts: Date.now() }));
+app.get(
+  "/api/v1/version",
+  publicLimiter,
+  (req, res) => res.json({
+    git_sha: process.env.GIT_SHA ?? "dev",
+    node_env: process.env.NODE_ENV ?? "dev"
+  })
+);
+app.get("/api/v1/openapi.json", publicLimiter, (req, res) => {
+  const p = join(process.cwd(), "server", "api", "openapi.v1.json");
+  res.type("application/json").send(readFileSync(p, "utf-8"));
+});
+var openapiPath = join(process.cwd(), "server", "api", "openapi.v1.json");
+var openapiDoc = JSON.parse(readFileSync(openapiPath, "utf-8"));
+var swaggerAuth = (req, res, next) => {
+  if (process.env.NODE_ENV !== "production") return next();
+  const auth = req.headers.authorization;
+  if (!auth || !auth.startsWith("Basic ")) {
+    res.setHeader("WWW-Authenticate", 'Basic realm="Swagger Docs"');
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  const credentials = Buffer.from(auth.slice(6), "base64").toString().split(":");
+  const username = credentials[0];
+  const password = credentials[1];
+  if (username === process.env.SWAGGER_USER && password === process.env.SWAGGER_PASS) {
+    return next();
+  }
+  res.setHeader("WWW-Authenticate", 'Basic realm="Swagger Docs"');
+  return res.status(401).json({ error: "Invalid credentials" });
+};
+app.use("/api/v1/docs", swaggerAuth, swaggerUi.serve, swaggerUi.setup(openapiDoc));
+var gmaps = new Client4({});
+var geoCache2 = /* @__PURE__ */ new Map();
+app.get("/api/v1/geocode", geoLimiter, async (req, res) => {
+  try {
+    const q = String(req.query.query ?? "").trim();
+    if (!q) return res.status(400).json({ error: "query required" });
+    if (geoCache2.has(q)) return res.json({ cached: true, result: geoCache2.get(q) });
+    const r = await gmaps.geocode({
+      params: { address: q, key: process.env.GOOGLE_MAPS_API_KEY }
+    });
+    geoCache2.set(q, r.data);
+    res.json({ cached: false, result: r.data });
+  } catch (e) {
+    res.status(500).json({ error: e?.message ?? "geocode error" });
+  }
+});
+app.get("/api/v1/restaurants/:id/reviews", publicLimiter, async (req, res) => {
+  const id = String(req.params.id);
+  res.json({ count: 0, items: [] });
+});
+app.get("/api/v1/admin/metrics", (req, res, next) => {
+  if (process.env.NODE_ENV === "production") {
+    return req.headers["x-metrics-token"] === process.env.METRICS_TOKEN ? next() : res.status(401).end();
+  }
+  next();
+}, async (req, res) => {
+  res.set("Content-Type", reg.contentType);
+  res.set("Cache-Control", "no-store");
+  res.end(await reg.metrics());
+});
+app.get("/api/v1/map-data", publicLimiter, async (req, res) => {
+  const qs = req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "";
+  req.url = "/restaurants/public/map-data" + qs;
+  return apiRouter(req, res, () => {
+  });
+});
+app.get("/api/v1/recommend", publicLimiter, (req, res, next) => {
+  const qs = req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "";
+  req.url = "/recommend" + qs;
+  req.originalUrl = req.originalUrl.replace("/api/v1/recommend", "/api/recommend");
+  return apiRouter(req, res, next);
+});
 app.use("/api", apiRouter);
 var distDir = path6.join(__dirname2, "../dist/public");
 if (fs6.existsSync(distDir)) {
@@ -5394,6 +5501,9 @@ if (fs6.existsSync(distDir)) {
   });
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api/") || req.path.startsWith("/share/")) {
+      if (req.path.startsWith("/api/")) {
+        return res.status(404).json({ ok: false, error: "Not Found" });
+      }
       return next();
     }
     res.sendFile(path6.join(distDir, "index.html"));
