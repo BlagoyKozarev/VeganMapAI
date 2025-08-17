@@ -48,7 +48,7 @@ export default function SimpleClusterMap({
   const clusterGroupRef = useRef<any>(null);
   const [isReady, setIsReady] = useState(false);
 
-  console.log('[SIMPLE CLUSTER MAP] Component loading with', restaurants.length, 'restaurants');
+  console.log('[MAP] Component loading with', restaurants.length, 'restaurants');
 
   // Initialize map
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function SimpleClusterMap({
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    console.log('[SIMPLE CLUSTER MAP] Map initialized');
+    console.log('[MAP] Map initialized');
     setIsReady(true);
 
     return () => {
@@ -90,7 +90,7 @@ export default function SimpleClusterMap({
   // Add restaurants with clustering
   useEffect(() => {
     if (!mapInstanceRef.current || !isReady || restaurants.length === 0) {
-      console.log('[SIMPLE CLUSTER MAP] Not ready or no restaurants:', {
+      console.log('[MAP] Not ready or no restaurants:', {
         mapReady: !!mapInstanceRef.current,
         isReady,
         restaurantCount: restaurants.length
@@ -98,7 +98,7 @@ export default function SimpleClusterMap({
       return;
     }
 
-    console.log('[SIMPLE CLUSTER MAP] Adding restaurants to map...');
+    console.log('[MAP] Adding restaurants to map...');
 
     // Clean up existing cluster group
     if (clusterGroupRef.current) {
@@ -107,7 +107,7 @@ export default function SimpleClusterMap({
 
     // Check if MarkerCluster is available
     const hasMarkerCluster = typeof (L as any).markerClusterGroup === 'function';
-    console.log('[SIMPLE CLUSTER MAP] MarkerCluster available:', hasMarkerCluster);
+    console.log('[MAP] MarkerCluster available:', hasMarkerCluster);
 
     let clusterGroup: any;
     
@@ -155,10 +155,10 @@ export default function SimpleClusterMap({
         zoomToBoundsOnClick: true
       });
       
-      console.log('[SIMPLE CLUSTER MAP] Created MarkerClusterGroup');
+      console.log('[MAP] Created MarkerClusterGroup');
     } else {
       clusterGroup = L.layerGroup();
-      console.warn('[SIMPLE CLUSTER MAP] Using fallback LayerGroup');
+      console.warn('[MAP] Using fallback LayerGroup');
     }
 
     // Add markers
@@ -168,7 +168,7 @@ export default function SimpleClusterMap({
       const lng = parseFloat(String(restaurant.longitude));
       
       if (isNaN(lat) || isNaN(lng)) {
-        console.warn('[SIMPLE CLUSTER MAP] Invalid coordinates for restaurant:', restaurant.name, { lat, lng });
+        console.warn('[MAP] Invalid coordinates for restaurant:', restaurant.name, { lat, lng });
         return;
       }
 
@@ -223,11 +223,11 @@ export default function SimpleClusterMap({
         clusterGroup.addLayer(marker);
         markersAdded++;
       } catch (error) {
-        console.error('[SIMPLE CLUSTER MAP] Error creating marker for:', restaurant.name, error);
+        console.error('[MAP] Error creating marker for:', restaurant.name, error);
       }
     });
 
-    console.log('[SIMPLE CLUSTER MAP] Added', markersAdded, 'markers to cluster group');
+    console.log('[MAP] Added', markersAdded, 'markers to cluster group');
 
     // Add cluster group to map
     clusterGroupRef.current = clusterGroup;
@@ -240,13 +240,13 @@ export default function SimpleClusterMap({
         if (group.getLayers().length > 0) {
           mapInstanceRef.current.fitBounds(group.getBounds(), { padding: [20, 20] });
         }
-        console.log('[SIMPLE CLUSTER MAP] Fitted map bounds');
+        console.log('[MAP] Fitted map bounds');
       } catch (error) {
-        console.warn('[SIMPLE CLUSTER MAP] Could not fit bounds:', error);
+        console.warn('[MAP] Could not fit bounds:', error);
       }
     }
 
-    console.log('[SIMPLE CLUSTER MAP] Map setup complete');
+    console.log('[MAP] Map setup complete');
   }, [restaurants, isReady]);
 
   if (!isReady) {

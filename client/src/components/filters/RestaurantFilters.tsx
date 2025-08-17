@@ -34,7 +34,7 @@ export function RestaurantFilters({
     cuisineType: 'all',
     minVeganScore: 0,
     priceLevel: 'all',
-    maxDistance: 10
+    maxDistance: 500 // Increased to show all restaurants in Bulgaria
   });
 
   // Extract unique cuisine types from restaurants
@@ -53,6 +53,7 @@ export function RestaurantFilters({
       cuisineType: 'all',
       minVeganScore: 0,
       priceLevel: 'all',
+      maxDistance: 500
       maxDistance: 10
     };
     setFilters(resetFilters);
