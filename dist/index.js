@@ -5318,15 +5318,6 @@ var vite_config_default = defineConfig({
 // server/vite.ts
 import { nanoid } from "nanoid";
 var viteLogger = createLogger();
-function log(message, source = "express") {
-  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true
-  });
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
 async function setupVite(app2, server) {
   const serverOptions = {
     middlewareMode: true,
@@ -5779,19 +5770,13 @@ app.post("/api/v1/admin/ingest", async (req, res) => {
   }
 });
 app.use("/api", apiRouter);
+var clientDist = path6.join(process.cwd(), "client", "dist");
 var distPath = path6.join(process.cwd(), "dist", "public");
-app.use((req, res, next) => {
-  if (req.path === "/" || req.path.endsWith(".html")) {
+if (fs6.existsSync(clientDist)) {
+  app.use("/assets", express5.static(path6.join(clientDist, "assets"), { maxAge: "0", etag: false }));
+  app.get(["/", "/index.html"], (_req, res) => {
     res.set("Cache-Control", "no-store");
-  }
-  next();
-});
-if (fs6.existsSync(distPath)) {
-  app.use(express5.static(distPath, { maxAge: "0", etag: false }));
-  app.get("/manifest.json", (_, res) => res.sendFile(path6.join(distPath, "manifest.json")));
-  app.get("/service-worker.js", (req, res) => {
-    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
-    res.sendFile(path6.join(distPath, "service-worker.js"));
+    res.sendFile(path6.join(clientDist, "index.html"));
   });
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api/") || req.path.startsWith("/share/")) {
@@ -5799,6 +5784,16 @@ if (fs6.existsSync(distPath)) {
         return res.status(404).json({ ok: false, error: "Not Found" });
       }
       return next();
+    }
+    res.set("Cache-Control", "no-store");
+    res.sendFile(path6.join(clientDist, "index.html"));
+  });
+}
+if (!fs6.existsSync(clientDist) && fs6.existsSync(distPath)) {
+  app.use(express5.static(distPath, { maxAge: "0", etag: false }));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/")) {
+      return res.status(404).json({ ok: false, error: "Not Found" });
     }
     res.set("Cache-Control", "no-store");
     res.sendFile(path6.join(distPath, "index.html"));
@@ -5818,12 +5813,18 @@ app.use((err, _req, res, _next) => {
   } else {
     serveStatic(app);
   }
-  const port = parseInt(process.env.PORT || "5000", 10);
+  const PORT = Number(process.env.PORT ?? 5e3);
+  app.set("trust proxy", 1);
   server.listen({
-    port,
+    port: PORT,
     host: "0.0.0.0",
     reusePort: true
   }, () => {
-    log(`serving on port ${port}`);
+    console.log(`\u{1F310} Server listening on port ${PORT}`);
+    console.log(`\u{1F4CD} Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`\u{1F517} Local URL: http://localhost:${PORT}`);
+    if (process.env.REPL_SLUG) {
+      console.log(`\u{1F680} Replit URL: https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`);
+    }
   });
 })();

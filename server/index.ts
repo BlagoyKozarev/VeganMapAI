@@ -320,34 +320,39 @@ app.post('/api/v1/admin/ingest', async (req, res) => {
 // 4) API РУТЕР – общия след v1
 app.use('/api', apiRouter);
 
-// 4) Static serving - dist/public folder (Vite output)
+// 4) Static serving - correct client/dist structure for Vite
+const clientDist = path.join(process.cwd(), 'client', 'dist');
 const distPath = path.join(process.cwd(), 'dist', 'public');
 
-// Cache bust headers for HTML
-app.use((req, res, next) => {
-  if (req.path === '/' || req.path.endsWith('.html')) {
+// Serve static assets from client/dist/assets with proper MIME types
+if (fs.existsSync(clientDist)) {
+  app.use('/assets', express.static(path.join(clientDist, 'assets'), { maxAge: '0', etag: false }));
+  
+  // Root HTML with no-store cache
+  app.get(['/', '/index.html'], (_req, res) => {
     res.set('Cache-Control', 'no-store');
-  }
-  next();
-});
-
-// Static assets with proper cache headers
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath, { maxAge: '0', etag: false }));
-  app.get('/manifest.json', (_, res) => res.sendFile(path.join(distPath, 'manifest.json')));
-  app.get('/service-worker.js', (req, res) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
-    res.sendFile(path.join(distPath, 'service-worker.js'));
+    res.sendFile(path.join(clientDist, 'index.html'));
   });
   
-  // 5) SPA fallback - serve index.html for non-API routes
+  // SPA fallback for non-API routes
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api/') || req.path.startsWith('/share/')) {
-      // Add proper JSON 404 for API routes
       if (req.path.startsWith('/api/')) {
         return res.status(404).json({ ok: false, error: "Not Found" });
       }
       return next();
+    }
+    res.set('Cache-Control', 'no-store');
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
+// Fallback to dist/public if client/dist doesn't exist (production)
+if (!fs.existsSync(clientDist) && fs.existsSync(distPath)) {
+  app.use(express.static(distPath, { maxAge: '0', etag: false }));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ ok: false, error: "Not Found" });
     }
     res.set('Cache-Control', 'no-store');
     res.sendFile(path.join(distPath, 'index.html'));
@@ -376,12 +381,20 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     serveStatic(app);
   }
 
-  const port = parseInt(process.env.PORT || '5000', 10);
+  // Правилен порт конфигурация за Replit/Production
+  const PORT = Number(process.env.PORT ?? 5000);
+  app.set('trust proxy', 1);
+  
   server.listen({
-    port,
+    port: PORT,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    console.log(`🌐 Server listening on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🔗 Local URL: http://localhost:${PORT}`);
+    if (process.env.REPL_SLUG) {
+      console.log(`🚀 Replit URL: https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.replit.app`);
+    }
   });
 })();
