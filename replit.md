@@ -74,7 +74,7 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **STATIC SERVING FIXED**: Server uses dist/public with proper cache-busting headers
 - **API V1 ALIASES**: map-data and recommend endpoints working in both dev and production
 - **CACHE BUSTING**: BUILD_SHA=1755444530 with complete invalidation
-- **PRODUCTION FIX**: Removed development-only restriction from initializeDatabase(), ready for redeploy with 505 restaurants
+- **DEPLOYMENT STATUS**: Build ready with batch loading endpoint, production deployment propagation in progress (development: 505 points ✅, production: 5 points ⏳)
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

@@ -1,0 +1,1 @@
+INSERT INTO restaurants (id, place_id, name, address, latitude, longitude, phone_number, website, vegan_score, is_fully_vegan, has_vegan_options, cuisine_types, price_level, rating, review_count, opening_hours, city, country) VALUES
