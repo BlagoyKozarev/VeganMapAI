@@ -75,7 +75,7 @@ router.post("/share/refresh", async (req, res) => {
       });
     });
 
-    // Timeout after 30 seconds
+    // Timeout after 120 seconds
     setTimeout(() => {
       if (isRefreshing) {
         child.kill("SIGTERM");
@@ -84,10 +84,10 @@ router.post("/share/refresh", async (req, res) => {
           error: "Script execution timeout",
           code: 408,
           stdout: stdout.trim(),
-          stderr: "Script execution timed out after 30 seconds"
+          stderr: "Script execution timed out after 120 seconds"
         });
       }
-    }, 30000);
+    }, 120000);
 
   } catch (error) {
     isRefreshing = false;

@@ -34,8 +34,8 @@ import compression from "compression";
 import { registerRoutes, apiRouter } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
 import { initializeDatabase } from "./init-database.js";
-import shareRouter from "./share-route.js";
-import shareRefreshRouter from "./share-refresh.js";
+import shareRouter from "./share-route";
+import shareRefreshRouter from "./share-refresh";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 

@@ -66,11 +66,14 @@ else
 fi
 
 # Create comprehensive manifest
-if [ -f "share/veganmapai-share.zip" ]; then
-  ZIP_SIZE=$(stat -c%s "share/veganmapai-share.zip" 2>/dev/null || stat -f%z "share/veganmapai-share.zip" 2>/dev/null || echo "0")
+OUTDIR="share"
+MANIFEST="${OUTDIR}/manifest.json"
+
+if [ -f "${OUTDIR}/veganmapai-share.zip" ]; then
+  ZIP_SIZE=$(stat -c%s "${OUTDIR}/veganmapai-share.zip" 2>/dev/null || stat -f%z "${OUTDIR}/veganmapai-share.zip" 2>/dev/null || echo "0")
   
   # Create manifest with included files list
-  cat > share/manifest.json << EOF
+  cat > "${MANIFEST}" << EOF
 {
   "name": "VeganMapAI Comprehensive Share",
   "version": "2.0.0", 
