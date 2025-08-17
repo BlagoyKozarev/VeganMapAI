@@ -271,6 +271,52 @@ app.post('/api/v1/seed-full', publicLimiter, async (req, res) => {
   }
 });
 
+// Admin ingest endpoint - secure bulk data import with token protection
+app.post('/api/v1/admin/ingest', async (req, res) => {
+  try {
+    // Token protection for production security
+    if (req.headers['x-seed-token'] !== process.env.SEED_TOKEN) {
+      console.warn('V1 admin/ingest: Invalid or missing seed token');
+      return res.status(401).json({ ok: false, error: 'Unauthorized' });
+    }
+
+    const items = Array.isArray(req.body?.restaurants) ? req.body.restaurants : [];
+    console.log(`V1 admin/ingest: Processing ${items.length} restaurants`);
+    
+    // Import storage to access createRestaurant method
+    const { storage } = await import('./storage.js');
+    
+    let inserted = 0;
+    for (const r of items) {
+      try {
+        await storage.createRestaurant({
+          id: String(r.id ?? crypto.randomUUID()),
+          name: r.name || 'Unknown Restaurant',
+          latitude: String(Number(r.latitude ?? r.lat ?? 0)),
+          longitude: String(Number(r.longitude ?? r.lng ?? 0)),
+          veganScore: r.veganScore ?? r.score ?? null,
+          cuisineTypes: Array.isArray(r.cuisineTypes) ? r.cuisineTypes : [],
+          city: r.city ?? 'Sofia',
+          country: r.country ?? 'Bulgaria',
+          address: r.address ?? '',
+          phoneNumber: r.phoneNumber ?? r.phone ?? null,
+          websiteUrl: r.websiteUrl ?? r.website ?? null,
+          placeId: r.placeId ?? null
+        });
+        inserted++;
+      } catch (error) {
+        console.warn(`V1 admin/ingest: Skip restaurant ${r.name || r.id}:`, error.message);
+      }
+    }
+
+    console.log(`V1 admin/ingest: Successfully inserted ${inserted} restaurants`);
+    res.json({ ok: true, inserted, total_processed: items.length });
+  } catch (e) {
+    console.error('V1 admin/ingest error:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // 4) API РУТЕР – общия след v1
 app.use('/api', apiRouter);
 
