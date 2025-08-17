@@ -5169,15 +5169,15 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path2.resolve(import.meta.dirname, "public");
-  if (!fs2.existsSync(distPath)) {
+  const distPath2 = path2.resolve(import.meta.dirname, "public");
+  if (!fs2.existsSync(distPath2)) {
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
+      `Could not find the build directory: ${distPath2}, make sure to build the client first`
     );
   }
-  app2.use(express2.static(distPath));
+  app2.use(express2.static(distPath2));
   app2.use("*", (_req, res) => {
-    res.sendFile(path2.resolve(distPath, "index.html"));
+    res.sendFile(path2.resolve(distPath2, "index.html"));
   });
 }
 
@@ -5491,17 +5491,19 @@ app.get("/api/v1/recommend", publicLimiter, (req, res, next) => {
   return apiRouter(req, res, next);
 });
 app.use("/api", apiRouter);
-app.use((_req, res, next) => {
-  res.set("Cache-Control", "no-store");
+var distPath = path6.join(process.cwd(), "dist", "public");
+app.use((req, res, next) => {
+  if (req.path === "/" || req.path.endsWith(".html")) {
+    res.set("Cache-Control", "no-store");
+  }
   next();
 });
-var distDir = path6.join(__dirname2, "../dist/public");
-if (fs6.existsSync(distDir)) {
-  app.use("/assets", express5.static(path6.join(distDir, "assets"), { maxAge: "7d", immutable: true }));
-  app.get("/manifest.json", (_, res) => res.sendFile(path6.join(distDir, "manifest.json")));
+if (fs6.existsSync(distPath)) {
+  app.use(express5.static(distPath, { maxAge: "0", etag: false }));
+  app.get("/manifest.json", (_, res) => res.sendFile(path6.join(distPath, "manifest.json")));
   app.get("/service-worker.js", (req, res) => {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
-    res.sendFile(path6.join(distDir, "service-worker.js"));
+    res.sendFile(path6.join(distPath, "service-worker.js"));
   });
   app.get("*", (req, res, next) => {
     if (req.path.startsWith("/api/") || req.path.startsWith("/share/")) {
@@ -5511,7 +5513,7 @@ if (fs6.existsSync(distDir)) {
       return next();
     }
     res.set("Cache-Control", "no-store");
-    res.sendFile(path6.join(distDir, "index.html"));
+    res.sendFile(path6.join(distPath, "index.html"));
   });
 }
 app.use((err, _req, res, _next) => {
