@@ -51,7 +51,7 @@ export default function AiChat() {
   }, [messages]);
   const textChatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
@@ -75,7 +75,7 @@ export default function AiChat() {
     mutationFn: async (audioBlob: Blob) => {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
-      const response = await fetch('/api/audio', {
+      const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/audio`, {
         method: 'POST',
         body: formData,
         credentials: 'include'
@@ -151,7 +151,7 @@ export default function AiChat() {
   });
   const clearChatMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/chat/clear', { 
+      const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/chat/clear`, { 
         method: 'POST',
         credentials: 'include',
         headers: {

@@ -35,7 +35,7 @@ export function AISearchModal({ isOpen, onClose, onSearchResults }: AISearchModa
     setAiResponse(null);
 
     try {
-      const response = await fetch('/api/ai-search', {
+      const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/ai-search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })

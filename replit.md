@@ -63,16 +63,16 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 17, 2025)
-- **CLIENT API MIGRATION COMPLETE**: All frontend API calls migrated to centralized /api/v1 endpoints via config.ts 
-- **Mock Landing Removed**: Cleaned static mock sections from landing page, unified CTA routing
-- **Service Worker Cache Bust**: Added build versioning with automatic cache clearing on deployment
-- **Leaflet CSS Integration**: All map components properly import leaflet/dist/leaflet.css
-- **Production Build Ready**: 746KB client + 206KB server bundle with API v1 migration complete
-- **API Endpoints Centralized**: All fetch calls use API_ENDPOINTS constants from config.ts
-- **Development Testing**: Local endpoints confirmed working - healthz, map-data (5 restaurants), v1 namespace active
-- **Map Data Structure**: Migrated from data.restaurants array to direct array response format
-- **Build Performance**: Vite build optimized, 108KB CSS + 746KB JS bundle generated
-- **Cache Busting Active**: SW cache bust applied with build SHA tracking and localStorage management
+- **COMPLETE API v1 MIGRATION**: All 16 frontend endpoints migrated to /api/v1 namespace with centralized config.ts
+- **Service Worker Cleared**: Force unregister SW + cache clear on startup, no-store headers for index.html
+- **Mock Components Removed**: All BG mock sections deleted, CTA routing unified to /map endpoint
+- **Production Build Optimized**: 746KB JS + 108KB CSS, 206KB server bundle with cache-busted assets
+- **Hardcoded API Cleanup**: Migrated ai-search, voice, chat, audio, map-data endpoints to API_BASE pattern
+- **Development Testing Complete**: healthz, version, map-data (5 restaurants) all working via /api/v1
+- **Landing Page Cleaned**: Removed mock step 1 links, unified navigation to internal routes
+- **Build Versioning**: Dynamic BUILD_SHA with Date.now() for automatic cache invalidation
+- **Server Cache Control**: Added no-store headers for SPA fallback, proper static asset caching
+- **API Structure Ready**: v1 router mounted before legacy, map-data alias working correctly
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

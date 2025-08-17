@@ -232,6 +232,7 @@ if (fs.existsSync(distDir)) {
       }
       return next();
     }
+    res.set('Cache-Control', 'no-store');
     res.sendFile(path.join(distDir, 'index.html'));
   });
 }

@@ -5506,6 +5506,7 @@ if (fs6.existsSync(distDir)) {
       }
       return next();
     }
+    res.set("Cache-Control", "no-store");
     res.sendFile(path6.join(distDir, "index.html"));
   });
 }

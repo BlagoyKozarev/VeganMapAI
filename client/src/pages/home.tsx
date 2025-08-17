@@ -83,7 +83,7 @@ export default function Home() {
   const { data: restaurants = [], isLoading: restaurantsLoading } = useQuery({
     queryKey: ['/api/restaurants/public/map-data'],
     queryFn: async () => {
-      const response = await fetch('/api/restaurants/public/map-data');
+      const response = await fetch(`${import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1'}/map-data`);
       if (!response.ok) throw new Error('Failed to fetch restaurants');
       const data = await response.json();
       // Handle both direct array response and wrapped response

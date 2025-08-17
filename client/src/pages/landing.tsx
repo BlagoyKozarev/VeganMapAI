@@ -82,17 +82,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
-      {/* Temporary Link to Mock Page */}
-      <div className="bg-blue-100 border-b border-blue-200 py-2">
-        <div className="container mx-auto px-4">
-          <a 
-            href="/pages/mock-step1.html" 
-            className="text-blue-700 hover:text-blue-900 font-medium flex items-center gap-2"
-          >
-            ➡ Mock Step 1 (CTA + Navigation)
-          </a>
-        </div>
-      </div>
+
 
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
@@ -131,15 +121,14 @@ export default function Landing() {
           </p>
           
           <div className="flex gap-4 justify-center mb-12">
-            <a href="/test-map">
-              <Button 
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 text-lg px-8 py-6"
-              >
-                <Navigation className="w-5 h-5 mr-2" />
-                Разгледай картата
-              </Button>
-            </a>
+            <Button 
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-lg px-8 py-6"
+              onClick={() => setLocation('/map')}
+            >
+              <Navigation className="w-5 h-5 mr-2" />
+              Разгледай картата
+            </Button>
             <Button 
               size="lg"
               variant="outline"
