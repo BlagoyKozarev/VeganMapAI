@@ -464,7 +464,7 @@ var init_storage = __esm({
           throw error;
         }
       }
-      async getRestaurantsInBounds(bounds, limit = 200) {
+      async getRestaurantsInBounds(bounds, limit = 1e3) {
         console.log("Storage: Getting restaurants in bounds:", bounds, "with limit:", limit);
         try {
           const query = await db.select().from(restaurants).where(

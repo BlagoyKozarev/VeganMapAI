@@ -361,7 +361,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getRestaurantsInBounds(bounds: { north: number, south: number, east: number, west: number }, limit: number = 200): Promise<Restaurant[]> {
+  async getRestaurantsInBounds(bounds: { north: number, south: number, east: number, west: number }, limit: number = 1000): Promise<Restaurant[]> {
     console.log('Storage: Getting restaurants in bounds:', bounds, 'with limit:', limit);
     try {
       // Optimized viewport-based loading
