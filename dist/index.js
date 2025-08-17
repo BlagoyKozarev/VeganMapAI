@@ -1494,9 +1494,9 @@ var init_googleMapsService = __esm({
 
 // server/index.ts
 import { config } from "dotenv";
-import path4 from "path";
-import fs4 from "fs";
-import express3 from "express";
+import path6 from "path";
+import fs6 from "fs";
+import express5 from "express";
 import cors from "cors";
 
 // server/routes.ts
@@ -5214,11 +5214,135 @@ async function initializeDatabase() {
   }
 }
 
-// server/index.ts
+// server/share-route.ts
+import express3 from "express";
+import path4 from "path";
+import fs4 from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-var envPath = path4.join(process.cwd(), ".env");
-var envExists = fs4.existsSync(envPath);
+var __filename = fileURLToPath(import.meta.url);
+var __dirname = dirname(__filename);
+var router2 = express3.Router();
+var ZIP_PATH = path4.resolve(__dirname, "../share/veganmapai-share.zip");
+var MANIFEST_PATH = path4.resolve(__dirname, "../share/manifest.json");
+router2.get("/share/zip", (_req, res) => {
+  if (!fs4.existsSync(ZIP_PATH)) return res.status(404).send("zip missing");
+  res.set({
+    "Cache-Control": "no-store",
+    "Content-Type": "application/zip",
+    "Content-Disposition": 'attachment; filename="veganmapai-share.zip"'
+  });
+  res.sendFile(ZIP_PATH);
+});
+router2.head("/share/zip", (_req, res) => {
+  if (!fs4.existsSync(ZIP_PATH)) return res.status(404).end();
+  const { size, mtime } = fs4.statSync(ZIP_PATH);
+  res.set({
+    "Cache-Control": "no-store",
+    "Content-Type": "application/zip",
+    "Content-Disposition": 'attachment; filename="veganmapai-share.zip"',
+    "Content-Length": String(size),
+    "Last-Modified": mtime.toUTCString()
+  });
+  res.status(200).end();
+});
+router2.get("/share/manifest.json", (_req, res) => {
+  if (!fs4.existsSync(MANIFEST_PATH)) return res.status(404).json({ error: "manifest missing" });
+  res.set("Cache-Control", "no-store");
+  res.sendFile(MANIFEST_PATH);
+});
+var share_route_default = router2;
+
+// server/share-refresh.ts
+import express4 from "express";
+import { spawn } from "child_process";
+import path5 from "path";
+import fs5 from "fs";
+var router3 = express4.Router();
+var isRefreshing = false;
+router3.post("/share/refresh", async (req, res) => {
+  if (isRefreshing) {
+    return res.status(429).json({
+      error: "Refresh already in progress",
+      code: 429,
+      stdout: "",
+      stderr: "Another refresh operation is currently running"
+    });
+  }
+  isRefreshing = true;
+  try {
+    const scriptPath = path5.join(process.cwd(), "scripts", "safezip.sh");
+    if (!fs5.existsSync(scriptPath)) {
+      isRefreshing = false;
+      return res.status(404).json({
+        error: "Script not found",
+        code: 404,
+        stdout: "",
+        stderr: `Script not found at ${scriptPath}`
+      });
+    }
+    try {
+      fs5.chmodSync(scriptPath, 493);
+    } catch (chmodError) {
+    }
+    const child = spawn("bash", [scriptPath], {
+      cwd: process.cwd(),
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+    child.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+    child.on("close", (code) => {
+      isRefreshing = false;
+      res.json({
+        code: code || 0,
+        stdout: stdout.trim(),
+        stderr: stderr.trim()
+      });
+    });
+    child.on("error", (error) => {
+      isRefreshing = false;
+      res.status(500).json({
+        error: "Script execution failed",
+        code: 500,
+        stdout: stdout.trim(),
+        stderr: `Execution error: ${error.message}`
+      });
+    });
+    setTimeout(() => {
+      if (isRefreshing) {
+        child.kill("SIGTERM");
+        isRefreshing = false;
+        res.status(408).json({
+          error: "Script execution timeout",
+          code: 408,
+          stdout: stdout.trim(),
+          stderr: "Script execution timed out after 30 seconds"
+        });
+      }
+    }, 3e4);
+  } catch (error) {
+    isRefreshing = false;
+    res.status(500).json({
+      error: "Internal server error",
+      code: 500,
+      stdout: "",
+      stderr: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+var share_refresh_default = router3;
+
+// server/index.ts
+import { fileURLToPath as fileURLToPath2 } from "url";
+import { dirname as dirname2 } from "path";
+var envPath = path6.join(process.cwd(), ".env");
+var envExists = fs6.existsSync(envPath);
 if (envExists) {
   console.log("\u{1F4C1} Loading environment from .env file:", envPath);
   config({ path: envPath });
@@ -5235,12 +5359,12 @@ function validateEnvironment() {
   console.log("\u2705 All required environment variables loaded successfully");
 }
 validateEnvironment();
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = dirname(__filename);
-var app = express3();
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = dirname2(__filename2);
+var app = express5();
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
-app.use(express3.json({ limit: "1mb" }));
+app.use(express5.json({ limit: "1mb" }));
 var allow = [
   "https://vegan-map-ai-bkozarev.replit.app",
   "http://localhost:5000",
@@ -5256,16 +5380,24 @@ app.use((req, res, next) => {
   res.setHeader("X-App-Commit", process.env.GIT_SHA ?? "dev");
   next();
 });
+app.get("/__ping", (_req, res) => res.json({ ok: true, ts: Date.now() }));
+app.use(share_route_default);
+app.use(share_refresh_default);
 app.use("/api", apiRouter);
-var distDir = path4.join(__dirname, "../dist/public");
-if (fs4.existsSync(distDir)) {
-  app.use("/assets", express3.static(path4.join(distDir, "assets"), { maxAge: "7d", immutable: true }));
-  app.get("/manifest.json", (_, res) => res.sendFile(path4.join(distDir, "manifest.json")));
+var distDir = path6.join(__dirname2, "../dist/public");
+if (fs6.existsSync(distDir)) {
+  app.use("/assets", express5.static(path6.join(distDir, "assets"), { maxAge: "7d", immutable: true }));
+  app.get("/manifest.json", (_, res) => res.sendFile(path6.join(distDir, "manifest.json")));
   app.get("/service-worker.js", (req, res) => {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
-    res.sendFile(path4.join(distDir, "service-worker.js"));
+    res.sendFile(path6.join(distDir, "service-worker.js"));
   });
-  app.get("*", (req, res, next) => req.path.startsWith("/api/") ? next() : res.sendFile(path4.join(distDir, "index.html")));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api/") || req.path.startsWith("/share/")) {
+      return next();
+    }
+    res.sendFile(path6.join(distDir, "index.html"));
+  });
 }
 app.use((err, _req, res, _next) => {
   const status = err.status || err.statusCode || 500;

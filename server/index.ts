@@ -68,12 +68,15 @@ app.use((req, res, next) => {
   next(); 
 });
 
+// Ping endpoint for health checks
+app.get("/__ping", (_req, res) => res.json({ ok: true, ts: Date.now() }));
+
+// Share endpoints (before API and static)
+app.use(shareRouter);
+app.use(shareRefreshRouter);
+
 // 3) API РУТЕР – ПРЕДИ Vite/статиката и всеки catch-all
 app.use('/api', apiRouter);
-
-// Share endpoints
-app.use('/', shareRouter);
-app.use('/', shareRefreshRouter);
 
 // 4) static/PWA
 const distDir = path.join(__dirname, "../dist/public");
@@ -85,8 +88,13 @@ if (fs.existsSync(distDir)) {
     res.sendFile(path.join(distDir, 'service-worker.js'));
   });
   
-  // 5) SPA fallback (само за НЕ-API)
-  app.get('*', (req, res, next) => req.path.startsWith('/api/') ? next() : res.sendFile(path.join(distDir, 'index.html')));
+  // 5) SPA fallback (само за НЕ-API и НЕ-share)
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api/') || req.path.startsWith('/share/')) {
+      return next();
+    }
+    res.sendFile(path.join(distDir, 'index.html'));
+  });
 }
 
 // Error handler
