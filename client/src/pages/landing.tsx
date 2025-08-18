@@ -26,7 +26,8 @@ export default function Landing() {
   console.log('[LANDING] Landing page loaded');
 
   const handleLogin = () => {
-    window.location.href = '/api/login';
+    // For unauthenticated users, navigate to home page instead of broken login
+    setLocation('/home');
   };
 
   // Fetch restaurant stats
@@ -124,7 +125,15 @@ export default function Landing() {
             <Button 
               size="lg"
               className="bg-green-600 hover:bg-green-700 text-lg px-8 py-6"
-              onClick={() => setLocation('/map')}
+              onClick={() => {
+                // Scroll to map section if already on /map, otherwise navigate
+                const mapSection = document.querySelector('#map-preview');
+                if (mapSection) {
+                  mapSection.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  setLocation('/home');
+                }
+              }}
             >
               <Navigation className="w-5 h-5 mr-2" />
               Explore the Map
@@ -199,7 +208,7 @@ export default function Landing() {
           <h3 className="text-3xl font-bold text-center text-gray-900 mb-8">
             Interactive Map with Vegan Restaurants
           </h3>
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden" id="map-preview">
             <div className="relative h-96">
               <OptimizedLeafletMap />
             </div>
