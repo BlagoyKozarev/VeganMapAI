@@ -63,7 +63,13 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 18, 2025)
-- **PRODUCTION DEPLOYMENT SUCCESS**: Force deployment completed with all systems functional
+- **UI/UX BUTTON OVERHAUL COMPLETE**: Comprehensive button system redesign with unified Shadcn components
+- **MOBILE UX ENHANCED**: All buttons now have minimum 44px touch targets for optimal mobile experience
+- **Z-INDEX HIERARCHY FIXED**: MapControls positioned with z-[9999] above Leaflet map interface
+- **ACCESSIBILITY IMPROVEMENTS**: Added aria-labels, keyboard navigation, and focus states for all buttons
+- **SMOOTH ANIMATIONS**: Implemented hover/active states with scale transforms and improved transitions
+- **BUTTON TESTING SUITE**: Created comprehensive smoke tests for UI/UX validation and functionality
+- **PRODUCTION DEPLOYMENT SUCCESS**: All UI/UX improvements deployed to veganmapai.ai with verified functionality
 - **CRITICAL COORDINATE BUG RESOLVED**: Fixed post-deployment coordinate null issue in production
 - **DATABASE COORDINATE FORMAT**: PostgreSQL stores decimals, API converts to strings properly
 - **DUAL FORMAT API RESPONSE**: API returns both lat/lng (working) and latitude/longitude (legacy) formats
