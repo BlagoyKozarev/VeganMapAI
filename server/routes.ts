@@ -65,7 +65,7 @@ apiRouter.get('/restaurants/public/map-data', async (req, res) => {
 // GET /api/restaurants/geojson → Full GeoJSON FeatureCollection
 apiRouter.get('/restaurants/geojson', async (req, res) => {
   try {
-    const restaurants = await storage.getRestaurants();
+    const restaurants = await storage.getAllRestaurants();
     
     const geoJson = {
       type: 'FeatureCollection',

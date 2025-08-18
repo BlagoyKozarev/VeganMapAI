@@ -82,13 +82,18 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **AUTOMATED AUTH TESTING**: Provider configuration validation script created (scripts/test-auth-providers.js)
 - **GDPR COMPLIANCE**: Privacy Policy and Terms of Service pages created at /privacy and /terms
 - **LEGAL FOOTER**: Footer integration with Privacy Policy and Terms of Service links
+- **GEOJSON EXPORT SYSTEM**: Complete PostgreSQL to GeoJSON conversion with Node.js script (scripts/export-geojson.js)
+- **CDN-READY GEOJSON**: Generated sofia.geojson with 511 restaurants (363KB, RFC 7946 compliant)
+- **GEOJSON API ENDPOINT**: Added /api/restaurants/geojson with proper headers and CORS support
+- **GCS CDN INTEGRATION**: Upload script and environment configuration for Google Cloud Storage CDN
 
-## GCP Hybrid Architecture (August 12, 2025)
-- **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson
+## GCS CDN Architecture (August 18, 2025)
+- **GeoJSON Export**: scripts/export-geojson.js generates sofia.geojson with 511 restaurants (363KB)
+- **API Endpoint**: /api/restaurants/geojson serves RFC 7946 compliant GeoJSON with CORS headers
+- **CDN Upload Script**: scripts/upload-geojson-gcs.sh ready for gs://veganmapai-cdn deployment  
 - **Service Account**: veganmap-deployer@centered-inn-460216-r9.iam.gserviceaccount.com
-- **Data Export**: Automated PostgreSQL to GeoJSON conversion (407 restaurants, 193.3 KiB)
-- **Cache Headers**: public,max-age=86400,immutable for optimal performance
-- **API Integration**: Both database and CDN-based operations supported
+- **Cache Strategy**: public,max-age=3600 API serving with CDN fallback architecture
+- **Environment Config**: .env.gcs template with CDN URLs and GCS bucket configuration
 
 ## Session Summary (August 16, 2025)
 - **PERFECT GIT SYNC ACHIEVED**: Force push successful - 407.77 MiB synchronized to GitHub
