@@ -62,6 +62,54 @@ apiRouter.get('/restaurants/public/map-data', async (req, res) => {
   }
 });
 
+// GET /api/restaurants/geojson → Full GeoJSON FeatureCollection
+apiRouter.get('/restaurants/geojson', async (req, res) => {
+  try {
+    const restaurants = await storage.getRestaurants();
+    
+    const geoJson = {
+      type: 'FeatureCollection',
+      features: restaurants.map(restaurant => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [parseFloat(restaurant.longitude), parseFloat(restaurant.latitude)]
+        },
+        properties: {
+          id: restaurant.id,
+          place_id: restaurant.place_id,
+          name: restaurant.name,
+          address: restaurant.address,
+          phone_number: restaurant.phone_number,
+          website: restaurant.website,
+          price_level: restaurant.price_level,
+          cuisine_types: restaurant.cuisine_types,
+          opening_hours: restaurant.opening_hours,
+          photos: restaurant.photos,
+          rating: restaurant.rating,
+          review_count: restaurant.review_count,
+          vegan_score: restaurant.vegan_score,
+          is_verified: restaurant.is_verified,
+          geo_hash: restaurant.geo_hash
+        }
+      }))
+    };
+    
+    res.set({
+      'Content-Type': 'application/geo+json',
+      'Cache-Control': 'public, max-age=3600',
+      'Access-Control-Allow-Origin': '*'
+    });
+    
+    res.json(geoJson);
+  } catch (error) {
+    console.error('GeoJSON endpoint error:', error);
+    res.type('application/json').status(500).json({ 
+      error: error instanceof Error ? error.message : "Unknown error" 
+    });
+  }
+});
+
 // GET /api/recommend?lat&lng&radiusKm=5&minScore=0&limit=10 → { count:number, restaurants:[{ id,name,score,lat,lng }] }
 apiRouter.get('/recommend', async (req, res) => {
   const { lat, lng, radiusKm = 5, minScore = 0, limit = 10 } = req.query as any;
