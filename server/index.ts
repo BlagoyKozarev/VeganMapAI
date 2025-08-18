@@ -337,9 +337,23 @@ app.use('/api', apiRouter);
 const clientDist = path.join(process.cwd(), 'client', 'dist');
 const distPath = path.join(process.cwd(), 'dist', 'public');
 
+// Cache control middleware for HTML files
+app.use((req, res, next) => {
+  if (req.path === '/' || req.path.endsWith('.html')) {
+    res.set('Cache-Control', 'no-store');
+  }
+  next();
+});
+
 // Serve static assets from client/dist/assets with proper MIME types
 if (fs.existsSync(clientDist)) {
-  app.use('/assets', express.static(path.join(clientDist, 'assets'), { maxAge: '0', etag: false }));
+  app.use('/assets', express.static(path.join(clientDist, 'assets'), { 
+    maxAge: 0, 
+    etag: false,
+    setHeaders: (res, path) => {
+      res.set('Cache-Control', 'no-store, must-revalidate');
+    }
+  }));
   
   // Root HTML with no-store cache
   app.get(['/', '/index.html'], (_req, res) => {
