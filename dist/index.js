@@ -5743,8 +5743,9 @@ app.post("/api/v1/admin/ingest", async (req, res) => {
     let inserted = 0;
     for (const r of items) {
       try {
-        await storage2.createRestaurant({
-          id: String(r.id ?? crypto.randomUUID()),
+        const restaurantId = String(r.id ?? crypto.randomUUID());
+        const restaurantData = {
+          id: restaurantId,
           name: r.name || "Unknown Restaurant",
           latitude: String(Number(r.latitude ?? r.lat ?? 0)),
           longitude: String(Number(r.longitude ?? r.lng ?? 0)),
@@ -5756,7 +5757,15 @@ app.post("/api/v1/admin/ingest", async (req, res) => {
           phoneNumber: r.phoneNumber ?? r.phone ?? null,
           websiteUrl: r.websiteUrl ?? r.website ?? null,
           placeId: r.placeId ?? null
-        });
+        };
+        const existing = await storage2.getRestaurant(restaurantId);
+        if (existing) {
+          await storage2.updateRestaurant(restaurantId, restaurantData);
+          console.log(`V1 admin/ingest: Updated restaurant ${r.name} with coordinates`);
+        } else {
+          await storage2.createRestaurant(restaurantData);
+          console.log(`V1 admin/ingest: Created new restaurant ${r.name}`);
+        }
         inserted++;
       } catch (error) {
         console.warn(`V1 admin/ingest: Skip restaurant ${r.name || r.id}:`, error.message);
@@ -5772,8 +5781,20 @@ app.post("/api/v1/admin/ingest", async (req, res) => {
 app.use("/api", apiRouter);
 var clientDist = path6.join(process.cwd(), "client", "dist");
 var distPath = path6.join(process.cwd(), "dist", "public");
+app.use((req, res, next) => {
+  if (req.path === "/" || req.path.endsWith(".html")) {
+    res.set("Cache-Control", "no-store");
+  }
+  next();
+});
 if (fs6.existsSync(clientDist)) {
-  app.use("/assets", express5.static(path6.join(clientDist, "assets"), { maxAge: "0", etag: false }));
+  app.use("/assets", express5.static(path6.join(clientDist, "assets"), {
+    maxAge: 0,
+    etag: false,
+    setHeaders: (res, path7) => {
+      res.set("Cache-Control", "no-store, must-revalidate");
+    }
+  }));
   app.get(["/", "/index.html"], (_req, res) => {
     res.set("Cache-Control", "no-store");
     res.sendFile(path6.join(clientDist, "index.html"));

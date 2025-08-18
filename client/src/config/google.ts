@@ -7,7 +7,7 @@ export const GOOGLE = {
   },
   places: {
     queryRadiusMeters: 3000,
-    types: ["restaurant"] as google.maps.places.PlaceType[],
+    types: ["restaurant"] as string[],
     keyword: "vegan"
   }
 };

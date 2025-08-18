@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'wouter';
-import AuthButtons from '@/components/auth/AuthButtons';
+import AuthButtonsSimple from '@/components/auth/AuthButtonsSimple';
 import { User } from 'firebase/auth';
 
 export default function AuthPage() {
@@ -19,7 +19,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <AuthButtons
+        <AuthButtonsSimple
           onAuthSuccess={handleAuthSuccess}
           onAuthError={handleAuthError}
         />
