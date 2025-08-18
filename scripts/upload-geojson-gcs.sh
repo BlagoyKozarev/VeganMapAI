@@ -5,9 +5,10 @@
 
 set -euo pipefail
 
-BUCKET="veganmapai-cdn"
+BUCKET="${GCS_BUCKET:-veganmapai-cdn}"
 OBJ_PATH="geojson/sofia.geojson"
 LOCAL_FILE="sofia.geojson"
+PROJECT_ID="${GCS_PROJECT:-centered-inn-460216-r9}"
 
 echo "=== GCS CDN UPLOAD FOR VEGANMAPAI ==="
 echo ""
@@ -51,7 +52,7 @@ gsutil mb -l us-central1 "gs://$BUCKET" 2>/dev/null || echo "   Bucket already e
 
 echo ""
 echo "[4/7] Uploading to gs://$BUCKET/$OBJ_PATH ..."
-gsutil cp -a public-read "$LOCAL_FILE" "gs://$BUCKET/$OBJ_PATH"
+gsutil cp "$LOCAL_FILE" "gs://$BUCKET/$OBJ_PATH"
 
 echo ""
 echo "[5/7] Setting CDN metadata..."
@@ -62,8 +63,8 @@ gsutil setmeta \
     "gs://$BUCKET/$OBJ_PATH"
 
 echo ""
-echo "[6/7] Making bucket publicly readable..."
-gsutil iam ch allUsers:objectViewer "gs://$BUCKET" 2>/dev/null || echo "   Public access already configured"
+echo "[6/7] Making object publicly readable..."
+gsutil iam ch allUsers:objectViewer "gs://$BUCKET/$OBJ_PATH" 2>/dev/null || echo "   Public access already configured"
 
 echo ""
 echo "[7/7] Testing CDN availability..."

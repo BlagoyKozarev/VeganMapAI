@@ -87,13 +87,14 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **GEOJSON API ENDPOINT**: Added /api/restaurants/geojson with proper headers and CORS support
 - **GCS CDN INTEGRATION**: Upload script and environment configuration for Google Cloud Storage CDN
 
-## GCS CDN Architecture (August 18, 2025)
+## GCS CDN Architecture - DEPLOYED (August 18, 2025)
+- **CDN Production URL**: https://storage.googleapis.com/veganmapai-cdn/geojson/sofia.geojson ✅ LIVE
 - **GeoJSON Export**: scripts/export-geojson.js generates sofia.geojson with 511 restaurants (363KB)
-- **API Endpoint**: /api/restaurants/geojson serves RFC 7946 compliant GeoJSON with CORS headers
-- **CDN Upload Script**: scripts/upload-geojson-gcs.sh ready for gs://veganmapai-cdn deployment  
-- **Service Account**: veganmap-deployer@centered-inn-460216-r9.iam.gserviceaccount.com
-- **Cache Strategy**: public,max-age=3600 API serving with CDN fallback architecture
-- **Environment Config**: .env.gcs template with CDN URLs and GCS bucket configuration
+- **API Fallback**: /api/restaurants/geojson serves RFC 7946 compliant GeoJSON with CORS headers
+- **CDN Upload**: scripts/upload-geojson-gcs.sh successfully deployed to gs://veganmapai-cdn
+- **Service Account**: veganmapai-cdn-uploader@veganmapai.iam.gserviceaccount.com (authenticated)
+- **Frontend Loader**: client/src/lib/geojson-loader.ts implements CDN-first with API fallback
+- **Cache Strategy**: CDN serves with public,max-age=86400,immutable headers for optimal performance
 
 ## Session Summary (August 16, 2025)
 - **PERFECT GIT SYNC ACHIEVED**: Force push successful - 407.77 MiB synchronized to GitHub
