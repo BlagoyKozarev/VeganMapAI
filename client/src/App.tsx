@@ -45,6 +45,7 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
+          <Route path="/map" component={Landing} />
           <Route path="/admin-scoring" component={AdminScoring} />
         </>
       ) : (
