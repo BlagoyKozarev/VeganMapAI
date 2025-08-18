@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import OptimizedLeafletMap from '@/components/map/OptimizedLeafletMap';
+import GoogleMapView from '@/components/GoogleMapView';
 import { RestaurantModal } from '@/components/map/RestaurantModal';
 import { RestaurantDropdown } from '@/components/ui/restaurant-dropdown';
 import { MobileFilterDrawer } from '@/components/mobile/MobileFilterDrawer';
@@ -496,13 +496,14 @@ export default function Home() {
       </div>
       {/* Simple Map Container */}
       <div className="w-full h-full relative" style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-        <OptimizedLeafletMap
-          center={currentPosition ? [currentPosition.lat, currentPosition.lng] : [42.6977, 23.3219]}
-          zoom={11}
+        <GoogleMapView
           restaurants={filteredRestaurants.map(r => ({
-            ...r,
-            latitude: parseFloat(r.latitude),
-            longitude: parseFloat(r.longitude),
+            id: r.id,
+            name: r.name,
+            lat: parseFloat(r.latitude),
+            lng: parseFloat(r.longitude),
+            rating: r.rating ? parseFloat(r.rating) : undefined,
+            place_id: r.placeId,
             veganScore: r.veganScore || '0'
           }))}
           onRestaurantClick={(restaurant) => {
@@ -512,10 +513,7 @@ export default function Home() {
               handleRestaurantClick(originalRestaurant);
             }
           }}
-          searchQuery={searchQuery}
-          userFavorites={userFavorites.map((f: any) => f.id)}
-          aiHighlightedRestaurants={aiHighlightedRestaurants}
-          isAuthenticated={isAuthenticated}
+          className="w-full h-full"
         />
         {/* Mobile Panels */}
         {isMobile && (

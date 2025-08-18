@@ -3,13 +3,10 @@ import App from "./App";
 import "./index.css";
 import { BUILD_SHA } from "./build";
 
-// Fix Leaflet icon paths for Vite
-import L from 'leaflet';
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import { gaInit } from './lib/analytics';
 
-L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
+// Initialize Google Analytics 4
+gaInit();
 
 // Force clear Service Worker and cache
 if ('serviceWorker' in navigator) {

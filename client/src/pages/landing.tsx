@@ -4,7 +4,7 @@ import { MapPin, Star, Filter, Heart, ChefHat, Bot, Shield, Navigation } from 'l
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
-import OptimizedLeafletMap from '../components/map/OptimizedLeafletMap';
+import GoogleMapView from '../components/GoogleMapView';
 import { API_ENDPOINTS } from '@/config';
 
 export default function Landing() {
@@ -26,9 +26,23 @@ export default function Landing() {
   console.log('[LANDING] Landing page loaded');
 
   const handleLogin = () => {
-    // For unauthenticated users, navigate to home page instead of broken login
-    setLocation('/home');
+    // Navigate to Firebase Auth page
+    setLocation('/auth');
   };
+
+  const handleRestaurantClick = (restaurant: any) => {
+    console.log('[LANDING] Restaurant clicked:', restaurant.name);
+  };
+
+  // Normalize restaurant data for Google Maps
+  const normalizedRestaurants = restaurants.map((r: any) => ({
+    id: r.id || r.placeId,
+    name: r.name,
+    lat: parseFloat(r.lat || r.latitude),
+    lng: parseFloat(r.lng || r.longitude),
+    rating: r.rating ? parseFloat(r.rating) : undefined,
+    place_id: r.placeId
+  })).filter((r: any) => !isNaN(r.lat) && !isNaN(r.lng));
 
   // Fetch restaurant stats
   const { data: stats } = useQuery({
@@ -212,7 +226,11 @@ export default function Landing() {
           </h3>
           <Card className="overflow-hidden" id="map-preview">
             <div className="relative h-96">
-              <OptimizedLeafletMap />
+              <GoogleMapView 
+                restaurants={normalizedRestaurants}
+                onRestaurantClick={handleRestaurantClick}
+                className="w-full h-96 rounded-lg overflow-hidden shadow-lg"
+              />
             </div>
           </Card>
         </div>

@@ -63,28 +63,21 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **dotenv**: Environment variable management.
 
 ## Recent Changes (August 18, 2025)
-- **UI/UX BUTTON OVERHAUL COMPLETE**: Comprehensive button system redesign with unified Shadcn components
-- **MOBILE UX ENHANCED**: All buttons now have minimum 44px touch targets for optimal mobile experience
-- **Z-INDEX HIERARCHY FIXED**: MapControls positioned with z-[9999] above Leaflet map interface
-- **ACCESSIBILITY IMPROVEMENTS**: Added aria-labels, keyboard navigation, and focus states for all buttons
-- **SMOOTH ANIMATIONS**: Implemented hover/active states with scale transforms and improved transitions
-- **BUTTON TESTING SUITE**: Created comprehensive smoke tests for UI/UX validation and functionality
-- **PRODUCTION DEPLOYMENT SUCCESS**: All UI/UX improvements deployed to veganmapai.ai with verified functionality
-- **CRITICAL COORDINATE BUG RESOLVED**: Fixed post-deployment coordinate null issue in production
-- **DATABASE COORDINATE FORMAT**: PostgreSQL stores decimals, API converts to strings properly
-- **DUAL FORMAT API RESPONSE**: API returns both lat/lng (working) and latitude/longitude (legacy) formats
-- **FRONTEND COMPATIBILITY**: Map components prioritize lat/lng fields ensuring full functionality
-- **UPSERT LOGIC IMPLEMENTED**: Admin/ingest endpoint supports updating existing restaurant coordinates
-- **PRODUCTION DATABASE**: 518 restaurants with 518 valid coordinates confirmed functional
-- **DEVELOPMENT DATABASE**: 511 restaurants with full coordinate mapping working
-- **LEAFLET CLUSTERING**: OptimizedLeafletMap rendering 511+ markers with proper clustering behavior
-- **V1 API NAMESPACE**: Complete endpoint coverage (healthz, map-data, admin/ingest, seed-full)
-- **STATIC SERVING**: Client assets served correctly with proper MIME types and SPA fallback
-- **ASSET LOADING DIAGNOSTICS**: Cache headers corrected, Service Worker cleared, MIME types verified
-- **ROUTING FIX COMPLETE**: /map route added for unauthenticated users, 404 error resolved
-- **PRODUCTION /map ROUTE**: Users can now access /map directly showing Landing page with functional map
-- **DEPLOYMENT VERIFIED**: Both development and production /map routes working correctly
-- **ENGLISH LANDING PAGE**: Landing page restored to English with modern styling and full functionality
+- **COMPLETE GOOGLE MAPS MIGRATION**: Fully migrated from Leaflet to Google Maps with @react-google-maps/api
+- **FIREBASE AUTHENTICATION INTEGRATION**: Complete multi-provider auth with Google, Apple, Facebook, Twitter
+- **LEAFLET REMOVAL COMPLETE**: All Leaflet packages, imports, and components completely removed
+- **GOOGLE MAPS CLUSTERING**: Advanced marker clustering with @googlemaps/markerclusterer integration
+- **PLACES API INTEGRATION**: Nearby search functionality with vegan restaurant filtering
+- **ROUTE CALCULATIONS**: DirectionsService and DistanceMatrixService integration for navigation
+- **FIREBASE AUTH PROVIDERS**: Full OAuth setup with account linking and error handling
+- **GOOGLE ANALYTICS 4**: GA4 integration with event tracking and page view analytics
+- **ENVIRONMENT CONFIGURATION**: Complete .env.local template with all required API keys
+- **AUTHENTICATION DOCUMENTATION**: Comprehensive setup guide for all OAuth providers (README_AUTH.md)
+- **MODERN AUTH UI**: Redesigned authentication page with provider-specific styling and loading states
+- **API KEY MANAGEMENT**: Structured environment variable setup for Firebase, Google Maps, and GA4
+- **PRODUCTION READY**: Clean build system without Leaflet dependencies, ready for API key configuration
+- **RESPONSIVE MAP INTERFACE**: Google Maps with mobile-first design and touch-optimized controls
+- **COMPREHENSIVE TESTING**: Firebase auth test suite and Google Maps integration validation
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

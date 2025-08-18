@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
+import AuthPage from "@/pages/auth";
 import ProfileSetup from "@/pages/profile-setup";
 import Search from "@/pages/search";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -44,6 +45,7 @@ function Router() {
     <Switch>
       {!isAuthenticated ? (
         <>
+          <Route path="/auth" component={AuthPage} />
           <Route path="/" component={Landing} />
           <Route path="/map" component={Landing} />
           <Route path="/admin-scoring" component={AdminScoring} />
