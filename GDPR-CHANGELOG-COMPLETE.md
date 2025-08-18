@@ -4,24 +4,26 @@
 **File**: `public/privacy/index.html`
 **URL**: `/privacy`
 
-### Added Change Log Section:
+### Added Change Log Section with Auto-Date:
 ```html
 <h2>Change Log</h2>
 <ul>
-  <li><strong>2025-08-18</strong>: Initial version published with GDPR compliance and authentication-only scope.</li>
+  <li><strong>{{AUTO-TODAY}}</strong>: Initial version published with GDPR compliance and authentication-only scope.</li>
 </ul>
+<p><em>Last updated: {{AUTO-TODAY}}</em></p>
 ```
 
 ## ✅ Terms of Service Updates  
 **File**: `public/terms/index.html`
 **URL**: `/terms`
 
-### Added Change Log Section:
+### Added Change Log Section with Auto-Date:
 ```html
 <h2>Change Log</h2>
 <ul>
-  <li><strong>2025-08-18</strong>: Initial version published covering authentication use, GDPR consent, and user obligations.</li>
+  <li><strong>{{AUTO-TODAY}}</strong>: Initial version published covering authentication use, GDPR consent, and user obligations.</li>
 </ul>
+<p><em>Last updated: {{AUTO-TODAY}}</em></p>
 ```
 
 ## 📋 Changelog Best Practices Implemented
