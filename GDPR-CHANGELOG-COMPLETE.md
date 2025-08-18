@@ -45,6 +45,25 @@ When updating policies:
 2. **Update "Last updated" date** in the main content
 3. **Verify pages load correctly** at `/privacy` and `/terms`
 
+## 🔧 Build Automation
+**Scripts Created:**
+- `scripts/replace_date.sh` - Replaces {{AUTO-TODAY}} placeholders with current date
+- `scripts/build-production.sh` - Full production build with date replacement
+
+**Usage:**
+```bash
+# Date replacement only
+bash scripts/replace_date.sh
+
+# Full production build
+bash scripts/build-production.sh
+```
+
+**Integration:**
+- Auto-date replacement runs before build
+- {{AUTO-TODAY}} → current date (YYYY-MM-DD format)
+- Validates replacement success with counts
+
 ## 🚀 Production Status
 Both pages are production-ready with:
 - ✅ Full GDPR compliance
@@ -53,5 +72,7 @@ Both pages are production-ready with:
 - ✅ Contact information for data requests
 - ✅ Legal basis for data processing
 - ✅ OAuth provider coverage (Google, Apple, Facebook, Twitter)
+- ✅ **Automated date replacement system**
+- ✅ **Production build scripts**
 
 **Ready for deployment** at veganmapai.ai domain.
