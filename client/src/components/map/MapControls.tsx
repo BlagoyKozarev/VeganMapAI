@@ -33,7 +33,7 @@ export default function MapControls({
   const [isExpanded, setIsExpanded] = useState(true); // Start expanded for testing
 
   return (
-    <div className="fixed top-20 right-4" style={{ zIndex: 2000 }}>
+    <div className="fixed top-20 right-4 z-[9999]">
       <Card className="bg-white shadow-xl border-2 border-blue-300">
         <CardContent className="p-4">
           {/* Toggle Button */}

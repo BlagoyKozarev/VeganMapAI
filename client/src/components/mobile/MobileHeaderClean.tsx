@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface MobileHeaderProps {
   searchQuery: string;
@@ -54,13 +55,15 @@ export function MobileHeader({
               onBlur={() => setTimeout(() => onShowSuggestions(false), 200)}
             />
             {searchQuery && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => onSearchChange('')}
-                className="ml-2 text-gray-400 hover:text-gray-600 text-lg p-2 -m-2"
-                style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                className="ml-2 text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
               >
                 ×
-              </button>
+              </Button>
             )}
           </div>
           {/* Search Suggestions */}
@@ -131,40 +134,44 @@ export function MobileHeader({
         </div>
         {/* Navigation Icons */}
         <div className="flex items-center gap-2">
-          <button 
+          <Button 
+            variant="default"
+            size="icon"
             onClick={onOpenAdvancedSearch || (() => {})}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
+            className="rounded-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
             title="Advanced Search"
-            style={{ touchAction: 'manipulation' }}
           >
             <span className="text-white text-sm">⚙️</span>
-          </button>
-          <button 
+          </Button>
+          <Button 
+            variant="default"
+            size="icon"
             onClick={onOpenChat || (() => window.location.href = '/ai-chat')}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95" 
+            className="rounded-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
             title="AI Voice Assistant"
-            style={{ touchAction: 'manipulation' }}
           >
             <span className="text-white text-sm">🎤</span>
-          </button>
+          </Button>
           {isAuthenticated && (
-            <button 
+            <Button 
+              variant={showFavoritesOnly ? "destructive" : "default"}
+              size="icon"
               onClick={onToggleFavorites}
-              className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95 ${
-                showFavoritesOnly ? 'bg-red-500 hover:bg-red-600' : 'bg-gradient-to-r from-red-500 to-red-600'
-              }`}
+              className="rounded-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
               title={showFavoritesOnly ? "Show all restaurants" : "Show favorites only"}
-              style={{ touchAction: 'manipulation' }}
             >
               <Heart className="w-4 h-4 text-white" fill={showFavoritesOnly ? "currentColor" : "none"} />
-            </button>
+            </Button>
           )}
-          <button 
+          <Button 
+            variant="default"
+            size="icon"
             onClick={onOpenProfile}
-            className="w-11 h-11 min-w-[44px] min-h-[44px] bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
-            style={{ touchAction: 'manipulation' }}>
+            className="rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+            title="Open profile"
+          >
             <i className="fas fa-user text-sm"></i>
-          </button>
+          </Button>
         </div>
       </div>
     </header>

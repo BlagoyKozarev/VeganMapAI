@@ -100,6 +100,7 @@ export default function Landing() {
               <a href="#contact" className="text-gray-600 hover:text-green-600 transition-colors">Contact</a>
             </nav>
             <Button 
+              variant="default"
               className="bg-green-600 hover:bg-green-700"
               onClick={handleLogin}
             >
@@ -124,7 +125,8 @@ export default function Landing() {
           <div className="flex gap-4 justify-center mb-12">
             <Button 
               size="lg"
-              className="bg-green-600 hover:bg-green-700 text-lg px-8 py-6"
+              variant="default"
+              className="bg-green-600 hover:bg-green-700"
               onClick={() => {
                 // Scroll to map section if already on /map, otherwise navigate
                 const mapSection = document.querySelector('#map-preview');
