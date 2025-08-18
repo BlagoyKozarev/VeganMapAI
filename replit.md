@@ -85,7 +85,9 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **GEOJSON EXPORT SYSTEM**: Complete PostgreSQL to GeoJSON conversion with Node.js script (scripts/export-geojson.js)
 - **CDN-READY GEOJSON**: Generated sofia.geojson with 511 restaurants (363KB, RFC 7946 compliant)
 - **GEOJSON API ENDPOINT**: Added /api/restaurants/geojson with proper headers and CORS support
-- **GCS CDN INTEGRATION**: Upload script and environment configuration for Google Cloud Storage CDN
+- **GCS CDN INTEGRATION COMPLETE**: Live CDN at https://storage.googleapis.com/veganmapai-cdn/geojson/sofia.geojson
+- **CDN AUTOMATION**: Upload scripts with authentication and metadata configuration
+- **FRONTEND CDN LOADER**: CDN-first loading with API fallback mechanism (client/src/lib/geojson-loader.ts)
 
 ## GCS CDN Architecture - DEPLOYED (August 18, 2025)
 - **CDN Production URL**: https://storage.googleapis.com/veganmapai-cdn/geojson/sofia.geojson ✅ LIVE
