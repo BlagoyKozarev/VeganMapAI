@@ -78,6 +78,8 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **PRODUCTION READY**: Clean build system without Leaflet dependencies, ready for API key configuration
 - **RESPONSIVE MAP INTERFACE**: Google Maps with mobile-first design and touch-optimized controls
 - **COMPREHENSIVE TESTING**: Firebase auth test suite and Google Maps integration validation
+- **GDPR COMPLIANCE**: Privacy Policy and Terms of Service pages created at /privacy and /terms
+- **LEGAL FOOTER**: Footer integration with Privacy Policy and Terms of Service links
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

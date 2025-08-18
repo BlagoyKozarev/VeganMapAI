@@ -282,11 +282,17 @@ export default function Landing() {
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-lg mb-4">Contact</h4>
-              <p className="text-gray-400">
-                hello@veganmapai.ai<br />
-                Sofia, Bulgaria
-              </p>
+              <h4 className="font-semibold text-lg mb-4">Legal</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="/privacy" className="hover:text-white">Privacy Policy</a></li>
+                <li><a href="/terms" className="hover:text-white">Terms of Service</a></li>
+              </ul>
+              <div className="mt-4">
+                <p className="text-gray-400 text-sm">
+                  hello@veganmapai.ai<br />
+                  Sofia, Bulgaria
+                </p>
+              </div>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
