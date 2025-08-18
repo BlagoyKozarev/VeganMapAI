@@ -414,10 +414,10 @@ var init_storage = __esm({
           }
           return result.map((r) => ({
             ...r,
-            veganScore: r.veganScore || "0",
+            veganScore: r.veganScore ? r.veganScore.toString() : "0",
             cuisineTypes: r.cuisineTypes || [],
-            latitude: r.latitude?.toString() || "0",
-            longitude: r.longitude?.toString() || "0"
+            latitude: r.latitude ? r.latitude.toString() : "0",
+            longitude: r.longitude ? r.longitude.toString() : "0"
           }));
         } catch (error) {
           console.error("Error getting all restaurants with scores:", error);

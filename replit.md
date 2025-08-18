@@ -91,7 +91,10 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **PRODUCTION SYNC SUCCESS**: 506/511 restaurants transferred (99.02% success rate)
 - **PRODUCTION DATABASE**: 517 total restaurants with full Sofia dataset  
 - **BATCH TRANSFER COMPLETE**: 3 batches processed with rate limiting and error handling
-- **FINAL STATUS**: Production fully seeded, admin/ingest active, all systems operational
+- **COORDINATE FIX COMPLETE**: Fixed decimal→string conversion for latitude/longitude in storage.ts
+- **STATIC SERVING FIX**: Corrected client/dist paths, SPA fallback, and port configuration  
+- **PRODUCTION VERIFIED**: 517 restaurants with valid coordinates, all endpoints functional
+- **FINAL STATUS**: Both development (511) and production (517) fully operational with proper map clustering
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson
