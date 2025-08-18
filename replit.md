@@ -74,9 +74,10 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **LEAFLET CLUSTERING**: OptimizedLeafletMap rendering 511+ markers with proper clustering behavior
 - **V1 API NAMESPACE**: Complete endpoint coverage (healthz, map-data, admin/ingest, seed-full)
 - **STATIC SERVING**: Client assets served correctly with proper MIME types and SPA fallback
-- **DEPLOYMENT READY**: All systems tested and verified for production deployment
-- **COORDINATE VERIFICATION**: Both environments confirmed working with lat/lng format
-- **MAP FUNCTIONALITY**: Browser logs confirm 511 markers rendered with clustering active
+- **ASSET LOADING DIAGNOSTICS**: Cache headers corrected, Service Worker cleared, MIME types verified
+- **ROUTING FIX COMPLETE**: /map route added for unauthenticated users, 404 error resolved
+- **PRODUCTION /map ROUTE**: Users can now access /map directly showing Landing page with functional map
+- **DEPLOYMENT VERIFIED**: Both development and production /map routes working correctly
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson
