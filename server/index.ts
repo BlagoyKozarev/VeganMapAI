@@ -289,8 +289,9 @@ app.post('/api/v1/admin/ingest', async (req, res) => {
     let inserted = 0;
     for (const r of items) {
       try {
-        await storage.createRestaurant({
-          id: String(r.id ?? crypto.randomUUID()),
+        const restaurantId = String(r.id ?? crypto.randomUUID());
+        const restaurantData = {
+          id: restaurantId,
           name: r.name || 'Unknown Restaurant',
           latitude: String(Number(r.latitude ?? r.lat ?? 0)),
           longitude: String(Number(r.longitude ?? r.lng ?? 0)),
@@ -302,7 +303,19 @@ app.post('/api/v1/admin/ingest', async (req, res) => {
           phoneNumber: r.phoneNumber ?? r.phone ?? null,
           websiteUrl: r.websiteUrl ?? r.website ?? null,
           placeId: r.placeId ?? null
-        });
+        };
+
+        // Check if restaurant exists
+        const existing = await storage.getRestaurant(restaurantId);
+        if (existing) {
+          // Update existing restaurant (UPSERT logic)
+          await storage.updateRestaurant(restaurantId, restaurantData);
+          console.log(`V1 admin/ingest: Updated restaurant ${r.name} with coordinates`);
+        } else {
+          // Create new restaurant
+          await storage.createRestaurant(restaurantData);
+          console.log(`V1 admin/ingest: Created new restaurant ${r.name}`);
+        }
         inserted++;
       } catch (error) {
         console.warn(`V1 admin/ingest: Skip restaurant ${r.name || r.id}:`, error.message);
