@@ -78,6 +78,7 @@ VeganMapAI is a full-stack web application that helps users discover vegan-frien
 - **ROUTING FIX COMPLETE**: /map route added for unauthenticated users, 404 error resolved
 - **PRODUCTION /map ROUTE**: Users can now access /map directly showing Landing page with functional map
 - **DEPLOYMENT VERIFIED**: Both development and production /map routes working correctly
+- **ENGLISH LANDING PAGE**: Landing page restored to English with modern styling and full functionality
 
 ## GCP Hybrid Architecture (August 12, 2025)
 - **CDN GeoJSON**: https://storage.googleapis.com/veganmapai-cdn-460216r9/geojson/sofia.geojson

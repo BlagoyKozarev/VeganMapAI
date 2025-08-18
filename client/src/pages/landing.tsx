@@ -50,33 +50,33 @@ export default function Landing() {
   const features = [
     {
       icon: <MapPin className="w-6 h-6" />,
-      title: "Интерактивна карта",
-      description: "Разгледай веган ресторанти в твоя район с подробна информация"
+      title: "Interactive Map",
+      description: "Explore vegan restaurants in your area with detailed information"
     },
     {
       icon: <Bot className="w-6 h-6" />,
-      title: "AI асистент",
-      description: "Интелигентни препоръки базирани на твоите предпочитания"
+      title: "AI Assistant",
+      description: "Intelligent recommendations based on your preferences"
     },
     {
       icon: <Star className="w-6 h-6" />,
-      title: "Веган оценки",
-      description: "6-измерна система за оценка на веган приятелски заведения"
+      title: "Vegan Scores",
+      description: "6-dimensional scoring system for vegan-friendly establishments"
     },
     {
       icon: <Filter className="w-6 h-6" />,
-      title: "Умни филтри",
-      description: "Филтрирай по цена, кухня, алергени и още"
+      title: "Smart Filters",
+      description: "Filter by price, cuisine, allergens and more"
     },
     {
       icon: <Heart className="w-6 h-6" />,
-      title: "Любими места",
-      description: "Запазвай и организирай любимите си ресторанти"
+      title: "Favorite Places",
+      description: "Save and organize your favorite restaurants"
     },
     {
       icon: <Shield className="w-6 h-6" />,
-      title: "Проверени данни",
-      description: "Актуална информация от Google Places и потребителски отзиви"
+      title: "Verified Data",
+      description: "Up-to-date information from Google Places and user reviews"
     }
   ];
 
@@ -112,12 +112,12 @@ export default function Landing() {
       <section className="container mx-auto px-4 py-16">
         <div className="text-center max-w-3xl mx-auto">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Открий най-добрите веган ресторанти
+            Discover the Best Vegan Restaurants
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            VeganMapAI ти помага да откриеш най-добрите веган заведения около теб, 
-            използвайки интелигентна система за оценка и филтрация. 
-            Намери ресторанти, виж оценки и персонализирани препоръки.
+            VeganMapAI helps you discover the best vegan-friendly places around you, 
+            using an intelligent scoring and filtering system. 
+            Find restaurants, view ratings, and get personalized recommendations.
           </p>
           
           <div className="flex gap-4 justify-center mb-12">
@@ -127,7 +127,7 @@ export default function Landing() {
               onClick={() => setLocation('/map')}
             >
               <Navigation className="w-5 h-5 mr-2" />
-              Разгледай картата
+              Explore the Map
             </Button>
             <Button 
               size="lg"
@@ -135,7 +135,7 @@ export default function Landing() {
               className="text-lg px-8 py-6"
               onClick={() => setShowFeatures(true)}
             >
-              Научи повече
+              Learn More
             </Button>
           </div>
 
@@ -145,19 +145,19 @@ export default function Landing() {
               <div className="text-3xl font-bold text-green-600 mb-2">
                 {stats?.totalRestaurants || 408}+
               </div>
-              <div className="text-gray-600">Ресторанти</div>
+              <div className="text-gray-600">Restaurants</div>
             </Card>
             <Card className="p-6 text-center">
               <div className="text-3xl font-bold text-green-600 mb-2">
                 {stats?.cities || 1}
               </div>
-              <div className="text-gray-600">Градове</div>
+              <div className="text-gray-600">Cities</div>
             </Card>
             <Card className="p-6 text-center">
               <div className="text-3xl font-bold text-green-600 mb-2">
                 {stats?.avgScore || 4.2}
               </div>
-              <div className="text-gray-600">Средна оценка</div>
+              <div className="text-gray-600">Average Score</div>
             </Card>
           </div>
         </div>
@@ -168,7 +168,7 @@ export default function Landing() {
         <section id="features" className="bg-white py-16">
           <div className="container mx-auto px-4">
             <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">
-              Какво предлагаме
+              What We Offer
             </h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {features.map((feature, index) => (
@@ -197,7 +197,7 @@ export default function Landing() {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl font-bold text-center text-gray-900 mb-8">
-            Интерактивна карта с веган ресторанти
+            Interactive Map with Vegan Restaurants
           </h3>
           <Card className="overflow-hidden">
             <div className="relative h-96">
@@ -211,17 +211,17 @@ export default function Landing() {
       <section className="py-16 bg-green-600">
         <div className="container mx-auto px-4 text-center">
           <h3 className="text-3xl font-bold text-white mb-4">
-            Готов ли си да откриеш веган рая?
+            Ready to Discover Vegan Paradise?
           </h3>
           <p className="text-xl text-green-100 mb-8">
-            Присъедини се към хиляди потребители, които вече намират перфектното веган място
+            Join thousands of users who are already finding the perfect vegan spots
           </p>
           <Button 
             size="lg"
             className="bg-white text-green-600 hover:bg-gray-100 text-lg px-8 py-6"
             onClick={handleLogin}
           >
-            Започни безплатно
+            Start for Free
           </Button>
         </div>
       </section>
@@ -233,35 +233,35 @@ export default function Landing() {
             <div>
               <h4 className="font-semibold text-lg mb-4">VeganMapAI</h4>
               <p className="text-gray-400">
-                Твоят гид към веган ресторанти
+                Your guide to vegan restaurants
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-lg mb-4">Бързи връзки</h4>
+              <h4 className="font-semibold text-lg mb-4">Quick Links</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" onClick={handleLogin} className="hover:text-white">Карта</a></li>
-                <li><a href="#" onClick={handleLogin} className="hover:text-white">AI Асистент</a></li>
-                <li><a href="#" onClick={handleLogin} className="hover:text-white">Профил</a></li>
+                <li><a href="#" onClick={handleLogin} className="hover:text-white">Map</a></li>
+                <li><a href="#" onClick={handleLogin} className="hover:text-white">AI Assistant</a></li>
+                <li><a href="#" onClick={handleLogin} className="hover:text-white">Profile</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-lg mb-4">За разработчици</h4>
+              <h4 className="font-semibold text-lg mb-4">For Developers</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#api" className="hover:text-white">API достъп</a></li>
-                <li><a href="#docs" className="hover:text-white">Документация</a></li>
+                <li><a href="#api" className="hover:text-white">API Access</a></li>
+                <li><a href="#docs" className="hover:text-white">Documentation</a></li>
                 <li><a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-white">GitHub</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-lg mb-4">Контакт</h4>
+              <h4 className="font-semibold text-lg mb-4">Contact</h4>
               <p className="text-gray-400">
                 hello@veganmapai.ai<br />
-                София, България
+                Sofia, Bulgaria
               </p>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 VeganMapAI. Всички права запазени.</p>
+            <p>&copy; 2025 VeganMapAI. All rights reserved.</p>
           </div>
         </div>
       </footer>
