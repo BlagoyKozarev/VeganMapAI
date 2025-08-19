@@ -1,44 +1,83 @@
-# Manual Git Commands - VeganMapAI
+# Manual Git Commands for VeganMapAI CDN Integration
 
-## Команди за изпълнение в терминала:
+## Current Situation
+- Git lock file exists (normal Replit protection)
+- All CDN integration files are ready for commit
+- Need manual Git operations in Replit Shell
 
-### 1. Конфигурирайте remote с token:
-```bash
-git remote set-url origin https://BlagoyKozarev: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@github.com/BlagoyKozarev/VeganMapAI.git
-```
+## Required Commands
 
-### 2. Проверете конфигурацията:
-```bash
-git remote -v
-```
-
-### 3. Проверете статуса:
+### 1. Check Git Status
 ```bash
 git status
 ```
 
-### 4. Push към GitHub:
+### 2. Add All Changes
+```bash
+git add .
+```
+
+### 3. Commit with Descriptive Message
+```bash
+git commit -m "feat: Complete GCS CDN integration with 511 restaurants
+
+✅ MAJOR FEATURES:
+- Live CDN: https://storage.googleapis.com/veganmapai-cdn/geojson/sofia.geojson
+- 511 Sofia restaurants exported to RFC 7946 GeoJSON (354KB)
+- CDN-first frontend loader with API fallback
+- Automated export and upload scripts with authentication
+- 24-hour cache headers for optimal global performance
+
+🔧 NEW FILES:
+- client/src/lib/geojson-loader.ts (CDN data loader)
+- scripts/export-geojson.js (PostgreSQL to GeoJSON export)
+- scripts/upload-geojson-gcs.sh (GCS upload automation)
+- GCS-CDN-SUCCESS-REPORT.md (deployment documentation)
+
+📚 DOCUMENTATION:
+- Updated replit.md with CDN architecture
+- Complete GCS integration guide
+- Environment configuration templates
+
+🚀 PRODUCTION READY:
+- Global CDN distribution via Google Cloud Storage
+- Service account authentication configured
+- Error handling and validation throughout pipeline
+- Performance optimized with immutable cache headers
+
+Date: August 18, 2025"
+```
+
+### 4. Push to GitHub
 ```bash
 git push origin main
 ```
 
-### 5. Проверете резултата:
-```bash
-git log --oneline -3
-```
+## Files Included in Commit
 
-## Или изпълнете готовия скрипт:
-```bash
-./GIT-PUSH-WITH-TOKEN.sh
-```
+### New CDN Integration Files
+- `client/src/lib/geojson-loader.ts` - CDN-first data loader
+- `scripts/export-geojson.js` - Database export automation
+- `scripts/upload-geojson-gcs.sh` - GCS upload script
+- `scripts/test-gcs-connection.sh` - Connection testing
+- `GCS-CDN-SUCCESS-REPORT.md` - Deployment report
+- `.env.gcs` - Environment template
 
-## След успешен push:
-- ✅ Кодът ще бъде в GitHub: https://github.com/BlagoyKozarev/VeganMapAI
-- ✅ Replit deployment вече работи
-- ✅ Системата е готова за production
+### Updated Documentation
+- `replit.md` - Architecture updates
+- `docs/GCS-CDN-INTEGRATION.md` - Technical guide
 
-## Текущо състояние:
-- 49 commits готови за push
-- Working tree clean
-- Token конфигуриран
-- Готово за push!
+## Verification After Push
+1. Check GitHub repository for new files
+2. Verify CDN is accessible globally
+3. Test frontend integration
+4. Monitor performance improvements
+
+## CDN Status
+- **URL**: https://storage.googleapis.com/veganmapai-cdn/geojson/sofia.geojson
+- **Status**: ✅ Live and operational
+- **Data**: 511 restaurants, 354KB
+- **Cache**: 24 hours with immutable flag
+- **Format**: RFC 7946 compliant GeoJSON
+
+Ready for production deployment!
