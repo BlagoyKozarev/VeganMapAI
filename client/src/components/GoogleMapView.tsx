@@ -1,7 +1,8 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useLoadScript, Marker } from '@react-google-maps/api';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { GOOGLE, GOOGLE_MAPS_LIBRARIES } from '@/config/google';
+import { geoJSONLoader, type GeoJSONFeature } from '@/lib/geojson-loader';
 
 interface Restaurant {
   id: string;
@@ -10,12 +11,15 @@ interface Restaurant {
   lng: number;
   rating?: number;
   place_id?: string;
+  vegan_score?: number;
+  address?: string;
 }
 
 interface GoogleMapViewProps {
   restaurants?: Restaurant[];
   onRestaurantClick?: (restaurant: Restaurant) => void;
   className?: string;
+  useCDN?: boolean; // Enable CDN data loading
 }
 
 const mapContainerStyle = {
@@ -34,7 +38,8 @@ const mapOptions: google.maps.MapOptions = {
 export default function GoogleMapView({ 
   restaurants = [], 
   onRestaurantClick,
-  className 
+  className,
+  useCDN = true
 }: GoogleMapViewProps) {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: GOOGLE.apiKey,
@@ -43,21 +48,129 @@ export default function GoogleMapView({
 
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [cdnRestaurants, setCdnRestaurants] = useState<Restaurant[]>([]);
+  const [isLoadingCDN, setIsLoadingCDN] = useState(false);
+  const [cdnLoadError, setCdnLoadError] = useState<string | null>(null);
+  const [cdnSource, setCdnSource] = useState<'cdn' | 'api' | null>(null);
   const clustererRef = useRef<MarkerClusterer | null>(null);
+
+  // Load CDN restaurant data
+  const loadCDNData = useCallback(async () => {
+    if (!useCDN) return;
+    
+    setIsLoadingCDN(true);
+    setCdnLoadError(null);
+    
+    try {
+      console.log('[CDN] Loading restaurant data from CDN...');
+      const result = await geoJSONLoader.load();
+      
+      // Convert GeoJSON features to Restaurant format
+      const restaurantData: Restaurant[] = result.data.features.map((feature: GeoJSONFeature) => ({
+        id: feature.properties.id,
+        name: feature.properties.name,
+        lat: feature.geometry.coordinates[1],
+        lng: feature.geometry.coordinates[0],
+        rating: feature.properties.rating,
+        vegan_score: feature.properties.vegan_score,
+        address: feature.properties.address,
+        place_id: feature.properties.place_id
+      }));
+      
+      setCdnRestaurants(restaurantData);
+      setCdnSource(result.source);
+      
+      console.log(`[CDN] Loaded ${restaurantData.length} restaurants from ${result.source} in ${result.loadTime.toFixed(0)}ms`);
+      
+      if (result.error) {
+        console.warn('[CDN] Fallback warning:', result.error);
+      }
+      
+    } catch (error) {
+      console.error('[CDN] Failed to load restaurant data:', error);
+      setCdnLoadError(error instanceof Error ? error.message : 'Failed to load restaurant data');
+    } finally {
+      setIsLoadingCDN(false);
+    }
+  }, [useCDN]);
+
+  // Load CDN data when component mounts
+  useEffect(() => {
+    loadCDNData();
+  }, [loadCDNData]);
 
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
-    
-    // Initialize marker clusterer
-    if (restaurants.length > 0) {
-      clustererRef.current = new MarkerClusterer({
-        map,
-        markers: [],
-      });
+    console.log('[GOOGLE MAPS] Map loaded successfully');
+  }, []);
+
+  // Update markers when restaurants or CDN data changes
+  useEffect(() => {
+    if (!map || !isLoaded) return;
+
+    // Clear existing clusterer
+    if (clustererRef.current) {
+      clustererRef.current.clearMarkers();
     }
 
-    console.log('[GOOGLE MAPS] Map loaded successfully');
-  }, [restaurants.length]);
+    // Use CDN data if available and enabled, otherwise use provided restaurants
+    const restaurantData = useCDN && cdnRestaurants.length > 0 ? cdnRestaurants : restaurants;
+    
+    if (restaurantData.length === 0) return;
+
+    // Create markers for restaurants
+    const markers = restaurantData.map(restaurant => {
+      const marker = new google.maps.Marker({
+        position: { lat: restaurant.lat, lng: restaurant.lng },
+        title: restaurant.name,
+        icon: {
+          url: getMarkerIcon(restaurant.vegan_score),
+          scaledSize: new google.maps.Size(32, 32)
+        }
+      });
+
+      // Add click listener
+      marker.addListener('click', () => {
+        handleMarkerClick(restaurant);
+      });
+
+      return marker;
+    });
+
+    // Initialize marker clusterer with custom styling
+    clustererRef.current = new MarkerClusterer({
+      map,
+      markers,
+      renderer: {
+        render: ({ count, position }) => {
+          const color = count < 10 ? '#10b981' : count < 25 ? '#f59e0b' : '#ef4444';
+          const svg = `
+            <svg fill="${color}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="50" height="50">
+              <circle cx="120" cy="120" opacity=".6" r="70" />
+              <circle cx="120" cy="120" opacity=".3" r="90" />
+              <circle cx="120" cy="120" opacity=".2" r="110" />
+              <text x="50%" y="50%" style="fill:#fff; font-size:48px; font-weight:bold;" text-anchor="middle" dy="18">${count}</text>
+            </svg>`;
+          
+          return new google.maps.Marker({
+            position,
+            icon: {
+              url: `data:image/svg+xml;base64,${btoa(svg)}`,
+              scaledSize: new google.maps.Size(50, 50)
+            },
+            label: {
+              text: String(count),
+              color: 'white',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }
+          });
+        }
+      }
+    });
+
+    console.log(`[GOOGLE MAPS] Added ${markers.length} markers${useCDN ? ` from ${cdnSource}` : ''}`);
+  }, [map, isLoaded, restaurants, cdnRestaurants, useCDN, cdnSource]);
 
   const onUnmount = useCallback(() => {
     if (clustererRef.current) {
@@ -65,6 +178,15 @@ export default function GoogleMapView({
     }
     setMap(null);
   }, []);
+
+  // Get marker icon based on vegan score
+  const getMarkerIcon = (veganScore?: number) => {
+    if (!veganScore) return '/marker-default.png';
+    
+    if (veganScore >= 7) return '/marker-green.png';
+    if (veganScore >= 4) return '/marker-yellow.png';
+    return '/marker-red.png';
+  };
 
   const handleMarkerClick = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
@@ -181,6 +303,12 @@ export default function GoogleMapView({
         <div className="text-center p-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
           <p className="text-gray-600">Loading Google Maps...</p>
+          {useCDN && isLoadingCDN && (
+            <p className="text-sm text-blue-600 mt-1">Loading restaurant data from CDN...</p>
+          )}
+          {cdnLoadError && (
+            <p className="text-sm text-red-600 mt-1">CDN load failed, using fallback</p>
+          )}
         </div>
       </div>
     );
@@ -188,6 +316,15 @@ export default function GoogleMapView({
 
   return (
     <div className={className}>
+      {/* CDN Status Indicator */}
+      {useCDN && cdnSource && (
+        <div className="mb-2 text-xs text-gray-500 flex items-center gap-1">
+          <div className={`w-2 h-2 rounded-full ${cdnSource === 'cdn' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+          Data source: {cdnSource === 'cdn' ? 'Global CDN' : 'Local API'} 
+          {cdnRestaurants.length > 0 && `(${cdnRestaurants.length} restaurants)`}
+        </div>
+      )}
+      
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={GOOGLE.map.center}
@@ -196,15 +333,7 @@ export default function GoogleMapView({
         onLoad={onLoad}
         onUnmount={onUnmount}
       >
-        {/* Render individual markers for restaurants */}
-        {restaurants.map((restaurant) => (
-          <Marker
-            key={restaurant.id}
-            position={{ lat: restaurant.lat, lng: restaurant.lng }}
-            title={restaurant.name}
-            onClick={() => handleMarkerClick(restaurant)}
-          />
-        ))}
+        {/* Note: Markers are handled by the clusterer in useEffect */}
       </GoogleMap>
 
       {/* Controls */}
@@ -222,9 +351,17 @@ export default function GoogleMapView({
       {selectedRestaurant && (
         <div className="mt-4 p-4 bg-white border rounded-lg shadow">
           <h3 className="font-semibold">{selectedRestaurant.name}</h3>
-          {selectedRestaurant.rating && (
-            <p className="text-sm text-gray-600">Rating: {selectedRestaurant.rating}/5</p>
+          {selectedRestaurant.address && (
+            <p className="text-sm text-gray-600 mt-1">{selectedRestaurant.address}</p>
           )}
+          <div className="flex gap-4 mt-2">
+            {selectedRestaurant.rating && (
+              <p className="text-sm text-gray-600">Rating: {selectedRestaurant.rating}/5</p>
+            )}
+            {selectedRestaurant.vegan_score && (
+              <p className="text-sm text-green-600">Vegan Score: {selectedRestaurant.vegan_score}/8</p>
+            )}
+          </div>
           <p className="text-xs text-gray-500 mt-1">
             {selectedRestaurant.lat.toFixed(6)}, {selectedRestaurant.lng.toFixed(6)}
           </p>
