@@ -43,5 +43,17 @@ externalPort = 80
 localPort = 8080
 externalPort = 8080
 
+[[ports]]
+localPort = 9005
+externalPort = 3000
+
+[[ports]]
+localPort = 9006
+externalPort = 3001
+
+[[ports]]
+localPort = 9007
+externalPort = 3002
+
 [agent]
 integrations = ["javascript_openai==1.0.0", "javascript_log_in_with_replit==1.0.0", "javascript_database==1.0.0"]
