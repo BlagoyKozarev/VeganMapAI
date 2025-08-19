@@ -22,6 +22,7 @@ import Favorites from "@/pages/favorites";
 import AiChat from "@/pages/ai-chat";
 import VoiceLimitsTest from "@/pages/VoiceLimitsTest";
 import GoogleMapsCost from "@/pages/GoogleMapsCost";
+import MapDemo from "@/pages/map-demo";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -71,6 +72,7 @@ function Router() {
           <Route path="/ai-chat" component={AiChat} />
           <Route path="/voice-limits-test" component={VoiceLimitsTest} />
           <Route path="/google-maps-cost" component={GoogleMapsCost} />
+          <Route path="/map-demo" component={MapDemo} />
         </>
       )}
       <Route component={NotFound} />
