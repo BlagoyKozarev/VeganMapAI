@@ -25,7 +25,7 @@ export class GBGPTProvider {
   private timeout: number;
 
   constructor() {
-    this.apiUrl = process.env.GBGPT_API_URL || 'http://192.168.0.245:5000/v1/completions';
+    this.apiUrl = process.env.BGGPT_URL || process.env.GBGPT_API_URL || 'http://192.168.0.245:5000/v1/completions';
     this.apiKey = process.env.GBGPT_API_KEY || 'R@icommerce23';
     this.timeout = 20000; // 20 секунди - GBGPT е бавен!
     
