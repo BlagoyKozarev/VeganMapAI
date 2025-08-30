@@ -2,7 +2,7 @@
   "hosting": [
     {
       "site": "veganmapai-1a8b7",
-      "public": "dist",
+      "public": "dist/public",
       "ignore": [
         "firebase.json",
         "**/.*",
