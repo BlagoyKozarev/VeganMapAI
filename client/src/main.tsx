@@ -20,6 +20,15 @@ console.log('[SW CLEAR] Cache cleared, build:', BUILD_SHA);
 console.log('[MAIN] React app loading...');
 createRoot(document.getElementById("root")!).render(<App />);
 
-// @ts-ignore
-import { registerSW } from 'virtual:pwa-register'
-registerSW()
+// Manual Service Worker Registration for PWA
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('[SW] Registered successfully:', registration.scope);
+      })
+      .catch((error) => {
+        console.log('[SW] Registration failed:', error);
+      });
+  });
+}
