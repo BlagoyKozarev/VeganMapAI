@@ -20,7 +20,7 @@
           "headers": [
             { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
             { "key": "Pragma", "value": "no-cache" },
-            { "key": "Expires", "value": "Thu, 01 Jan 1970 00:00:00 GMT" }
+            { "key": "Expires", "value": "0" }
           ]
         }
       ]
