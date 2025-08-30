@@ -19,3 +19,7 @@ console.log('[SW CLEAR] Cache cleared, build:', BUILD_SHA);
 
 console.log('[MAIN] React app loading...');
 createRoot(document.getElementById("root")!).render(<App />);
+
+// @ts-ignore
+import { registerSW } from 'virtual:pwa-register'
+registerSW()
