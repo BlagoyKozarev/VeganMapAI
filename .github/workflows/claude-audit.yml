@@ -38,7 +38,7 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: |
-          node scripts/claude_audit.js
+          node scripts/claude_audit.cjs
 
       - name: Upload report artifact
         uses: actions/upload-artifact@v4
