@@ -4,32 +4,6 @@ name: Claude Code Audit
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "**/*.ts"
-      - "**/*.tsx"
-      - "**/*.js"
-      - "**/*.jsx"
-      - "**/*.mjs"
-      - "**/*.cjs"
-      - "**/*.py"
-      - "**/*.go"
-      - "**/*.rs"
-      - "**/*.java"
-      - "**/*.json"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "yarn.lock"
-      - "bun.lockb"
-      - "requirements.txt"
-      - "pyproject.toml"
-      - "go.mod"
-      - "Cargo.toml"
-      - "Dockerfile"
-      - "**/vite.config.*"
-      - "**/next.config.*"
-      - "**/tsconfig*.json"
-      - "**/.eslintrc*"
-      - "**/.prettierrc*"
   push:
     branches: [main]
   workflow_dispatch:
@@ -75,31 +49,3 @@ jobs:
             audit/claude-audit.json
           if-no-files-found: error
           retention-days: 14
-
-      - name: Comment on PR (if PR)
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let body = '';
-            try { body = fs.readFileSync('audit/claude-audit.md','utf8'); }
-            catch { body = 'Неуспешно четене на отчета.'; }
-            const max = 18000;
-            const trimmed = body.length > max ? body.slice(0,max) + "\n\n… (съкратено)" : body;
-            const comment = `### 🧪 Claude Code Audit
-<details>
-<summary>Отвори отчета</summary>
-
-${trimmed}
-
-</details>
-
-Артефакт: **Actions → текущия run → Artifacts → claude-audit**.`;
-            const { context } = github;
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              body: comment
-            });
