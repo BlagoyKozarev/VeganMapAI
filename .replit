@@ -56,3 +56,4 @@ localPort = 9007
 externalPort = 3002
 
 [agent]
+expertMode = true
