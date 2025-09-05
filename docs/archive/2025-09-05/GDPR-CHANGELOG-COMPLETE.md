@@ -1,0 +1,78 @@
+# GDPR Changelog Implementation - COMPLETE
+
+## ✅ Privacy Policy Updates
+**File**: `public/privacy/index.html`
+**URL**: `/privacy`
+
+### Added Change Log Section with Auto-Date:
+```html
+<h2>Change Log</h2>
+<ul>
+  <li><strong>{{AUTO-TODAY}}</strong>: Initial version published with GDPR compliance and authentication-only scope.</li>
+</ul>
+<p><em>Last updated: {{AUTO-TODAY}}</em></p>
+```
+
+## ✅ Terms of Service Updates  
+**File**: `public/terms/index.html`
+**URL**: `/terms`
+
+### Added Change Log Section with Auto-Date:
+```html
+<h2>Change Log</h2>
+<ul>
+  <li><strong>{{AUTO-TODAY}}</strong>: Initial version published covering authentication use, GDPR consent, and user obligations.</li>
+</ul>
+<p><em>Last updated: {{AUTO-TODAY}}</em></p>
+```
+
+## 📋 Changelog Best Practices Implemented
+- ✅ Chronological format (latest entries on top)
+- ✅ Date format: YYYY-MM-DD for international compliance
+- ✅ Brief, clear descriptions of changes
+- ✅ Easy to maintain for future updates
+- ✅ Transparent change tracking for GDPR compliance
+
+## 🔄 Future Update Process
+When updating policies:
+
+1. **Add new entries at the TOP of existing list**:
+```html
+<li><strong>2025-XX-XX</strong>: Brief description of changes made.</li>
+<li><strong>2025-08-18</strong>: Initial version published...</li>
+```
+
+2. **Update "Last updated" date** in the main content
+3. **Verify pages load correctly** at `/privacy` and `/terms`
+
+## 🔧 Build Automation
+**Scripts Created:**
+- `scripts/replace_date.sh` - Replaces {{AUTO-TODAY}} placeholders with current date
+- `scripts/build-production.sh` - Full production build with date replacement
+
+**Usage:**
+```bash
+# Date replacement only
+bash scripts/replace_date.sh
+
+# Full production build
+bash scripts/build-production.sh
+```
+
+**Integration:**
+- Auto-date replacement runs before build
+- {{AUTO-TODAY}} → current date (YYYY-MM-DD format)
+- Validates replacement success with counts
+
+## 🚀 Production Status
+Both pages are production-ready with:
+- ✅ Full GDPR compliance
+- ✅ Comprehensive change tracking
+- ✅ Clear user rights documentation
+- ✅ Contact information for data requests
+- ✅ Legal basis for data processing
+- ✅ OAuth provider coverage (Google, Apple, Facebook, Twitter)
+- ✅ **Automated date replacement system**
+- ✅ **Production build scripts**
+
+**Ready for deployment** at veganmapai.ai domain.
